@@ -68,6 +68,7 @@ import {
   Star
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
+import { useAuth } from '../context/AuthContext';
 
 // Icon mapping
 const iconMap: Record<string, any> = {
@@ -135,6 +136,7 @@ const iconMap: Record<string, any> = {
 interface AutomationCreatorProps {}
 
 const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
+  const { user } = useAuth();
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
@@ -145,6 +147,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   const [actionCategory, setActionCategory] = useState<string>('all');
   const [showTriggers, setShowTriggers] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Get unique categories
   const triggerCategories = ['all', ...new Set(triggers.map(t => t.category))];
@@ -182,7 +185,61 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
     });
   };
 
-  const handleCreate = () => {
+    const sendToN8N = async (automationData: any) => {
+    try {
+      const webhookPayload = {
+        event_type: 'automation_created',
+        timestamp: Date.now(),
+        data: {
+          automation: {
+            name: automationData.name,
+            description: automationData.description,
+            trigger: automationData.trigger.name,
+            actions: automationData.actions.map((action: Action) => ({
+              name: action.name,
+              category: action.category,
+              description: action.description
+            }))
+          },
+          user: {
+            id: user?.id || 'anonymous',
+            email: user?.email || 'anonymous@lluvia.ai',
+            name: user?.name || 'Anonymous User',
+            plan: user?.plan || 'free'
+          }
+        },
+        id: `automation_${Date.now()}`,
+        metadata: {
+          source: 'lluvia-ai-platform',
+          webhook_id: `webhook_${Date.now()}`,
+          user_id: user?.id || 'anonymous',
+          automation_name: automationData.name
+        }
+      };
+
+      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'LLUVIA-AI-Platform/1.0'
+        },
+        body: JSON.stringify(webhookPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Automation sent to N8N successfully:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('❌ Failed to send automation to N8N:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+
+  const handleCreate = async () => {
     if (!automationName.trim()) {
       alert('Please enter an automation name');
       return;
@@ -196,24 +253,37 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       return;
     }
 
-    console.log('Creating automation:', {
+    setIsCreating(true);
+
+    const automationData = {
       name: automationName,
       description: automationDescription,
       trigger: selectedTrigger,
       actions: selectedActions
-      });
+    };
 
-      // Reset form
-    setAutomationName('');
-    setAutomationDescription('');
-    setSelectedTrigger(null);
-    setSelectedActions([]);
-    setTriggerSearchTerm('');
-    setActionSearchTerm('');
-    setTriggerCategory('all');
-    setActionCategory('all');
+    console.log('Creating automation:', automationData);
     
-    alert('🎉 Automation created successfully!');
+    // Send to N8N webhook
+    const webhookResult = await sendToN8N(automationData);
+    
+    if (webhookResult.success) {
+      alert('🎉 Automation created and sent to N8N successfully!');
+      
+      // Reset form
+      setAutomationName('');
+      setAutomationDescription('');
+      setSelectedTrigger(null);
+      setSelectedActions([]);
+      setTriggerSearchTerm('');
+      setActionSearchTerm('');
+      setTriggerCategory('all');
+      setActionCategory('all');
+    } else {
+      alert(`⚠️ Automation created but failed to send to N8N: ${webhookResult.error}`);
+    }
+    
+    setIsCreating(false);
   };
 
   const getIcon = (iconName: string) => {
@@ -551,12 +621,22 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         >
           <button
             onClick={handleCreate}
-            disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger}
+            disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || isCreating}
             className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-xl font-bold rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center space-x-3 mx-auto"
           >
-            <Rocket className="w-6 h-6" />
-            <span>Create Automation</span>
-            <Star className="w-6 h-6" />
+            {isCreating ? (
+              <>
+                <RefreshCw className="w-6 h-6 animate-spin" />
+                <span>Sending to N8N...</span>
+                <RefreshCw className="w-6 h-6 animate-spin" />
+              </>
+            ) : (
+              <>
+                <Rocket className="w-6 h-6" />
+                <span>Create Automation</span>
+                <Star className="w-6 h-6" />
+              </>
+            )}
           </button>
           {(!automationName.trim() || !selectedTrigger) && (
             <p className="text-gray-400 text-sm mt-2">
