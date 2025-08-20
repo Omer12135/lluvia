@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   Zap, 
@@ -62,7 +62,10 @@ import {
   Link,
   Layers,
   Code,
-  Server
+  Server,
+  Sparkles,
+  Heart,
+  Star
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 
@@ -132,13 +135,16 @@ const iconMap: Record<string, any> = {
 interface AutomationCreatorProps {}
 
 const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
-  const [step, setStep] = useState<'details' | 'trigger' | 'actions' | 'review'>('details');
-  const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
-  const [selectedActions, setSelectedActions] = useState<Action[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
+  const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
+  const [selectedActions, setSelectedActions] = useState<Action[]>([]);
+  const [triggerSearchTerm, setTriggerSearchTerm] = useState('');
+  const [actionSearchTerm, setActionSearchTerm] = useState('');
+  const [triggerCategory, setTriggerCategory] = useState<string>('all');
+  const [actionCategory, setActionCategory] = useState<string>('all');
+  const [showTriggers, setShowTriggers] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
   // Get unique categories
   const triggerCategories = ['all', ...new Set(triggers.map(t => t.category))];
@@ -146,24 +152,23 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
 
   // Filter functions
   const filteredTriggers = triggers.filter(trigger => {
-    const matchesSearch = trigger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trigger.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || trigger.category === selectedCategory;
+    const matchesSearch = trigger.name.toLowerCase().includes(triggerSearchTerm.toLowerCase()) ||
+                         trigger.description.toLowerCase().includes(triggerSearchTerm.toLowerCase());
+    const matchesCategory = triggerCategory === 'all' || trigger.category === triggerCategory;
     return matchesSearch && matchesCategory;
   });
 
   const filteredActions = actions.filter(action => {
-    const matchesSearch = action.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         action.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || action.category === selectedCategory;
+    const matchesSearch = action.name.toLowerCase().includes(actionSearchTerm.toLowerCase()) ||
+                         action.description.toLowerCase().includes(actionSearchTerm.toLowerCase());
+    const matchesCategory = actionCategory === 'all' || action.category === actionCategory;
     return matchesSearch && matchesCategory;
   });
 
   const handleTriggerSelect = (trigger: Trigger) => {
     setSelectedTrigger(trigger);
-    setStep('actions');
-    setSearchTerm('');
-    setSelectedCategory('all');
+    setShowTriggers(false);
+    setTriggerSearchTerm('');
   };
 
   const handleActionToggle = (action: Action) => {
@@ -177,46 +182,34 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
     });
   };
 
-  const handleNext = () => {
-    if (step === 'details') {
-      setStep('trigger');
-    } else if (step === 'trigger') {
-      setStep('actions');
-    } else if (step === 'actions') {
-      setStep('review');
-    }
-  };
-
-  const handleBack = () => {
-    if (step === 'trigger') {
-      setStep('details');
-    } else if (step === 'actions') {
-      setStep('trigger');
-      setSelectedTrigger(null);
-    } else if (step === 'review') {
-      setStep('actions');
-    }
-  };
-
   const handleCreate = () => {
+    if (!automationName.trim()) {
+      alert('Please enter an automation name');
+      return;
+    }
+    if (!selectedTrigger) {
+      alert('Please select a trigger');
+      return;
+    }
+
     console.log('Creating automation:', {
       name: automationName,
       description: automationDescription,
       trigger: selectedTrigger,
       actions: selectedActions
-      });
-
-      // Reset form
-    setStep('details');
+    });
+    
+    // Reset form
     setAutomationName('');
     setAutomationDescription('');
     setSelectedTrigger(null);
     setSelectedActions([]);
-    setSearchTerm('');
-    setSelectedCategory('all');
+    setTriggerSearchTerm('');
+    setActionSearchTerm('');
+    setTriggerCategory('all');
+    setActionCategory('all');
     
-    // Show success message (you can add a toast notification here)
-    alert('Automation created successfully!');
+    alert('🎉 Automation created successfully!');
   };
 
   const getIcon = (iconName: string) => {
@@ -224,451 +217,349 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
     return IconComponent;
   };
 
-  const renderTriggerSelection = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Select a Trigger</h3>
-        <p className="text-gray-400">Choose what will start your automation</p>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search triggers..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {triggerCategories.map(category => (
-            <option key={category} value={category}>
-              {category === 'all' ? 'All Categories' : category}
-            </option>
-          ))}
-        </select>
-        </div>
-            
-      {/* Triggers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-        {filteredTriggers.map((trigger) => {
-          const IconComponent = getIcon(trigger.icon);
-          return (
-        <motion.div
-              key={trigger.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleTriggerSelect(trigger)}
-              className="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors"
-            >
-              <div className="flex items-start space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
-                  <IconComponent className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-white font-medium text-sm truncate">{trigger.name}</h4>
-                  <p className="text-gray-400 text-xs mt-1">{trigger.description}</p>
-                  <span className="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded mt-2">
-                    {trigger.category}
-                  </span>
-          </div>
-          </div>
-        </motion.div>
-          );
-        })}
-            </div>
-            
-      {filteredTriggers.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-400">No triggers found matching your criteria</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderActionSelection = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Select Actions (Optional)</h3>
-        <p className="text-gray-400">Choose what happens when the trigger fires</p>
-          </div>
-
-      {/* Selected Trigger */}
-      {selectedTrigger && (
-        <div className="p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              {React.createElement(getIcon(selectedTrigger.icon), { className: "w-5 h-5 text-white" })}
-            </div>
-            <div>
-              <h4 className="text-white font-medium">Trigger: {selectedTrigger.name}</h4>
-              <p className="text-blue-300 text-sm">{selectedTrigger.description}</p>
-            </div>
-          </div>
-          </div>
-                    )}
-
-      {/* Selected Actions */}
-      {selectedActions.length > 0 && (
-        <div className="p-4 bg-green-900/20 border border-green-700 rounded-lg">
-          <h4 className="text-white font-medium mb-3">Selected Actions ({selectedActions.length})</h4>
-          <div className="flex flex-wrap gap-2">
-            {selectedActions.map((action) => {
-              const IconComponent = getIcon(action.icon);
-              return (
-                <div key={action.id} className="flex items-center space-x-2 px-3 py-1 bg-green-800 rounded-full">
-                  <IconComponent className="w-4 h-4 text-white" />
-                  <span className="text-white text-sm">{action.name}</span>
-              <button
-                    onClick={() => handleActionToggle(action)}
-                    className="text-green-300 hover:text-white"
-              >
-                    <X className="w-3 h-3" />
-              </button>
-            </div>
-              );
-            })}
-                    </div>
-                      </div>
-                    )}
-
-      {/* Search and Filter */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search actions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {actionCategories.map(category => (
-            <option key={category} value={category}>
-              {category === 'all' ? 'All Categories' : category}
-            </option>
-          ))}
-        </select>
-            </div>
-
-      {/* Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-        {filteredActions.map((action) => {
-          const IconComponent = getIcon(action.icon);
-          const isSelected = selectedActions.some(a => a.id === action.id);
-          return (
-            <motion.div
-              key={action.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-              onClick={() => handleActionToggle(action)}
-              className={`p-4 rounded-lg border cursor-pointer transition-colors ${
-                isSelected
-                  ? 'bg-green-900/30 border-green-500'
-                  : 'bg-gray-800 border-gray-700 hover:border-green-500'
-              }`}
-            >
-              <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-lg ${isSelected ? 'bg-green-600' : 'bg-gray-600'}`}>
-                  <IconComponent className="w-5 h-5 text-white" />
-                  </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-white font-medium text-sm truncate">{action.name}</h4>
-                  <p className="text-gray-400 text-xs mt-1">{action.description}</p>
-                  <span className="inline-block px-2 py-1 bg-gray-700 text-gray-300 text-xs rounded mt-2">
-                    {action.category}
-                  </span>
-                </div>
-                {isSelected && (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-          </div>
-
-      {filteredActions.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-400">No actions found matching your criteria</p>
-                      </div>
-                    )}
-              </div>
-  );
-
-  const renderDetails = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Automation Details</h3>
-        <p className="text-gray-400">Give your automation a name and description</p>
-            </div>
-
-      {/* Selected Trigger & Actions Summary */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-        <h4 className="text-white font-medium mb-3">Selected Components</h4>
-        <div className="space-y-3">
-          {/* Trigger */}
-          {selectedTrigger && (
-            <div className="flex items-center space-x-3 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                {React.createElement(getIcon(selectedTrigger.icon), { className: "w-4 h-4 text-white" })}
-              </div>
-              <div>
-                <span className="text-blue-300 text-sm font-medium">TRIGGER:</span>
-                <span className="text-white ml-2">{selectedTrigger.name}</span>
-            </div>
-        </div>
-      )}
-
-          {/* Actions */}
-          {selectedActions.length > 0 && (
-            <div className="space-y-2">
-              {selectedActions.map((action, index) => {
-                const IconComponent = getIcon(action.icon);
-                return (
-                  <div key={action.id} className="flex items-center space-x-3 p-3 bg-green-900/20 border border-green-700 rounded-lg">
-                    <div className="p-2 bg-green-600 rounded-lg">
-                      <IconComponent className="w-4 h-4 text-white" />
-                    </div>
-        <div>
-                      <span className="text-green-300 text-sm font-medium">ACTION {index + 1}:</span>
-                      <span className="text-white ml-2">{action.name}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          
-          {selectedActions.length === 0 && (
-            <div className="p-3 bg-gray-700 border border-gray-600 rounded-lg text-center">
-              <span className="text-gray-400 text-sm">No actions selected</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Automation Name */}
-      <div className="space-y-2">
-        <label className="block text-white font-medium">
-          Automation Name <span className="text-red-400">*</span>
-          </label>
-          <input
-            type="text"
-          value={automationName}
-          onChange={(e) => setAutomationName(e.target.value)}
-          placeholder="e.g., Email to Slack Notification, Customer Onboarding Flow..."
-          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          maxLength={100}
-        />
-        <p className="text-gray-400 text-sm">{automationName.length}/100 characters</p>
-        </div>
-
-      {/* Automation Description */}
-      <div className="space-y-2">
-        <label className="block text-white font-medium">
-          Description <span className="text-gray-400">(Optional)</span>
-          </label>
-          <textarea
-          value={automationDescription}
-          onChange={(e) => setAutomationDescription(e.target.value)}
-          placeholder="Describe what this automation does, when it runs, and what outcomes you expect..."
-          rows={4}
-          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
-          maxLength={500}
-        />
-        <p className="text-gray-400 text-sm">{automationDescription.length}/500 characters</p>
-        </div>
-
-      {/* Automation Examples */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-        <h4 className="text-white font-medium mb-3">💡 Naming Tips</h4>
-        <div className="space-y-2 text-sm">
-          <p className="text-gray-300">
-            <span className="text-green-400">Good:</span> "Gmail to Slack - New Customer Emails"
-          </p>
-          <p className="text-gray-300">
-            <span className="text-green-400">Good:</span> "Stripe Payment → Update Airtable Customer Record"
-          </p>
-          <p className="text-gray-300">
-            <span className="text-red-400">Avoid:</span> "My Automation" or "Test 123"
-          </p>
-        </div>
-            </div>
-          </div>
-  );
-
-    const renderReview = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-xl font-semibold text-white mb-2">Review Your Automation</h3>
-        <p className="text-gray-400">Confirm your automation setup</p>
-          </div>
-
-      {/* Automation Info */}
-      <div className="p-6 bg-purple-900/20 border border-purple-700 rounded-lg">
-        <div className="space-y-3">
-          <div>
-            <h4 className="text-purple-300 font-semibold text-lg">{automationName || 'Unnamed Automation'}</h4>
-            {automationDescription && (
-              <p className="text-gray-300 text-sm mt-2">{automationDescription}</p>
-          )}
-        </div>
-              </div>
-            </div>
-
-      <div className="space-y-4">
-        {/* Trigger */}
-        {selectedTrigger && (
-          <div className="p-6 bg-blue-900/20 border border-blue-700 rounded-lg">
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-600 rounded-lg">
-                {React.createElement(getIcon(selectedTrigger.icon), { className: "w-6 h-6 text-white" })}
-                    </div>
-              <div className="flex-1">
-                <h4 className="text-white font-semibold">TRIGGER</h4>
-                <h5 className="text-blue-300 font-medium">{selectedTrigger.name}</h5>
-                <p className="text-gray-400 text-sm">{selectedTrigger.description}</p>
-            </div>
-                </div>
-              </div>
-            )}
-
-        {/* Arrow */}
-        {selectedActions.length > 0 && (
-          <div className="flex justify-center">
-            <div className="p-2 bg-gray-700 rounded-full">
-              <Zap className="w-5 h-5 text-yellow-400" />
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        {selectedActions.length > 0 ? (
-          <div className="space-y-3">
-            {selectedActions.map((action, index) => {
-              const IconComponent = getIcon(action.icon);
-              return (
-                <div key={action.id} className="p-4 bg-green-900/20 border border-green-700 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-green-600 rounded-lg">
-                      <IconComponent className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-white font-semibold">ACTION {index + 1}</h4>
-                      <h5 className="text-green-300 font-medium">{action.name}</h5>
-                      <p className="text-gray-400 text-sm">{action.description}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-              </div>
-        ) : (
-          <div className="p-6 bg-gray-800 border border-gray-700 rounded-lg text-center">
-            <p className="text-gray-400">No actions selected - this automation will only trigger without performing any actions</p>
-          </div>
-        )}
-        </div>
-      </div>
-  );
-
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="bg-gray-900 rounded-xl p-6 w-full h-full overflow-hidden flex flex-col"
+        transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Plus className="w-6 h-6 text-white" />
-          </div>
-          <div>
-              <h2 className="text-2xl font-bold text-white">Create New Automation</h2>
-              <div className="flex items-center space-x-2 mt-1">
-                <div className={`w-3 h-3 rounded-full ${step === 'details' ? 'bg-blue-500' : (step === 'trigger' || step === 'actions' || step === 'review') ? 'bg-green-500' : 'bg-gray-600'}`}></div>
-                <span className="text-sm text-gray-400">Details</span>
-                <div className={`w-3 h-3 rounded-full ${step === 'trigger' ? 'bg-blue-500' : (step === 'actions' || step === 'review') ? 'bg-green-500' : 'bg-gray-600'}`}></div>
-                <span className="text-sm text-gray-400">Trigger</span>
-                <div className={`w-3 h-3 rounded-full ${step === 'actions' ? 'bg-blue-500' : step === 'review' ? 'bg-green-500' : 'bg-gray-600'}`}></div>
-                <span className="text-sm text-gray-400">Actions</span>
-                <div className={`w-3 h-3 rounded-full ${step === 'review' ? 'bg-blue-500' : 'bg-gray-600'}`}></div>
-                <span className="text-sm text-gray-400">Review</span>
-          </div>
-        </div>
-      </div>
-        </div>
-
-                {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {step === 'trigger' && renderTriggerSelection()}
-          {step === 'actions' && renderActionSelection()}
-          {step === 'details' && renderDetails()}
-          {step === 'review' && renderReview()}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-700">
-          <button
-            onClick={handleBack}
-            disabled={step === 'details'}
-            className="px-4 py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center space-x-3 bg-gradient-to-r from-purple-600 to-blue-600 p-4 rounded-2xl mb-4 shadow-2xl"
           >
-            Back
-          </button>
-          <div className="flex space-x-3">
-            {step === 'details' && (
-              <button
-                onClick={handleNext}
-                disabled={!automationName.trim()}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next: Select Trigger
-              </button>
-            )}
-            {step === 'trigger' && (
-              <button
-                onClick={handleNext}
-                disabled={!selectedTrigger}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next: Select Actions
-              </button>
-            )}
-            {step === 'actions' && (
-              <button
-                onClick={handleNext}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Review
-              </button>
-            )}
-            {step === 'review' && (
-              <button
-                onClick={handleCreate}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                <span>Create Automation</span>
-              </button>
-            )}
-          </div>
+            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+            <h1 className="text-3xl font-bold text-white">Create New Automation</h1>
+            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+          </motion.div>
+          <p className="text-xl text-gray-300">Build powerful automations in minutes</p>
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Details */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-6"
+          >
+            {/* Automation Details */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl">
+                  <Heart className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Automation Details</h2>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white font-medium mb-2">
+                    Name <span className="text-pink-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={automationName}
+                    onChange={(e) => setAutomationName(e.target.value)}
+                    placeholder="e.g., Gmail to Slack Notifications"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                    maxLength={100}
+                  />
+                  <p className="text-gray-400 text-sm mt-1">{automationName.length}/100 characters</p>
+                </div>
+
+                <div>
+                  <label className="block text-white font-medium mb-2">
+                    Description <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <textarea
+                    value={automationDescription}
+                    onChange={(e) => setAutomationDescription(e.target.value)}
+                    placeholder="Describe what this automation does..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none"
+                    maxLength={500}
+                  />
+                  <p className="text-gray-400 text-sm mt-1">{automationDescription.length}/500 characters</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Components Preview */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">Selected Components</h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* Selected Trigger */}
+                {selectedTrigger ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-500 rounded-lg">
+                        {React.createElement(getIcon(selectedTrigger.icon), { className: "w-5 h-5 text-white" })}
+                      </div>
+                      <div>
+                        <p className="text-blue-300 text-sm font-medium">TRIGGER</p>
+                        <p className="text-white font-semibold">{selectedTrigger.name}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
+                    <p className="text-gray-400">No trigger selected</p>
+                  </div>
+                )}
+
+                {/* Selected Actions */}
+                {selectedActions.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-green-300 text-sm font-medium">ACTIONS ({selectedActions.length})</p>
+                    {selectedActions.map((action, index) => {
+                      const IconComponent = getIcon(action.icon);
+                      return (
+                        <motion.div
+                          key={action.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-lg flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-green-500 rounded-lg">
+                              <IconComponent className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-white font-medium">{action.name}</span>
+                          </div>
+                          <button
+                            onClick={() => handleActionToggle(action)}
+                            className="text-green-300 hover:text-red-400 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
+                    <p className="text-gray-400">No actions selected</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right Column - Triggers & Actions */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-6"
+          >
+            {/* Triggers Section */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">Select Trigger</h2>
+                </div>
+                <button
+                  onClick={() => setShowTriggers(!showTriggers)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  {showTriggers ? 'Hide' : 'Browse'}
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showTriggers && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4"
+                  >
+                    {/* Search and Filter */}
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="Search triggers..."
+                        value={triggerSearchTerm}
+                        onChange={(e) => setTriggerSearchTerm(e.target.value)}
+                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <select
+                        value={triggerCategory}
+                        onChange={(e) => setTriggerCategory(e.target.value)}
+                        className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {triggerCategories.map(category => (
+                          <option key={category} value={category} className="bg-gray-800">
+                            {category === 'all' ? 'All Categories' : category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Triggers Grid */}
+                    <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                      {filteredTriggers.map((trigger) => {
+                        const IconComponent = getIcon(trigger.icon);
+                        const isSelected = selectedTrigger?.id === trigger.id;
+                        return (
+                          <motion.div
+                            key={trigger.id}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleTriggerSelect(trigger)}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-blue-600/30 border-blue-400'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-500' : 'bg-gray-600'}`}>
+                                <IconComponent className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-sm truncate">{trigger.name}</p>
+                                <p className="text-gray-400 text-xs truncate">{trigger.description}</p>
+                              </div>
+                              {isSelected && <CheckCircle className="w-5 h-5 text-blue-400" />}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Actions Section */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+                    <Settings className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">Select Actions</h2>
+                  <span className="text-gray-400 text-sm">(Optional)</span>
+                </div>
+                <button
+                  onClick={() => setShowActions(!showActions)}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                >
+                  {showActions ? 'Hide' : 'Browse'}
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showActions && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4"
+                  >
+                    {/* Search and Filter */}
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="Search actions..."
+                        value={actionSearchTerm}
+                        onChange={(e) => setActionSearchTerm(e.target.value)}
+                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                      <select
+                        value={actionCategory}
+                        onChange={(e) => setActionCategory(e.target.value)}
+                        className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        {actionCategories.map(category => (
+                          <option key={category} value={category} className="bg-gray-800">
+                            {category === 'all' ? 'All Categories' : category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Actions Grid */}
+                    <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                      {filteredActions.map((action) => {
+                        const IconComponent = getIcon(action.icon);
+                        const isSelected = selectedActions.some(a => a.id === action.id);
+                        return (
+                          <motion.div
+                            key={action.id}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleActionToggle(action)}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-green-600/30 border-green-400'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-green-400'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-lg ${isSelected ? 'bg-green-500' : 'bg-gray-600'}`}>
+                                <IconComponent className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-sm truncate">{action.name}</p>
+                                <p className="text-gray-400 text-xs truncate">{action.description}</p>
+                              </div>
+                              {isSelected && <CheckCircle className="w-5 h-5 text-green-400" />}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Create Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-8 text-center"
+        >
+          <button
+            onClick={handleCreate}
+            disabled={!automationName.trim() || !selectedTrigger}
+            className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-xl font-bold rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center space-x-3 mx-auto"
+          >
+            <Rocket className="w-6 h-6" />
+            <span>Create Automation</span>
+            <Star className="w-6 h-6" />
+          </button>
+          {(!automationName.trim() || !selectedTrigger) && (
+            <p className="text-gray-400 text-sm mt-2">
+              {!automationName.trim() ? 'Enter automation name' : 'Select a trigger'} to continue
+            </p>
+          )}
+        </motion.div>
       </motion.div>
     </div>
   );
