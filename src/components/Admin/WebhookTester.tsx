@@ -24,13 +24,21 @@ const WebhookTester: React.FC = () => {
   const [testing, setTesting] = useState(false);
   const [testResults, setTestResults] = useState<{ [key: string]: TestResult }>({});
   const [testData, setTestData] = useState({
-    automation_name: 'Test Automation',
-    automation_description: 'Testing webhook connectivity',
-    user_id: 'test_user_123',
+    event_type: 'automation_created',
+    timestamp: new Date().toISOString(),
+    automation_name: 'Gmail to Slack Integration',
+    automation_description: 'Send Slack notifications for important emails',
+    trigger_name: 'Gmail Trigger',
+    trigger_category: 'Email',
+    actions_count: 2,
+    actions: ['Slack Message', 'Google Sheets Update'],
+    user_id: 'user_123',
     user_email: 'test@lluvia.ai',
-    trigger: 'Manual Test',
-    actions: ['Test Action'],
-    timestamp: new Date().toISOString()
+    user_name: 'Test User',
+    user_plan: 'pro',
+    source: 'lluvia-ai-platform',
+    webhook_id: `webhook_${Date.now()}`,
+    automation_id: `automation_${Date.now()}`
   });
 
   const webhookUrl = 'https://lluviaomer.app.n8n.cloud/webhook/lluvia';
@@ -56,9 +64,14 @@ const WebhookTester: React.FC = () => {
       } else {
         // GET request with query parameters
         const params = new URLSearchParams({
-          test: 'true',
+          event_type: testData.event_type,
           automation_name: testData.automation_name,
+          automation_description: testData.automation_description,
+          trigger_name: testData.trigger_name,
           user_id: testData.user_id,
+          user_email: testData.user_email,
+          user_name: testData.user_name,
+          user_plan: testData.user_plan,
           timestamp: testData.timestamp
         });
         

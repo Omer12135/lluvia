@@ -188,49 +188,72 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
     const sendToN8N = async (automationData: any) => {
     try {
       const webhookPayload = {
+        // Basic event info
         event_type: 'automation_created',
-        timestamp: Date.now(),
-        data: {
-          automation: {
-            name: automationData.name,
-            description: automationData.description,
-            trigger: automationData.trigger.name,
-            actions: automationData.actions.map((action: Action) => ({
-              name: action.name,
-              category: action.category,
-              description: action.description
-            }))
-          },
-          user: {
-            id: user?.id || 'anonymous',
-            email: user?.email || 'anonymous@lluvia.ai',
-            name: user?.name || 'Anonymous User',
-            plan: user?.plan || 'free'
-          }
-        },
-        id: `automation_${Date.now()}`,
-        metadata: {
-          source: 'lluvia-ai-platform',
-          webhook_id: `webhook_${Date.now()}`,
-          user_id: user?.id || 'anonymous',
-          automation_name: automationData.name
-        }
+        timestamp: new Date().toISOString(),
+        
+        // Automation details
+        automation_name: automationData.name,
+        automation_description: automationData.description,
+        trigger_name: automationData.trigger.name,
+        trigger_category: automationData.trigger.category,
+        actions_count: automationData.actions.length,
+        actions: automationData.actions.map((action: Action) => action.name),
+        
+        // User details
+        user_id: user?.id || 'anonymous',
+        user_email: user?.email || 'anonymous@lluvia.ai',
+        user_name: user?.name || 'Anonymous User',
+        user_plan: user?.plan || 'free',
+        
+        // Metadata
+        source: 'lluvia-ai-platform',
+        webhook_id: `webhook_${Date.now()}`,
+        automation_id: `automation_${Date.now()}`
       };
 
       const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'LLUVIA-AI-Platform/1.0'
+          'User-Agent': 'LLUVIA-AI-Platform/1.0',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(webhookPayload)
       });
 
+      console.log('📡 N8N Response Status:', response.status);
+      console.log('📡 N8N Response Headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('❌ N8N Error Response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
       }
 
-      const result = await response.json();
+      // Try to parse JSON, but handle cases where response might be empty or not JSON
+      let result;
+      const contentType = response.headers.get('content-type');
+      const responseText = await response.text();
+      
+      console.log('📡 N8N Response Content-Type:', contentType);
+      console.log('📡 N8N Response Text:', responseText);
+
+      if (responseText.trim() === '') {
+        // Empty response is considered success for webhooks
+        result = { message: 'Webhook received successfully', status: 'success' };
+      } else if (contentType && contentType.includes('application/json')) {
+        try {
+          result = JSON.parse(responseText);
+        } catch (jsonError) {
+          console.warn('⚠️ Could not parse JSON response, using text:', responseText);
+          result = { message: responseText, status: 'success' };
+        }
+      } else {
+        // Non-JSON response (might be HTML or plain text)
+        result = { message: responseText, status: 'success', contentType };
+      }
+
       console.log('✅ Automation sent to N8N successfully:', result);
       return { success: true, data: result };
     } catch (error) {
