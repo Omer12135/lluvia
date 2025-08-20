@@ -16,7 +16,7 @@ import { useAutomation } from '../context/AutomationContext';
 import { useAuth } from '../context/AuthContext';
 
 const ExampleAutomations: React.FC = () => {
-  const { addAutomation, exampleAutomations } = useAutomation();
+  const { addAutomation, exampleAutomations, automations } = useAutomation();
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
