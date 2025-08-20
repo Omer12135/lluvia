@@ -212,7 +212,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         automation_id: `automation_${Date.now()}`
       };
 
-      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook-test/lluvia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

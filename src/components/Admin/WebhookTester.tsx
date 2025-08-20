@@ -41,7 +41,7 @@ const WebhookTester: React.FC = () => {
     automation_id: `automation_${Date.now()}`
   });
 
-  const webhookUrl = 'https://lluviaomer.app.n8n.cloud/webhook/lluvia';
+  const webhookUrl = 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia';
 
   const testWebhook = async (method: 'GET' | 'POST') => {
     const testKey = `${method.toLowerCase()}_test`;

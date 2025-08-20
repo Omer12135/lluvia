@@ -17,8 +17,8 @@ const N8NDebugger: React.FC = () => {
   const [results, setResults] = useState<any[]>([]);
 
   const webhookUrls = [
-    'https://lluviaomer.app.n8n.cloud/webhook/lluvia',
     'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia',
+    'https://lluviaomer.app.n8n.cloud/webhook/lluvia',
     'https://lluviaomer.app.n8n.cloud/webhook/test',
     'https://lluviaomer.app.n8n.cloud/webhook/automation',
     'https://lluviaomer.app.n8n.cloud/webhook/lluvia-webhook'
