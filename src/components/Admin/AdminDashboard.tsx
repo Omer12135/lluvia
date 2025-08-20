@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import WebhookManager from './WebhookManager';
 import WebhookTester from './WebhookTester';
+import N8NDebugger from './N8NDebugger';
 import { useAuth, User as UserType } from '../../context/AuthContext';
 import { useAdmin } from '../../context/AdminContext';
 import ExampleAutomationManager from './ExampleAutomationManager';
@@ -38,6 +39,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'requests', label: 'Automation Requests', icon: <Activity className="w-4 h-4" /> },
     { id: 'webhooks', label: 'Webhooks', icon: <Globe className="w-4 h-4" /> },
     { id: 'webhook-test', label: 'Webhook Test', icon: <Globe className="w-4 h-4" /> },
+    { id: 'n8n-debug', label: 'N8N Debug', icon: <Settings className="w-4 h-4" /> },
     { id: 'admin-automations', label: 'Add Automations', icon: <Zap className="w-4 h-4" /> },
     { id: 'examples', label: 'Example Automations', icon: <Zap className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
@@ -202,6 +204,8 @@ const AdminDashboard: React.FC = () => {
               {activeTab === 'webhooks' && <WebhookManager />}
 
               {activeTab === 'webhook-test' && <WebhookTester />}
+
+              {activeTab === 'n8n-debug' && <N8NDebugger />}
 
               {activeTab === 'admin-automations' && <AdminAutomationManager />}
 

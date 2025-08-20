@@ -89,6 +89,22 @@ const WebhookTester: React.FC = () => {
       // Read response text only once
       const responseText = await response.text();
       
+      // Enhanced debugging
+      console.log('🔍 ===== WEBHOOK TEST DEBUG =====');
+      console.log('📤 Method:', method);
+      console.log('📤 URL:', method === 'POST' ? webhookUrl : `${webhookUrl}?${new URLSearchParams(testData as any).toString()}`);
+      console.log('📤 Payload:', JSON.stringify(testData, null, 2));
+      console.log('📡 Response Status:', response.status);
+      console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()));
+      console.log('📡 Response Text (First 500 chars):', responseText.substring(0, 500));
+      console.log('📡 Response Length:', responseText.length);
+      
+      if (responseText.toLowerCase().includes('<html>')) {
+        console.log('⚠️ WARNING: Received HTML response - N8N webhook might not be active');
+      }
+      
+      console.log('🔍 ============================');
+      
       try {
         responseData = responseText ? JSON.parse(responseText) : {};
       } catch {

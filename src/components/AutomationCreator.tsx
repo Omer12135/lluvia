@@ -222,6 +222,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         body: JSON.stringify(webhookPayload)
       });
 
+      console.log('🔍 ===== N8N WEBHOOK DEBUG =====');
+      console.log('📤 Sent Payload:', JSON.stringify(webhookPayload, null, 2));
       console.log('📡 N8N Response Status:', response.status);
       console.log('📡 N8N Response Headers:', Object.fromEntries(response.headers.entries()));
 
@@ -230,7 +232,16 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       const contentType = response.headers.get('content-type');
       
       console.log('📡 N8N Response Content-Type:', contentType);
-      console.log('📡 N8N Response Text:', responseText);
+      console.log('📡 N8N Response Text (First 500 chars):', responseText.substring(0, 500));
+      console.log('📡 N8N Response Full Length:', responseText.length);
+      
+      // Check if it's HTML (N8N might return an HTML page)
+      if (responseText.toLowerCase().includes('<html>') || responseText.toLowerCase().includes('<!doctype')) {
+        console.log('⚠️ WARNING: N8N returned HTML instead of JSON - Webhook might not be configured correctly');
+        console.log('🔧 Check your N8N workflow: Make sure webhook node is active and properly configured');
+      }
+      
+      console.log('🔍 ===========================');
 
       if (!response.ok) {
         console.error('❌ N8N Error Response:', responseText);
