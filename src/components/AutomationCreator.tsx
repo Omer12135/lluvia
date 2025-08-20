@@ -187,6 +187,10 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       alert('Please enter an automation name');
       return;
     }
+    if (!automationDescription.trim()) {
+      alert('Please enter an automation description');
+      return;
+    }
     if (!selectedTrigger) {
       alert('Please select a trigger');
       return;
@@ -197,9 +201,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       description: automationDescription,
       trigger: selectedTrigger,
       actions: selectedActions
-    });
-    
-    // Reset form
+      });
+
+      // Reset form
     setAutomationName('');
     setAutomationDescription('');
     setSelectedTrigger(null);
@@ -238,8 +242,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             <Sparkles className="w-8 h-8 text-white animate-pulse" />
           </motion.div>
           <p className="text-xl text-gray-300">Build powerful automations in minutes</p>
-        </div>
-
+            </div>
+            
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Details */}
           <motion.div
@@ -255,7 +259,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                   <Heart className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-white">Automation Details</h2>
-              </div>
+            </div>
 
               <div className="space-y-4">
                 <div>
@@ -271,7 +275,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     maxLength={100}
                   />
                   <p className="text-gray-400 text-sm mt-1">{automationName.length}/100 characters</p>
-                </div>
+                    </div>
 
                 <div>
                   <label className="block text-white font-medium mb-2">
@@ -286,7 +290,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     maxLength={500}
                   />
                   <p className="text-gray-400 text-sm mt-1">{automationDescription.length}/500 characters</p>
-                </div>
+                      </div>
               </div>
             </div>
 
@@ -314,8 +318,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                       <div>
                         <p className="text-blue-300 text-sm font-medium">TRIGGER</p>
                         <p className="text-white font-semibold">{selectedTrigger.name}</p>
-                      </div>
-                    </div>
+              </div>
+            </div>
                   </motion.div>
                 ) : (
                   <div className="p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
@@ -343,12 +347,12 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                             </div>
                             <span className="text-white font-medium">{action.name}</span>
                           </div>
-                          <button
+              <button
                             onClick={() => handleActionToggle(action)}
                             className="text-green-300 hover:text-red-400 transition-colors"
-                          >
+              >
                             <X className="w-4 h-4" />
-                          </button>
+              </button>
                         </motion.div>
                       );
                     })}
@@ -375,9 +379,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                 <div className="flex items-center space-x-3">
                   <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
                     <Zap className="w-6 h-6 text-white" />
-                  </div>
+        </div>
                   <h2 className="text-2xl font-bold text-white">Select Trigger</h2>
-                </div>
+        </div>
                 <button
                   onClick={() => setShowTriggers(!showTriggers)}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -414,7 +418,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
+          </div>
 
                     {/* Triggers Grid */}
                     <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
@@ -423,9 +427,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                         const isSelected = selectedTrigger?.id === trigger.id;
                         return (
                           <motion.div
-                            key={trigger.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                key={trigger.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                             onClick={() => handleTriggerSelect(trigger)}
                             className={`p-3 rounded-lg border cursor-pointer transition-all ${
                               isSelected
@@ -468,7 +472,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                 >
                   {showActions ? 'Hide' : 'Browse'}
                 </button>
-              </div>
+          </div>
 
               <AnimatePresence>
                 {showActions && (
@@ -498,7 +502,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
+            </div>
 
                     {/* Actions Grid */}
                     <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
@@ -507,9 +511,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                         const isSelected = selectedActions.some(a => a.id === action.id);
                         return (
                           <motion.div
-                            key={action.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                  key={action.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                             onClick={() => handleActionToggle(action)}
                             className={`p-3 rounded-lg border cursor-pointer transition-all ${
                               isSelected
@@ -536,7 +540,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
               </AnimatePresence>
             </div>
           </motion.div>
-        </div>
+          </div>
 
         {/* Create Button */}
         <motion.div
@@ -547,7 +551,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         >
           <button
             onClick={handleCreate}
-            disabled={!automationName.trim() || !selectedTrigger}
+            disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger}
             className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-xl font-bold rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center space-x-3 mx-auto"
           >
             <Rocket className="w-6 h-6" />

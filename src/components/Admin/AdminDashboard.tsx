@@ -17,6 +17,7 @@ import WebhookManager from './WebhookManager';
 import { useAuth, User as UserType } from '../../context/AuthContext';
 import { useAdmin } from '../../context/AdminContext';
 import ExampleAutomationManager from './ExampleAutomationManager';
+import AdminAutomationManager from './AdminAutomationManager';
 import AutomationRequestsManager from './AutomationRequestsManager';
 import { useAutomation } from '../../context/AutomationContext';
 
@@ -35,6 +36,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'requests', label: 'Automation Requests', icon: <Activity className="w-4 h-4" /> },
     { id: 'webhooks', label: 'Webhooks', icon: <Globe className="w-4 h-4" /> },
+    { id: 'admin-automations', label: 'Add Automations', icon: <Zap className="w-4 h-4" /> },
     { id: 'examples', label: 'Example Automations', icon: <Zap className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
@@ -196,6 +198,8 @@ const AdminDashboard: React.FC = () => {
               {activeTab === 'requests' && <AutomationRequestsManager />}
 
               {activeTab === 'webhooks' && <WebhookManager />}
+
+              {activeTab === 'admin-automations' && <AdminAutomationManager />}
 
               {activeTab === 'examples' && <ExampleAutomationManager />}
 

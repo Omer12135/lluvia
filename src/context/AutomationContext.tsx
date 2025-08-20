@@ -36,6 +36,9 @@ interface AutomationContextType {
   deleteAutomation: (id: string) => void;
   setCurrentResult: (result: any) => void;
   setIsLoading: (loading: boolean) => void;
+  addExampleAutomation: (example: Omit<ExampleAutomation, 'id'>) => void;
+  updateExampleAutomation: (id: string, example: Partial<ExampleAutomation>) => void;
+  deleteExampleAutomation: (id: string) => void;
 }
 
 const AutomationContext = createContext<AutomationContextType | undefined>(undefined);
@@ -57,7 +60,7 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
   const [currentResult, setCurrentResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const exampleAutomations: ExampleAutomation[] = [
+  const [exampleAutomations, setExampleAutomations] = useState<ExampleAutomation[]>([
     {
       id: 'gmail-to-slack',
       name: 'Gmail to Slack Notification',
@@ -217,7 +220,7 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
       popularity: 76,
       icon: 'Users'
     }
-  ];
+  ]);
 
   const addAutomation = (automation: Omit<Automation, 'id' | 'createdAt'>) => {
     const newAutomation: Automation = {
@@ -240,6 +243,26 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     setAutomations(prev => prev.filter(automation => automation.id !== id));
   };
 
+  const addExampleAutomation = (example: Omit<ExampleAutomation, 'id'>) => {
+    const newExample: ExampleAutomation = {
+      ...example,
+      id: Date.now().toString()
+    };
+    setExampleAutomations(prev => [...prev, newExample]);
+  };
+
+  const updateExampleAutomation = (id: string, example: Partial<ExampleAutomation>) => {
+    setExampleAutomations(prev =>
+      prev.map(automation =>
+        automation.id === id ? { ...automation, ...example } : automation
+      )
+    );
+  };
+
+  const deleteExampleAutomation = (id: string) => {
+    setExampleAutomations(prev => prev.filter(example => example.id !== id));
+  };
+
   const value: AutomationContextType = {
     automations,
     exampleAutomations,
@@ -249,7 +272,10 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     updateAutomationStatus,
     deleteAutomation,
     setCurrentResult,
-    setIsLoading
+    setIsLoading,
+    addExampleAutomation,
+    updateExampleAutomation,
+    deleteExampleAutomation
   };
 
   return (
