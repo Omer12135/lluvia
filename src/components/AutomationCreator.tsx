@@ -225,19 +225,20 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       console.log('📡 N8N Response Status:', response.status);
       console.log('📡 N8N Response Headers:', Object.fromEntries(response.headers.entries()));
 
+      // Read response text only once
+      const responseText = await response.text();
+      const contentType = response.headers.get('content-type');
+      
+      console.log('📡 N8N Response Content-Type:', contentType);
+      console.log('📡 N8N Response Text:', responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ N8N Error Response:', errorText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+        console.error('❌ N8N Error Response:', responseText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${responseText}`);
       }
 
       // Try to parse JSON, but handle cases where response might be empty or not JSON
       let result;
-      const contentType = response.headers.get('content-type');
-      const responseText = await response.text();
-      
-      console.log('📡 N8N Response Content-Type:', contentType);
-      console.log('📡 N8N Response Text:', responseText);
 
       if (responseText.trim() === '') {
         // Empty response is considered success for webhooks

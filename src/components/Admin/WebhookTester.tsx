@@ -86,10 +86,13 @@ const WebhookTester: React.FC = () => {
       const duration = Date.now() - startTime;
       let responseData;
       
+      // Read response text only once
+      const responseText = await response.text();
+      
       try {
-        responseData = await response.json();
+        responseData = responseText ? JSON.parse(responseText) : {};
       } catch {
-        responseData = await response.text();
+        responseData = responseText || 'Empty response';
       }
 
       const result: TestResult = {
