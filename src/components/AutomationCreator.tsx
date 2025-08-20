@@ -129,12 +129,10 @@ const iconMap: Record<string, any> = {
   'Server': Server
 };
 
-interface AutomationCreatorProps {
-  onClose: () => void;
-}
+interface AutomationCreatorProps {}
 
-const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
-  const [step, setStep] = useState<'trigger' | 'actions' | 'details' | 'review'>('trigger');
+const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
+  const [step, setStep] = useState<'details' | 'trigger' | 'actions' | 'review'>('details');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [selectedActions, setSelectedActions] = useState<Action[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -180,21 +178,23 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
   };
 
   const handleNext = () => {
-    if (step === 'actions') {
-      setStep('details');
-    } else if (step === 'details') {
+    if (step === 'details') {
+      setStep('trigger');
+    } else if (step === 'trigger') {
+      setStep('actions');
+    } else if (step === 'actions') {
       setStep('review');
     }
   };
 
   const handleBack = () => {
-    if (step === 'actions') {
+    if (step === 'trigger') {
+      setStep('details');
+    } else if (step === 'actions') {
       setStep('trigger');
       setSelectedTrigger(null);
-    } else if (step === 'details') {
-      setStep('actions');
     } else if (step === 'review') {
-      setStep('details');
+      setStep('actions');
     }
   };
 
@@ -204,8 +204,19 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
       description: automationDescription,
       trigger: selectedTrigger,
       actions: selectedActions
-    });
-    onClose();
+      });
+
+      // Reset form
+    setStep('details');
+    setAutomationName('');
+    setAutomationDescription('');
+    setSelectedTrigger(null);
+    setSelectedActions([]);
+    setSearchTerm('');
+    setSelectedCategory('all');
+    
+    // Show success message (you can add a toast notification here)
+    alert('Automation created successfully!');
   };
 
   const getIcon = (iconName: string) => {
@@ -229,8 +240,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+              />
+            </div>
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
@@ -242,14 +253,14 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             </option>
           ))}
         </select>
-            </div>
+        </div>
             
       {/* Triggers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
         {filteredTriggers.map((trigger) => {
           const IconComponent = getIcon(trigger.icon);
           return (
-            <motion.div
+        <motion.div
               key={trigger.id}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -271,8 +282,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
         </motion.div>
           );
         })}
-      </div>
-
+            </div>
+            
       {filteredTriggers.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-400">No triggers found matching your criteria</p>
@@ -286,7 +297,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
       <div>
         <h3 className="text-xl font-semibold text-white mb-2">Select Actions (Optional)</h3>
         <p className="text-gray-400">Choose what happens when the trigger fires</p>
-      </div>
+          </div>
 
       {/* Selected Trigger */}
       {selectedTrigger && (
@@ -300,7 +311,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
               <p className="text-blue-300 text-sm">{selectedTrigger.description}</p>
             </div>
           </div>
-                      </div>
+          </div>
                     )}
 
       {/* Selected Actions */}
@@ -317,15 +328,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
               <button
                     onClick={() => handleActionToggle(action)}
                     className="text-green-300 hover:text-white"
-                  >
+              >
                     <X className="w-3 h-3" />
               </button>
             </div>
               );
             })}
-          </div>
-        </div>
-      )}
+                    </div>
+                      </div>
+                    )}
 
       {/* Search and Filter */}
       <div className="flex gap-4">
@@ -349,7 +360,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             </option>
           ))}
         </select>
-          </div>
+            </div>
 
       {/* Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
@@ -359,8 +370,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
           return (
             <motion.div
               key={action.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
               onClick={() => handleActionToggle(action)}
               className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                 isSelected
@@ -391,9 +402,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
       {filteredActions.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-400">No actions found matching your criteria</p>
-            </div>
-          )}
-        </div>
+                      </div>
+                    )}
+              </div>
   );
 
   const renderDetails = () => (
@@ -401,7 +412,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
       <div>
         <h3 className="text-xl font-semibold text-white mb-2">Automation Details</h3>
         <p className="text-gray-400">Give your automation a name and description</p>
-      </div>
+            </div>
 
       {/* Selected Trigger & Actions Summary */}
       <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
@@ -416,10 +427,10 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
               <div>
                 <span className="text-blue-300 text-sm font-medium">TRIGGER:</span>
                 <span className="text-white ml-2">{selectedTrigger.name}</span>
-              </div>
             </div>
-          )}
-          
+        </div>
+      )}
+
           {/* Actions */}
           {selectedActions.length > 0 && (
             <div className="space-y-2">
@@ -430,7 +441,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
                     <div className="p-2 bg-green-600 rounded-lg">
                       <IconComponent className="w-4 h-4 text-white" />
                     </div>
-                    <div>
+        <div>
                       <span className="text-green-300 text-sm font-medium">ACTION {index + 1}:</span>
                       <span className="text-white ml-2">{action.name}</span>
                     </div>
@@ -452,9 +463,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
       <div className="space-y-2">
         <label className="block text-white font-medium">
           Automation Name <span className="text-red-400">*</span>
-        </label>
-        <input
-          type="text"
+          </label>
+          <input
+            type="text"
           value={automationName}
           onChange={(e) => setAutomationName(e.target.value)}
           placeholder="e.g., Email to Slack Notification, Customer Onboarding Flow..."
@@ -462,14 +473,14 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
           maxLength={100}
         />
         <p className="text-gray-400 text-sm">{automationName.length}/100 characters</p>
-      </div>
+        </div>
 
       {/* Automation Description */}
       <div className="space-y-2">
         <label className="block text-white font-medium">
           Description <span className="text-gray-400">(Optional)</span>
-        </label>
-        <textarea
+          </label>
+          <textarea
           value={automationDescription}
           onChange={(e) => setAutomationDescription(e.target.value)}
           placeholder="Describe what this automation does, when it runs, and what outcomes you expect..."
@@ -478,7 +489,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
           maxLength={500}
         />
         <p className="text-gray-400 text-sm">{automationDescription.length}/500 characters</p>
-      </div>
+        </div>
 
       {/* Automation Examples */}
       <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
@@ -494,8 +505,8 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             <span className="text-red-400">Avoid:</span> "My Automation" or "Test 123"
           </p>
         </div>
-      </div>
-    </div>
+            </div>
+          </div>
   );
 
     const renderReview = () => (
@@ -503,7 +514,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
       <div>
         <h3 className="text-xl font-semibold text-white mb-2">Review Your Automation</h3>
         <p className="text-gray-400">Confirm your automation setup</p>
-      </div>
+          </div>
 
       {/* Automation Info */}
       <div className="p-6 bg-purple-900/20 border border-purple-700 rounded-lg">
@@ -512,10 +523,10 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             <h4 className="text-purple-300 font-semibold text-lg">{automationName || 'Unnamed Automation'}</h4>
             {automationDescription && (
               <p className="text-gray-300 text-sm mt-2">{automationDescription}</p>
-            )}
-          </div>
+          )}
         </div>
-      </div>
+              </div>
+            </div>
 
       <div className="space-y-4">
         {/* Trigger */}
@@ -524,15 +535,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-blue-600 rounded-lg">
                 {React.createElement(getIcon(selectedTrigger.icon), { className: "w-6 h-6 text-white" })}
-              </div>
+                    </div>
               <div className="flex-1">
                 <h4 className="text-white font-semibold">TRIGGER</h4>
                 <h5 className="text-blue-300 font-medium">{selectedTrigger.name}</h5>
                 <p className="text-gray-400 text-sm">{selectedTrigger.description}</p>
-              </div>
             </div>
-          </div>
-        )}
+                </div>
+              </div>
+            )}
 
         {/* Arrow */}
         {selectedActions.length > 0 && (
@@ -569,44 +580,38 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
             <p className="text-gray-400">No actions selected - this automation will only trigger without performing any actions</p>
           </div>
         )}
+        </div>
       </div>
-    </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="w-full h-full">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-gray-900 rounded-xl p-6 w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-gray-900 rounded-xl p-6 w-full h-full overflow-hidden flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="p-2 bg-blue-600 rounded-lg">
               <Plus className="w-6 h-6 text-white" />
-            </div>
-            <div>
+          </div>
+          <div>
               <h2 className="text-2xl font-bold text-white">Create New Automation</h2>
               <div className="flex items-center space-x-2 mt-1">
-                <div className={`w-3 h-3 rounded-full ${step === 'trigger' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
-                <span className="text-sm text-gray-400">Trigger</span>
-                <div className={`w-3 h-3 rounded-full ${step === 'actions' ? 'bg-blue-500' : (step === 'details' || step === 'review') ? 'bg-green-500' : 'bg-gray-600'}`}></div>
-                <span className="text-sm text-gray-400">Actions</span>
-                <div className={`w-3 h-3 rounded-full ${step === 'details' ? 'bg-blue-500' : step === 'review' ? 'bg-green-500' : 'bg-gray-600'}`}></div>
+                <div className={`w-3 h-3 rounded-full ${step === 'details' ? 'bg-blue-500' : (step === 'trigger' || step === 'actions' || step === 'review') ? 'bg-green-500' : 'bg-gray-600'}`}></div>
                 <span className="text-sm text-gray-400">Details</span>
+                <div className={`w-3 h-3 rounded-full ${step === 'trigger' ? 'bg-blue-500' : (step === 'actions' || step === 'review') ? 'bg-green-500' : 'bg-gray-600'}`}></div>
+                <span className="text-sm text-gray-400">Trigger</span>
+                <div className={`w-3 h-3 rounded-full ${step === 'actions' ? 'bg-blue-500' : step === 'review' ? 'bg-green-500' : 'bg-gray-600'}`}></div>
+                <span className="text-sm text-gray-400">Actions</span>
                 <div className={`w-3 h-3 rounded-full ${step === 'review' ? 'bg-blue-500' : 'bg-gray-600'}`}></div>
                 <span className="text-sm text-gray-400">Review</span>
-              </div>
-            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+        </div>
+      </div>
         </div>
 
                 {/* Content */}
@@ -621,25 +626,34 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = ({ onClose }) => {
         <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-700">
           <button
             onClick={handleBack}
-            disabled={step === 'trigger'}
+            disabled={step === 'details'}
             className="px-4 py-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Back
           </button>
           <div className="flex space-x-3">
-            {step === 'actions' && (
-              <button
-                onClick={handleNext}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Next: Details
-              </button>
-            )}
             {step === 'details' && (
               <button
                 onClick={handleNext}
                 disabled={!automationName.trim()}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next: Select Trigger
+              </button>
+            )}
+            {step === 'trigger' && (
+              <button
+                onClick={handleNext}
+                disabled={!selectedTrigger}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next: Select Actions
+              </button>
+            )}
+            {step === 'actions' && (
+              <button
+                onClick={handleNext}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Review
               </button>
