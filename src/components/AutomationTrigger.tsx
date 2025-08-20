@@ -38,7 +38,7 @@ const AutomationTrigger: React.FC = () => {
       addAutomation(newAutomation);
 
       // Send request to N8n webhook
-      const response = await fetch('https://n8n.myserver.com/webhook/execute/abc123', {
+      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

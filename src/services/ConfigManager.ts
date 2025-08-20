@@ -7,7 +7,7 @@ interface Config {
 
 export class ConfigManager {
   private config: Config = {
-    defaultWebhookUrl: 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia',
+    defaultWebhookUrl: 'https://lluviaomer.app.n8n.cloud/webhook/lluvia',
     timeout: 30000,
     retryAttempts: 3,
     retryDelay: 1000
