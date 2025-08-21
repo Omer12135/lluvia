@@ -23,6 +23,14 @@ export const stripeProducts: StripeProduct[] = [
     description: 'Advanced automation features for teams and businesses',
     price: 39.00,
     mode: 'subscription'
+  },
+  {
+    id: 'prod_CustomPlan123',
+    priceId: 'price_CustomPlan123',
+    name: 'Custom Plan',
+    description: 'Enterprise solutions with custom workflows and dedicated support',
+    price: 497.00,
+    mode: 'payment'
   }
 ];
 

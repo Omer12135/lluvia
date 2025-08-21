@@ -19,7 +19,8 @@ import {
   Calendar,
   BarChart3,
   Loader2,
-  Share2
+  Share2,
+  Crown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './Auth/AuthModal';
@@ -66,6 +67,9 @@ const LandingPage: React.FC = () => {
       // Paid plans - redirect to actual Stripe checkout
       if (product.name.includes('Pro')) {
         window.open('https://buy.stripe.com/cNibJ23wibOe0bbflGfEk01', '_blank');
+      } else if (product.name.includes('Custom')) {
+        // For Custom plan, redirect to contact form or custom checkout
+        window.open('https://calendly.com/lluvia-ai/custom-plan', '_blank');
       }
     }
   };
@@ -136,6 +140,8 @@ const LandingPage: React.FC = () => {
         return <Star className="w-6 h-6 text-gray-400" />;
       case 'pro plan':
         return <Users className="w-6 h-6 text-blue-500" />;
+      case 'custom plan':
+        return <Crown className="w-6 h-6 text-purple-500" />;
       default:
         return <Star className="w-6 h-6 text-gray-400" />;
     }
@@ -163,6 +169,20 @@ const LandingPage: React.FC = () => {
           'Advanced analytics',
           'Priority support'
         ];
+      case 'custom plan':
+        return [
+          'Everything in Pro',
+          'Unlimited automations',
+          'Custom workflows',
+          'Custom integrations',
+          'Orchestra AI Agent',
+          '1-on-1 onboarding',
+          'SLA guarantee',
+          'Bulk operations',
+          'Advanced security',
+          'Dedicated support',
+          'Setup by LLUVIA team'
+        ];
       default:
         return [];
     }
@@ -173,7 +193,8 @@ const LandingPage: React.FC = () => {
     
     const planMap: { [key: string]: string } = {
       'free plan': 'free',
-      'pro plan': 'pro'
+      'pro plan': 'pro',
+      'custom plan': 'custom'
     };
     
     return user.plan === planMap[productName.toLowerCase()];
@@ -390,15 +411,17 @@ const LandingPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={`relative bg-white/5 rounded-2xl p-6 sm:p-8 border transition-all duration-300 hover:bg-white/10 ${
-                  product.name === 'Pro Plan'
-                    ? 'border-blue-500 ring-2 ring-blue-500/20 sm:scale-105'
-                    : 'border-white/10 hover:border-white/20'
+                  product.name === 'Custom Plan'
+                    ? 'border-purple-500 ring-2 ring-purple-500/20 sm:scale-105'
+                    : product.name === 'Pro Plan'
+                      ? 'border-blue-500 ring-2 ring-blue-500/20'
+                      : 'border-white/10 hover:border-white/20'
                 }`}
               >
-                {product.name === 'Pro Plan' && (
+                {product.name === 'Custom Plan' && (
                   <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
-                      Most Popular
+                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
+                      Enterprise
                     </span>
                   </div>
                 )}
@@ -434,7 +457,9 @@ const LandingPage: React.FC = () => {
                   onClick={() => handleSelectPlan(product.priceId)}
                   disabled={isCurrentPlan(product.name)}
                   className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
-                    product.name === 'Pro Plan'
+                    product.name === 'Custom Plan'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                    : product.name === 'Pro Plan'
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                     : isCurrentPlan(product.name)
                       ? 'bg-gray-600 text-gray-300 cursor-not-allowed'

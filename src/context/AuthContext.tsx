@@ -4,7 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  plan: 'free' | 'pro';
+  plan: 'free' | 'pro' | 'custom';
   automationsUsed: number;
   automationsLimit: number;
   aiMessagesUsed: number;
@@ -223,6 +223,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         notifications: true,
         language: 'ja'
       }
+    },
+    {
+      id: '7',
+      email: 'enterprise@lluvia.ai',
+      name: 'Enterprise User',
+      plan: 'custom',
+      automationsUsed: 150,
+      automationsLimit: -1, // Unlimited
+      aiMessagesUsed: 2500,
+      aiMessagesLimit: -1, // Unlimited
+      createdAt: '2024-01-05T08:00:00Z',
+      lastLogin: '2024-01-22T18:30:00Z',
+      isActive: true,
+      authProvider: 'email',
+      phone: '+1 (555) 999-8888',
+      country: 'United States',
+      emailVerified: true,
+      twoFactorEnabled: true,
+      status: 'active',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'dark',
+        notifications: true,
+        language: 'en'
+      }
     }
   ];
 
@@ -231,7 +256,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return {
       totalUsers: currentUsers.length,
       activeAutomations: currentUsers.reduce((sum, u) => sum + u.automationsUsed, 0),
-      monthlyRevenue: currentUsers.filter(u => u.plan === 'pro').length * 39,
+      monthlyRevenue: currentUsers.filter(u => u.plan === 'pro').length * 39 + currentUsers.filter(u => u.plan === 'custom').length * 497,
       systemUptime: 99.9,
       googleUsers: currentUsers.filter(u => u.authProvider === 'google').length,
       emailUsers: currentUsers.filter(u => u.authProvider === 'email').length,

@@ -30,7 +30,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  plan: 'free' | 'pro';
+  plan: 'free' | 'pro' | 'custom';
   automationsUsed: number;
   automationsLimit: number;
   aiMessagesUsed: number;
@@ -164,9 +164,10 @@ const UserManagement: React.FC<UserManagementProps> = ({
 
   const getPlanBadge = (plan: string) => {
     switch (plan) {
+      case 'custom':
+        return <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">Custom</span>;
       case 'pro':
         return <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">Pro</span>;
-
       case 'free':
         return <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded-full text-xs">Free</span>;
       default:
@@ -284,8 +285,8 @@ const UserManagement: React.FC<UserManagementProps> = ({
           >
             <option value="all">All Plans</option>
             <option value="free">Free</option>
-            
             <option value="pro">Pro</option>
+            <option value="custom">Custom</option>
           </select>
 
           <select

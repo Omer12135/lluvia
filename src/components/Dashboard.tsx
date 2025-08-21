@@ -86,6 +86,8 @@ const Dashboard: React.FC = () => {
     switch (user.plan) {
       case 'pro':
         return 'Pro Plan';
+      case 'custom':
+        return 'Custom Plan';
       default:
         return 'Free Plan';
     }
@@ -119,6 +121,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1 bg-white/10 rounded-lg px-2 py-1">
                 <Crown className={`w-3 h-3 ${
+                  getCurrentPlanName().includes('Custom') ? 'text-purple-500' :
                   getCurrentPlanName().includes('Pro') ? 'text-blue-500' :
                   'text-gray-400'
                 }`} />
@@ -189,6 +192,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
                                   <Crown className={`w-4 h-4 ${
+                    getCurrentPlanName().includes('Custom') ? 'text-purple-500' :
                     getCurrentPlanName().includes('Pro') ? 'text-blue-500' :
                     'text-gray-400'
                   }`} />
