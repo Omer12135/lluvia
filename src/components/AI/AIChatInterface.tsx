@@ -138,7 +138,7 @@ const AIChatInterface: React.FC = () => {
       const planInfo = user ? `You're currently on the ${user.plan.charAt(0).toUpperCase() + user.plan.slice(1)} plan with ${user.aiMessagesUsed}/${user.aiMessagesLimit} AI messages used.` : 'Please log in to see your plan details.';
       
       return {
-        text: `📊 **Your Plan Information:**\n${planInfo}\n\n**Plan Comparison:**\n• **Basic Plan (Free)** - 2 automations/month, No AI chatbot\n• **Starter Plan ($19/month)** - 15 automations/month, 100 AI messages/month\n• **Pro Plan ($99/month)** - 50 automations/month, 1000 AI messages/month\n\n**Upgrade benefits:**\n• More automations per month\n• AI assistant access\n• Priority support\n• Advanced features\n\nWould you like help choosing the right plan for your needs?`,
+        text: `📊 **Your Plan Information:**\n${planInfo}\n\n**Plan Comparison:**\n• **Free Plan** - 2 automations/month, No AI chatbot\n• **Pro Plan ($39/month)** - 50 automations/month, 500 AI messages/month\n\n**Upgrade benefits:**\n• More automations per month\n• AI assistant access\n• Priority support\n• Advanced features\n\nWould you like help choosing the right plan for your needs?`,
         type: 'normal'
       };
     }
@@ -236,17 +236,17 @@ const AIChatInterface: React.FC = () => {
             <div>
               <p className="text-yellow-400 font-medium text-base sm:text-lg">AI Chatbot Not Available</p>
               <p className="text-yellow-300 text-sm mt-1">
-                The AI assistant is available on Starter Plan ($19/month) and Pro Plan ($99/month). 
+                The AI assistant is available on Pro Plan ($39/month). 
                 Upgrade to get personalized automation help and guidance.
               </p>
               <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="bg-purple-500/20 rounded-lg p-3 border border-purple-500/30">
-                  <p className="text-purple-400 font-medium text-sm sm:text-base">Starter Plan</p>
-                  <p className="text-purple-300 text-xs sm:text-sm">100 AI messages/month</p>
+                  <p className="text-blue-400 font-medium text-sm sm:text-base">Pro Plan</p>
+                                      <p className="text-blue-300 text-xs sm:text-sm">500 AI messages/month</p>
                 </div>
                 <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
                   <p className="text-blue-400 font-medium text-sm sm:text-base">Pro Plan</p>
-                  <p className="text-blue-300 text-xs sm:text-sm">1000 AI messages/month</p>
+                                      <p className="text-blue-300 text-xs sm:text-sm">500 AI messages/month</p>
                 </div>
               </div>
             </div>
@@ -263,7 +263,7 @@ const AIChatInterface: React.FC = () => {
               <p className="text-red-400 font-medium text-sm sm:text-base">Monthly Message Limit Reached</p>
               <p className="text-red-300 text-xs sm:text-sm">
                 You've used all {user?.aiMessagesLimit} AI messages for this month. 
-                {user?.plan === 'starter' ? ' Upgrade to Pro Plan for 1000 messages/month.' : ' Your limit will reset next month.'}
+                {user?.plan === 'free' ? ' Upgrade to Pro Plan for 500 messages/month.' : ' Your limit will reset next month.'}
               </p>
             </div>
           </div>

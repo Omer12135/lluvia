@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Calendar,
   BarChart3,
-  Loader2
+  Loader2,
+  Share2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './Auth/AuthModal';
@@ -63,9 +64,7 @@ const LandingPage: React.FC = () => {
       navigate('/signup');
     } else {
       // Paid plans - redirect to actual Stripe checkout
-      if (product.name.includes('Starter')) {
-        window.open('https://buy.stripe.com/eVq3cw4Am4lMcXXflGfEk00', '_blank');
-      } else if (product.name.includes('Pro')) {
+      if (product.name.includes('Pro')) {
         window.open('https://buy.stripe.com/cNibJ23wibOe0bbflGfEk01', '_blank');
       }
     }
@@ -73,61 +72,68 @@ const LandingPage: React.FC = () => {
 
   const features = [
     {
-      icon: <Zap className="w-8 h-8 text-yellow-500" />,
-      title: "Smart Triggers",
-      description: "Webhook, email, schedule, and database triggers to start your automations"
+      icon: <Workflow className="w-6 h-6" />,
+      title: "Visual Workflow Builder",
+      description: "Create complex automations with our intuitive drag-and-drop interface"
     },
     {
-      icon: <Bot className="w-8 h-8 text-blue-500" />,
-      title: "AI Assistant",
-      description: "Get help creating workflows with our intelligent automation assistant"
+      icon: <Zap className="w-6 h-6" />,
+      title: "500+ Integrations",
+      description: "Connect with your favorite apps and services seamlessly"
     },
     {
-      icon: <Database className="w-8 h-8 text-green-500" />,
-      title: "Data Integration",
-      description: "Connect with Airtable, Google Sheets, CRM systems, and hundreds of apps"
+      icon: <Clock className="w-6 h-6" />,
+      title: "Real-time Execution",
+      description: "Monitor and track your automations in real-time"
     },
     {
-      icon: <Shield className="w-8 h-8 text-purple-500" />,
+      icon: <Shield className="w-6 h-6" />,
       title: "Enterprise Security",
-      description: "Bank-level security with encryption and compliance standards"
+      description: "Bank-level security with end-to-end encryption"
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-orange-500" />,
-      title: "Analytics Dashboard",
-      description: "Track performance, monitor success rates, and optimize your workflows"
-    },
-    {
-      icon: <Users className="w-8 h-8 text-cyan-500" />,
+      icon: <Users className="w-6 h-6" />,
       title: "Team Collaboration",
-      description: "Share automations, manage permissions, and work together seamlessly"
+      description: "Work together with your team on automation projects"
+    },
+    {
+      icon: <BarChart3 className="w-6 h-6" />,
+      title: "Advanced Analytics",
+      description: "Get insights into your automation performance and usage"
     }
   ];
 
   const automationExamples = [
     {
-      title: "Email to CRM Sync",
-      description: "Automatically add new email contacts to your CRM system",
-      steps: ["Email received", "Extract contact info", "Add to CRM", "Send notification"]
+      title: "Email Marketing",
+      description: "Automatically send personalized emails based on user behavior",
+      icon: <Mail className="w-5 h-5" />,
+      tags: ["Gmail", "Mailchimp", "Auto-respond"]
     },
     {
-      title: "Invoice Processing",
-      description: "Process invoices from email attachments to accounting software",
-      steps: ["Email with attachment", "Extract invoice data", "Create record", "Send confirmation"]
+      title: "CRM Sync",
+      description: "Keep your customer data synchronized across all platforms",
+      icon: <Database className="w-5 h-5" />,
+      tags: ["Salesforce", "HubSpot", "Sync"]
     },
     {
-      title: "Social Media Monitoring",
-      description: "Track mentions and automatically respond or create tickets",
-      steps: ["Social mention detected", "Analyze sentiment", "Route to team", "Auto-respond"]
+      title: "Social Media",
+      description: "Schedule and post content across multiple social platforms",
+      icon: <Share2 className="w-5 h-5" />,
+      tags: ["Twitter", "LinkedIn", "Schedule"]
+    },
+    {
+      title: "Customer Support",
+      description: "Automate ticket creation and response workflows",
+      icon: <MessageSquare className="w-5 h-5" />,
+      tags: ["Zendesk", "Slack", "Auto-respond"]
     }
   ];
 
   const getPlanIcon = (name: string) => {
     switch (name.toLowerCase()) {
-      case 'basic plan':
+      case 'free plan':
         return <Star className="w-6 h-6 text-gray-400" />;
-      case 'starter plan':
-        return <Zap className="w-6 h-6 text-purple-500" />;
       case 'pro plan':
         return <Users className="w-6 h-6 text-blue-500" />;
       default:
@@ -137,7 +143,7 @@ const LandingPage: React.FC = () => {
 
   const getFeatures = (name: string) => {
     switch (name.toLowerCase()) {
-      case 'basic plan':
+      case 'free plan':
         return [
           '2 automations per month',
           'All trigger types',
@@ -146,34 +152,16 @@ const LandingPage: React.FC = () => {
           'Basic analytics',
           'Community support'
         ];
-      case 'starter plan':
+      case 'pro plan':
         return [
-          '15 automations per month',
+          '50 automations per month',
           'All trigger types',
-          'AI Chatbot (100 messages/month)',
+          'AI Chatbot (500 messages/month)',
           'Webhook integration',
           'Email support',
           'Automation templates',
           'Advanced analytics',
-          'Team management (3 users)',
           'Priority support'
-        ];
-      case 'pro plan':
-        return [
-          'Everything in Starter',
-          '50 automations per month',
-          'All trigger types',
-          'AI Chatbot (1000 messages/month)',
-          'Webhook integration',
-          'Priority support',
-          '1-on-1 onboarding',
-          'SLA guarantee',
-          'Bulk operations',
-          'Advanced security',
-          'Custom workflows',
-          'Dedicated account manager',
-          'Team management (10 users)',
-          'Custom integrations'
         ];
       default:
         return [];
@@ -184,8 +172,7 @@ const LandingPage: React.FC = () => {
     if (!user) return false;
     
     const planMap: { [key: string]: string } = {
-      'basic plan': 'free',
-      'starter plan': 'starter', 
+      'free plan': 'free',
       'pro plan': 'pro'
     };
     
@@ -403,14 +390,14 @@ const LandingPage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={`relative bg-white/5 rounded-2xl p-6 sm:p-8 border transition-all duration-300 hover:bg-white/10 ${
-                  product.name === 'Starter Plan'
-                    ? 'border-purple-500 ring-2 ring-purple-500/20 sm:scale-105'
+                  product.name === 'Pro Plan'
+                    ? 'border-blue-500 ring-2 ring-blue-500/20 sm:scale-105'
                     : 'border-white/10 hover:border-white/20'
                 }`}
               >
-                {product.name === 'Starter Plan' && (
+                {product.name === 'Pro Plan' && (
                   <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
                       Most Popular
                     </span>
                   </div>
@@ -447,8 +434,8 @@ const LandingPage: React.FC = () => {
                   onClick={() => handleSelectPlan(product.priceId)}
                   disabled={isCurrentPlan(product.name)}
                   className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
-                    product.name === 'Starter Plan'
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
+                    product.name === 'Pro Plan'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                     : isCurrentPlan(product.name)
                       ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
                       : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'

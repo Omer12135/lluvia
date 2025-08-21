@@ -263,7 +263,7 @@ const AutomationRequestsManager: React.FC = () => {
                       <span>{request.user_profiles?.email}</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         request.user_profiles?.plan === 'pro' ? 'bg-blue-500/20 text-blue-400' :
-                        request.user_profiles?.plan === 'starter' ? 'bg-purple-500/20 text-purple-400' :
+                        
                         'bg-gray-500/20 text-gray-400'
                       }`}>
                         {request.user_profiles?.plan || 'free'}
@@ -394,7 +394,7 @@ const AutomationRequestsManager: React.FC = () => {
                       <span className="text-gray-400">Plan:</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         selectedRequest.user_profiles?.plan === 'pro' ? 'bg-blue-500/20 text-blue-400' :
-                        selectedRequest.user_profiles?.plan === 'starter' ? 'bg-purple-500/20 text-purple-400' :
+                        
                         'bg-gray-500/20 text-gray-400'
                       }`}>
                         {selectedRequest.user_profiles?.plan || 'free'}

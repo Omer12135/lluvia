@@ -14,10 +14,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
 
   const getPlanIcon = (name: string) => {
     switch (name.toLowerCase()) {
-      case 'basic plan':
+      case 'free plan':
         return <Star className="w-6 h-6 text-gray-400" />;
-      case 'starter plan':
-        return <Zap className="w-6 h-6 text-purple-500" />;
       case 'pro plan':
         return <Users className="w-6 h-6 text-blue-500" />;
       default:
@@ -36,7 +34,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
 
   const getFeatures = (name: string) => {
     switch (name.toLowerCase()) {
-      case 'basic plan':
+      case 'free plan':
         return [
           '2 automations per month',
           'All trigger types',
@@ -45,34 +43,16 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
           'Basic analytics',
           'Community support'
         ];
-      case 'starter plan':
+      case 'pro plan':
         return [
-          '15 automations per month',
+          '50 automations per month',
           'All trigger types',
-          'AI Chatbot (100 messages/month)',
+          'AI Chatbot (500 messages/month)',
           'Webhook integration',
           'Email support',
           'Automation templates',
           'Advanced analytics',
-          'Team management (3 users)',
           'Priority support'
-        ];
-      case 'pro plan':
-        return [
-          'Everything in Starter',
-          '50 automations per month',
-          'All trigger types',
-          'AI Chatbot (1000 messages/month)',
-          'Webhook integration',
-          'Priority support',
-          '1-on-1 onboarding',
-          'SLA guarantee',
-          'Bulk operations',
-          'Advanced security',
-          'Custom workflows',
-          'Dedicated account manager',
-          'Team management (10 users)',
-          'Custom integrations'
         ];
       default:
         return [];
@@ -137,7 +117,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
               onClick={() => product.price > 0 ? onSelectPlan(product.priceId) : null}
               disabled={loading}
               className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
-                product.name === 'Starter Plan'
+                product.name === 'Pro Plan'
                   ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
                 : product.price === 0
                   ? 'bg-gray-600 text-gray-300 cursor-default'

@@ -4,7 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  plan: 'free' | 'starter' | 'pro';
+  plan: 'free' | 'pro';
   automationsUsed: number;
   automationsLimit: number;
   aiMessagesUsed: number;
@@ -101,13 +101,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     },
     {
       id: '2',
-      email: 'starter@lluvia.ai',
-      name: 'Starter User',
-      plan: 'starter',
-      automationsUsed: 8,
-      automationsLimit: 15,
-      aiMessagesUsed: 45,
-      aiMessagesLimit: 100,
+      email: 'pro@lluvia.ai',
+      name: 'Pro User',
+      plan: 'pro',
+      automationsUsed: 25,
+      automationsLimit: 50,
+      aiMessagesUsed: 200,
+      aiMessagesLimit: 500,
       createdAt: '2024-01-10T09:15:00Z',
       lastLogin: '2024-01-21T16:20:00Z',
       isActive: true,
@@ -153,11 +153,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       id: '4',
       email: 'john.doe@gmail.com',
       name: 'John Doe',
-      plan: 'starter',
-      automationsUsed: 12,
-      automationsLimit: 15,
-      aiMessagesUsed: 67,
-      aiMessagesLimit: 100,
+      plan: 'pro',
+      automationsUsed: 30,
+      automationsLimit: 50,
+      aiMessagesUsed: 300,
+      aiMessagesLimit: 500,
       createdAt: '2024-01-18T13:45:00Z',
       lastLogin: '2024-01-21T19:15:00Z',
       isActive: true,
@@ -231,7 +231,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return {
       totalUsers: currentUsers.length,
       activeAutomations: currentUsers.reduce((sum, u) => sum + u.automationsUsed, 0),
-      monthlyRevenue: currentUsers.filter(u => u.plan !== 'free').length * 50,
+      monthlyRevenue: currentUsers.filter(u => u.plan === 'pro').length * 39,
       systemUptime: 99.9,
       googleUsers: currentUsers.filter(u => u.authProvider === 'google').length,
       emailUsers: currentUsers.filter(u => u.authProvider === 'email').length,
