@@ -254,10 +254,10 @@ const AutomationGuidance: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h3 className="text-2xl font-bold text-white mb-2">Automation Guidance</h3>
-        <p className="text-gray-400">Learn how to build effective automations with triggers and applications</p>
+        <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Automation Guidance</h3>
+        <p className="text-sm sm:text-base text-gray-400">Learn how to build effective automations with triggers and applications</p>
       </div>
 
       {/* Section Navigation */}
@@ -267,7 +267,7 @@ const AutomationGuidance: React.FC = () => {
             <button
               key={section.id}
               onClick={() => setSelectedSection(section.id)}
-              className={`flex items-center space-x-2 px-6 py-3 font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-3 sm:px-6 py-2.5 sm:py-3 font-medium transition-all duration-200 text-sm sm:text-base ${
                 selectedSection === section.id
                   ? 'text-white bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b-2 border-purple-500'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -279,7 +279,7 @@ const AutomationGuidance: React.FC = () => {
           ))}
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <motion.div
             key={selectedSection}
             initial={{ opacity: 0, x: 20 }}
@@ -287,30 +287,30 @@ const AutomationGuidance: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             {selectedSection === 'triggers' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h4 className="text-xl font-bold text-white mb-2">Available Triggers</h4>
-                  <p className="text-gray-400">Choose the right trigger to start your automation workflow</p>
+                  <h4 className="text-lg sm:text-xl font-bold text-white mb-2">Available Triggers</h4>
+                  <p className="text-sm sm:text-base text-gray-400">Choose the right trigger to start your automation workflow</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                   {triggers.map((trigger, index) => (
                     <motion.div
                       key={trigger.name}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-200"
+                      className="bg-white/5 rounded-lg p-3 sm:p-4 border border-white/10 hover:bg-white/10 transition-all duration-200"
                     >
-                      <div className="flex items-center space-x-3 mb-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
                         {trigger.icon}
-                        <h5 className="text-lg font-semibold text-white">{trigger.name}</h5>
+                        <h5 className="text-base sm:text-lg font-semibold text-white">{trigger.name}</h5>
                       </div>
                       
-                      <p className="text-gray-300 text-sm mb-3">{trigger.description}</p>
+                      <p className="text-gray-300 text-xs sm:text-sm mb-3">{trigger.description}</p>
                       
-                      <div className="bg-blue-500/10 rounded-lg p-3 mb-3">
-                        <p className="text-blue-400 text-sm">
+                      <div className="bg-blue-500/10 rounded-lg p-2 sm:p-3 mb-3">
+                        <p className="text-blue-400 text-xs sm:text-sm">
                           <strong>Use Case:</strong> {trigger.useCase}
                         </p>
                       </div>
@@ -333,33 +333,33 @@ const AutomationGuidance: React.FC = () => {
             )}
 
             {selectedSection === 'applications' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h4 className="text-xl font-bold text-white mb-2">Supported Applications</h4>
-                  <p className="text-gray-400">Connect with popular apps and services in your automation workflows</p>
+                  <h4 className="text-lg sm:text-xl font-bold text-white mb-2">Supported Applications</h4>
+                  <p className="text-sm sm:text-base text-gray-400">Connect with popular apps and services in your automation workflows</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
                   {applications.map((app, index) => (
                     <motion.div
                       key={app.name}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-200"
+                      className="bg-white/5 rounded-lg p-3 sm:p-4 border border-white/10 hover:bg-white/10 transition-all duration-200"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
                           {app.icon}
                           <div>
-                            <h5 className="text-lg font-semibold text-white">{app.name}</h5>
+                            <h5 className="text-base sm:text-lg font-semibold text-white">{app.name}</h5>
                             <span className="text-xs text-gray-400">{app.category}</span>
                           </div>
                         </div>
                         <ExternalLink className="w-4 h-4 text-gray-500" />
                       </div>
                       
-                      <p className="text-gray-300 text-sm mb-3">{app.description}</p>
+                      <p className="text-gray-300 text-xs sm:text-sm mb-3">{app.description}</p>
                       
                       <div>
                         <p className="text-gray-400 text-xs font-medium mb-2">Available Actions:</p>
@@ -381,23 +381,23 @@ const AutomationGuidance: React.FC = () => {
             )}
 
             {selectedSection === 'best-practices' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h4 className="text-xl font-bold text-white mb-2">Best Practices</h4>
-                  <p className="text-gray-400">Follow these guidelines to build robust and efficient automations</p>
+                  <h4 className="text-lg sm:text-xl font-bold text-white mb-2">Best Practices</h4>
+                  <p className="text-sm sm:text-base text-gray-400">Follow these guidelines to build robust and efficient automations</p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {bestPractices.map((practice, index) => (
                     <motion.div
                       key={practice.title}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-white/5 rounded-lg p-6 border border-white/10"
+                      className="bg-white/5 rounded-lg p-4 sm:p-6 border border-white/10"
                     >
-                      <h5 className="text-lg font-semibold text-white mb-2">{practice.title}</h5>
-                      <p className="text-gray-300 text-sm mb-4">{practice.description}</p>
+                      <h5 className="text-base sm:text-lg font-semibold text-white mb-2">{practice.title}</h5>
+                      <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4">{practice.description}</p>
                       
                       <div className="space-y-2">
                         {practice.tips.map((tip, tipIndex) => (

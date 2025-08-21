@@ -77,17 +77,17 @@ const ExampleAutomations: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h3 className="text-2xl font-bold text-white mb-2">Example Automations</h3>
-        <p className="text-gray-400">Get inspired by these popular automation templates</p>
+        <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Example Automations</h3>
+        <p className="text-sm sm:text-base text-gray-400">Get inspired by these popular automation templates</p>
       </div>
 
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
         <button 
           onClick={() => setSelectedCategory('All')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+          className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
             selectedCategory === 'All' 
               ? 'bg-purple-600 text-white' 
               : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
@@ -99,7 +99,7 @@ const ExampleAutomations: React.FC = () => {
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+            className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm sm:text-base ${
               selectedCategory === category 
                 ? 'bg-purple-600 text-white' 
                 : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
@@ -111,20 +111,20 @@ const ExampleAutomations: React.FC = () => {
       </div>
 
       {/* Examples Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {filteredExamples.map((example, index) => (
           <motion.div
             key={example.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group"
+            className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 hover:bg-white/10 hover:border-purple-500/30 transition-all duration-300 group"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 {getIconComponent(example.icon)}
                 <div>
-                  <h4 className="text-lg font-semibold text-white">{example.name}</h4>
+                  <h4 className="text-base sm:text-lg font-semibold text-white">{example.name}</h4>
                   <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-1 rounded-full">
                     {example.category}
                   </span>
@@ -132,21 +132,21 @@ const ExampleAutomations: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-1 text-yellow-400">
-                <Star className="w-4 h-4 fill-current" />
-                <span className="text-sm font-medium">{example.popularity}%</span>
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
+                <span className="text-xs sm:text-sm font-medium">{example.popularity}%</span>
               </div>
             </div>
 
-            <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+            <p className="text-gray-300 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
               {example.description}
             </p>
 
-            <div className="mb-4">
-              <h5 className="text-sm font-medium text-gray-400 mb-2">Workflow Steps:</h5>
+            <div className="mb-3 sm:mb-4">
+              <h5 className="text-xs sm:text-sm font-medium text-gray-400 mb-2">Workflow Steps:</h5>
               <div className="space-y-1">
                 {example.steps.map((step, stepIndex) => (
-                  <div key={stepIndex} className="flex items-center space-x-2 text-sm text-gray-300">
-                    <div className="w-5 h-5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                  <div key={stepIndex} className="flex items-center space-x-2 text-xs sm:text-sm text-gray-300">
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                       {stepIndex + 1}
                     </div>
                     <span>{step}</span>
@@ -155,18 +155,18 @@ const ExampleAutomations: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-blue-500/10 rounded-lg p-3 mb-4">
-              <p className="text-blue-400 text-sm">
+            <div className="bg-blue-500/10 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
+              <p className="text-blue-400 text-xs sm:text-sm">
                 <strong>Use Case:</strong> {example.useCase}
               </p>
             </div>
 
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <button
                 onClick={() => useExample(example)}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg"
+                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 hover:scale-105 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg text-sm sm:text-base"
               >
-                <Copy className="w-4 h-4" />
+                <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Use Template</span>
               </button>
               
@@ -175,10 +175,10 @@ const ExampleAutomations: React.FC = () => {
                   // Show preview modal or detailed view
                   alert(`Preview: ${example.name}\n\n${example.description}\n\nSteps:\n${example.steps.join('\n')}`);
                 }}
-                className="px-4 py-2 bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white hover:scale-105 rounded-lg transition-all duration-200"
+                className="px-3 sm:px-4 py-2 bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white hover:scale-105 rounded-lg transition-all duration-200 text-sm sm:text-base"
                 title="Preview Automation"
               >
-                <Play className="w-4 h-4" />
+                <Play className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
             </div>
           </motion.div>
@@ -186,21 +186,21 @@ const ExampleAutomations: React.FC = () => {
       </div>
 
       {/* Popular Templates Section */}
-      <div className="bg-gradient-to-r from-purple-600/10 to-blue-600/10 rounded-xl p-6 border border-purple-500/20">
-        <h4 className="text-xl font-bold text-white mb-2">🔥 Most Popular This Week</h4>
-        <p className="text-gray-400 mb-4">Join thousands of users who are already using these automations</p>
+      <div className="bg-gradient-to-r from-purple-600/10 to-blue-600/10 rounded-xl p-4 sm:p-6 border border-purple-500/20">
+        <h4 className="text-lg sm:text-xl font-bold text-white mb-2">🔥 Most Popular This Week</h4>
+        <p className="text-sm sm:text-base text-gray-400 mb-3 sm:mb-4">Join thousands of users who are already using these automations</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {exampleAutomations.slice(0, 3).map((example) => (
-            <div key={example.id} className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-200">
+            <div key={example.id} className="bg-white/5 rounded-lg p-3 sm:p-4 border border-white/10 hover:bg-white/10 transition-all duration-200">
               <div className="flex items-center space-x-2 mb-2">
                 {getIconComponent(example.icon)}
-                <span className="font-medium text-white">{example.name}</span>
+                <span className="font-medium text-white text-sm sm:text-base">{example.name}</span>
               </div>
               <p className="text-gray-400 text-xs mb-3">{example.description}</p>
               <button
                 onClick={() => useExample(example)}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:from-purple-700 hover:to-blue-700 hover:scale-105 transition-all duration-200 shadow-lg"
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:from-purple-700 hover:to-blue-700 hover:scale-105 transition-all duration-200 shadow-lg"
               >
                 Use Template
               </button>

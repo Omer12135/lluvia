@@ -196,13 +196,13 @@ const LandingPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Navigation */}
       <nav className="relative z-50 bg-black/20 backdrop-blur-sm border-b border-white/10">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <Workflow className="w-5 h-5 text-white" />
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <Workflow className="w-3 h-3 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-2xl font-bold text-white">AutomateAI</span>
+              <span className="text-lg sm:text-2xl font-bold text-white">AutomateAI</span>
             </div>
             
             {/* Desktop Navigation */}
@@ -288,13 +288,13 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 lg:py-32">
-        <div className="container mx-auto px-6">
+      <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-4xl mx-auto">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+              className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight"
             >
               Automate Your
               <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"> Workflow</span>
@@ -304,7 +304,7 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-xl lg:text-2xl text-gray-300 mb-8 leading-relaxed"
+              className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-6 sm:mb-8 leading-relaxed"
             >
               Connect your favorite apps and automate repetitive tasks with our powerful AI-driven platform. 
               Save hours every day and focus on what matters most.
@@ -318,16 +318,16 @@ const LandingPage: React.FC = () => {
             >
               <button
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl w-full sm:w-auto"
               >
                 <span>Start Automating Free</span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               
-              <button className="text-gray-300 hover:text-white transition-colors flex items-center space-x-2">
+              <button className="text-gray-300 hover:text-white transition-colors flex items-center space-x-2 w-full sm:w-auto justify-center">
                 <span>Watch Demo</span>
-                <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center">
-                  <div className="w-0 h-0 border-l-[6px] border-l-white border-y-[4px] border-y-transparent ml-1"></div>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-full flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-[4px] sm:border-l-[6px] border-l-white border-y-[3px] sm:border-y-[4px] border-y-transparent ml-0.5 sm:ml-1"></div>
                 </div>
               </button>
             </motion.div>
@@ -336,19 +336,19 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="mt-12 flex items-center justify-center space-x-8 text-gray-400"
+              className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-8 text-gray-400"
             >
               <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span>No credit card required</span>
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                <span className="text-sm sm:text-base">No credit card required</span>
               </div>
               <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span>2 free automations</span>
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                <span className="text-sm sm:text-base">2 free automations</span>
               </div>
               <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-500" />
-                <span>Setup in minutes</span>
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                <span className="text-sm sm:text-base">Setup in minutes</span>
               </div>
             </motion.div>
           </div>
@@ -362,25 +362,25 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-black/20">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Powerful Automation Features</h2>
-            <p className="text-xl text-gray-400">Everything you need to automate your business processes</p>
+      <section id="features" className="py-12 sm:py-20 bg-black/20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Powerful Automation Features</h2>
+            <p className="text-lg sm:text-xl text-gray-400">Everything you need to automate your business processes</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white/5 rounded-xl p-8 border border-white/10 hover:bg-white/10 transition-all duration-300"
+                className="bg-white/5 rounded-xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300"
               >
-                <div className="mb-6">{feature.icon}</div>
-                <h3 className="text-xl font-bold text-white mb-4">{feature.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                <div className="mb-4 sm:mb-6">{feature.icon}</div>
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">{feature.title}</h3>
+                <p className="text-sm sm:text-base text-gray-400 leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -388,57 +388,57 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-black/20">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Choose Your Plan</h2>
-            <p className="text-xl text-gray-400">Start free and scale as you grow</p>
+      <section id="pricing" className="py-12 sm:py-20 bg-black/20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Choose Your Plan</h2>
+            <p className="text-lg sm:text-xl text-gray-400">Start free and scale as you grow</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {stripeProducts.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`relative bg-white/5 rounded-2xl p-8 border transition-all duration-300 hover:bg-white/10 ${
+                className={`relative bg-white/5 rounded-2xl p-6 sm:p-8 border transition-all duration-300 hover:bg-white/10 ${
                   product.name === 'Starter Plan'
-                    ? 'border-purple-500 ring-2 ring-purple-500/20 scale-105'
+                    ? 'border-purple-500 ring-2 ring-purple-500/20 sm:scale-105'
                     : 'border-white/10 hover:border-white/20'
                 }`}
               >
                 {product.name === 'Starter Plan' && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
                       Most Popular
                     </span>
                   </div>
                 )}
 
-                <div className="text-center mb-8">
-                  <div className="flex justify-center mb-4">
+                <div className="text-center mb-6 sm:mb-8">
+                  <div className="flex justify-center mb-3 sm:mb-4">
                     {getPlanIcon(product.name)}
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">{product.name}</h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold text-white">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{product.name}</h3>
+                  <div className="mb-3 sm:mb-4">
+                    <span className="text-3xl sm:text-4xl font-bold text-white">
                       {product.price === 0 ? 'Free' : `$${product.price}`}
                     </span>
                     {product.price > 0 && (
-                      <span className="text-gray-400">
+                      <span className="text-gray-400 text-sm sm:text-base">
                         {product.mode === 'subscription' ? '/month' : ' one-time'}
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-400 text-sm">{product.description}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">{product.description}</p>
                 </div>
 
-                <div className="space-y-4 mb-8">
+                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                   {getFeatures(product.name).map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center space-x-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-300">{feature}</span>
+                    <div key={featureIndex} className="flex items-center space-x-2 sm:space-x-3">
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm text-gray-300">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -446,7 +446,7 @@ const LandingPage: React.FC = () => {
                 <button
                   onClick={() => handleSelectPlan(product.priceId)}
                   disabled={isCurrentPlan(product.name)}
-                  className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
+                  className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
                     product.name === 'Starter Plan'
                       ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
                     : isCurrentPlan(product.name)
@@ -467,22 +467,22 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-2xl p-12 border border-purple-500/20 text-center">
-            <h2 className="text-4xl font-bold text-white mb-4">Ready to Automate Your Business?</h2>
-            <p className="text-xl text-gray-300 mb-8">Join thousands of businesses already saving time with LLUVIA AI</p>
+      <section className="py-12 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-2xl p-6 sm:p-12 border border-purple-500/20 text-center">
+            <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Ready to Automate Your Business?</h2>
+            <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8">Join thousands of businesses already saving time with LLUVIA AI</p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 w-full sm:w-auto"
               >
                 <span>Start Free Trial</span>
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               
-              <button className="bg-white/10 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/20 transition-all duration-200 border border-white/20">
+              <button className="bg-white/10 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:bg-white/20 transition-all duration-200 border border-white/20 w-full sm:w-auto">
                 Schedule Demo
               </button>
             </div>

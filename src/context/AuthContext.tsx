@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
 
 export interface User {
   id: string;
@@ -10,10 +9,20 @@ export interface User {
   automationsLimit: number;
   aiMessagesUsed: number;
   aiMessagesLimit: number;
-  subscription?: {
-    status: string;
-    priceId: string;
-    currentPeriodEnd: number;
+  createdAt: string;
+  lastLogin: string;
+  isActive: boolean;
+  authProvider: 'email' | 'google' | 'github';
+  phone?: string;
+  country?: string;
+  emailVerified: boolean;
+  twoFactorEnabled: boolean;
+  status: 'active' | 'suspended' | 'pending';
+  avatar?: string;
+  preferences?: {
+    theme: 'light' | 'dark' | 'auto';
+    notifications: boolean;
+    language: string;
   };
 }
 
@@ -22,16 +31,30 @@ export interface SystemStats {
   activeAutomations: number;
   monthlyRevenue: number;
   systemUptime: number;
+  googleUsers: number;
+  emailUsers: number;
+  verifiedUsers: number;
+  twoFactorUsers: number;
 }
 
-export interface AuthContextType {
+interface AuthContextType {
   user: User | null;
   users: User[];
   systemStats: SystemStats;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
-  loading: boolean;
+  resetPassword: (email: string) => Promise<void>;
+  verifyResetCode: (email: string, code: string, newPassword: string) => Promise<void>;
+  updateUser: (userId: string, updates: Partial<User>) => void;
+  deleteUser: (userId: string) => void;
+  suspendUser: (userId: string) => void;
+  activateUser: (userId: string) => void;
+  sendVerificationEmail: (email: string) => Promise<void>;
+  enableTwoFactor: (userId: string) => Promise<void>;
+  disableTwoFactor: (userId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Demo users for testing
+  // Enhanced demo users with more detailed information
   const demoUsers: User[] = [
     {
       id: '1',
@@ -59,7 +82,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       automationsUsed: 1,
       automationsLimit: 2,
       aiMessagesUsed: 0,
-      aiMessagesLimit: 0
+      aiMessagesLimit: 0,
+      createdAt: '2024-01-15T10:30:00Z',
+      lastLogin: '2024-01-20T14:45:00Z',
+      isActive: true,
+      authProvider: 'email',
+      phone: '+1 (555) 123-4567',
+      country: 'United States',
+      emailVerified: true,
+      twoFactorEnabled: false,
+      status: 'active',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'dark',
+        notifications: true,
+        language: 'en'
+      }
     },
     {
       id: '2',
@@ -69,7 +107,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       automationsUsed: 8,
       automationsLimit: 15,
       aiMessagesUsed: 45,
-      aiMessagesLimit: 100
+      aiMessagesLimit: 100,
+      createdAt: '2024-01-10T09:15:00Z',
+      lastLogin: '2024-01-21T16:20:00Z',
+      isActive: true,
+      authProvider: 'google',
+      phone: '+44 20 7946 0958',
+      country: 'United Kingdom',
+      emailVerified: true,
+      twoFactorEnabled: true,
+      status: 'active',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'auto',
+        notifications: true,
+        language: 'en'
+      }
     },
     {
       id: '3',
@@ -79,17 +132,115 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       automationsUsed: 23,
       automationsLimit: 50,
       aiMessagesUsed: 234,
-      aiMessagesLimit: 1000
+      aiMessagesLimit: 1000,
+      createdAt: '2024-01-05T11:00:00Z',
+      lastLogin: '2024-01-22T08:30:00Z',
+      isActive: true,
+      authProvider: 'email',
+      phone: '+49 30 12345678',
+      country: 'Germany',
+      emailVerified: true,
+      twoFactorEnabled: true,
+      status: 'active',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'light',
+        notifications: false,
+        language: 'de'
+      }
+    },
+    {
+      id: '4',
+      email: 'john.doe@gmail.com',
+      name: 'John Doe',
+      plan: 'starter',
+      automationsUsed: 12,
+      automationsLimit: 15,
+      aiMessagesUsed: 67,
+      aiMessagesLimit: 100,
+      createdAt: '2024-01-18T13:45:00Z',
+      lastLogin: '2024-01-21T19:15:00Z',
+      isActive: true,
+      authProvider: 'google',
+      phone: '+1 (555) 987-6543',
+      country: 'Canada',
+      emailVerified: true,
+      twoFactorEnabled: false,
+      status: 'active',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'dark',
+        notifications: true,
+        language: 'en'
+      }
+    },
+    {
+      id: '5',
+      email: 'suspended@lluvia.ai',
+      name: 'Suspended User',
+      plan: 'free',
+      automationsUsed: 0,
+      automationsLimit: 2,
+      aiMessagesUsed: 0,
+      aiMessagesLimit: 0,
+      createdAt: '2024-01-12T15:20:00Z',
+      lastLogin: '2024-01-19T10:30:00Z',
+      isActive: false,
+      authProvider: 'email',
+      phone: '+33 1 42 86 87 88',
+      country: 'France',
+      emailVerified: false,
+      twoFactorEnabled: false,
+      status: 'suspended',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'dark',
+        notifications: true,
+        language: 'fr'
+      }
+    },
+    {
+      id: '6',
+      email: 'pending@lluvia.ai',
+      name: 'Pending User',
+      plan: 'free',
+      automationsUsed: 0,
+      automationsLimit: 2,
+      aiMessagesUsed: 0,
+      aiMessagesLimit: 0,
+      createdAt: '2024-01-22T20:10:00Z',
+      lastLogin: '2024-01-22T20:10:00Z',
+      isActive: false,
+      authProvider: 'email',
+      phone: '+81 3-1234-5678',
+      country: 'Japan',
+      emailVerified: false,
+      twoFactorEnabled: false,
+      status: 'pending',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+      preferences: {
+        theme: 'auto',
+        notifications: true,
+        language: 'ja'
+      }
     }
   ];
 
-  // Mock system stats for demo
-  const systemStats: SystemStats = {
-    totalUsers: demoUsers.length,
-    activeAutomations: demoUsers.reduce((sum, u) => sum + u.automationsUsed, 0),
-    monthlyRevenue: demoUsers.filter(u => u.plan !== 'free').length * 50,
-    systemUptime: 99.9
+  // Calculate system stats based on current users
+  const calculateSystemStats = (currentUsers: User[]): SystemStats => {
+    return {
+      totalUsers: currentUsers.length,
+      activeAutomations: currentUsers.reduce((sum, u) => sum + u.automationsUsed, 0),
+      monthlyRevenue: currentUsers.filter(u => u.plan !== 'free').length * 50,
+      systemUptime: 99.9,
+      googleUsers: currentUsers.filter(u => u.authProvider === 'google').length,
+      emailUsers: currentUsers.filter(u => u.authProvider === 'email').length,
+      verifiedUsers: currentUsers.filter(u => u.emailVerified).length,
+      twoFactorUsers: currentUsers.filter(u => u.twoFactorEnabled).length
+    };
   };
+
+  const [systemStats, setSystemStats] = useState<SystemStats>(calculateSystemStats(demoUsers));
 
   useEffect(() => {
     // Check for stored user session
@@ -98,46 +249,70 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
-        setUsers(demoUsers);
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('lluvia_user');
       }
     }
+    
+    // Initialize with demo users
     setUsers(demoUsers);
   }, []);
+
+  // Update system stats whenever users change
+  useEffect(() => {
+    setSystemStats(calculateSystemStats(users));
+  }, [users]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     
     try {
-      // Simulate API delay
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find demo user or create new one
-      let userData = demoUsers.find(u => u.email === email);
-      
-      if (!userData) {
-        // Create new user for any email/password combination
-        userData = {
-          id: Date.now().toString(),
-          email: email,
-          name: email.split('@')[0],
-          plan: 'free',
-          automationsUsed: 0,
-          automationsLimit: 2,
-          aiMessagesUsed: 0,
-          aiMessagesLimit: 0
-        };
+      const foundUser = users.find(u => u.email === email);
+      if (foundUser && foundUser.authProvider === 'email') {
+        // Update last login
+        const updatedUser = { ...foundUser, lastLogin: new Date().toISOString() };
+        setUser(updatedUser);
+        localStorage.setItem('lluvia_user', JSON.stringify(updatedUser));
+        
+        // Update user in the list
+        setUsers(prev => prev.map(u => u.id === foundUser.id ? updatedUser : u));
+      } else {
+        throw new Error('Invalid credentials');
       }
-
-      // Store user session
-      localStorage.setItem('lluvia_user', JSON.stringify(userData));
-      setUser(userData);
-      
     } catch (error) {
       console.error('Login error:', error);
-      throw new Error('Login failed. Please try again.');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    
+    try {
+      // Simulate Google OAuth
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // In real implementation, this would handle Google OAuth flow
+      const googleUser = users.find(u => u.authProvider === 'google');
+      if (googleUser) {
+        const updatedUser = { ...googleUser, lastLogin: new Date().toISOString() };
+        setUser(updatedUser);
+        localStorage.setItem('lluvia_user', JSON.stringify(updatedUser));
+        
+        // Update user in the list
+        setUsers(prev => prev.map(u => u.id === googleUser.id ? updatedUser : u));
+      } else {
+        throw new Error('Google authentication failed');
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -147,43 +322,195 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     
     try {
-      // Simulate API delay
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Check if user already exists
+      const existingUser = users.find(u => u.email === email);
+      if (existingUser) {
+        throw new Error('User already exists');
+      }
+      
       // Create new user
-      const userData: User = {
-        id: Date.now().toString(),
-        email: email,
-        name: name,
+      const newUser: User = {
+        id: (users.length + 1).toString(),
+        email,
+        name,
         plan: 'free',
         automationsUsed: 0,
-        automationsLimit: 2, // Free plan gets 2 automations
+        automationsLimit: 2,
         aiMessagesUsed: 0,
-        aiMessagesLimit: 0
+        aiMessagesLimit: 0,
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        isActive: true,
+        authProvider: 'email',
+        emailVerified: false,
+        twoFactorEnabled: false,
+        status: 'pending',
+        preferences: {
+          theme: 'dark',
+          notifications: true,
+          language: 'en'
+        }
       };
-      // Store user session
-      localStorage.setItem('lluvia_user', JSON.stringify(userData));
-      setUser(userData);
       
+      // Add new user to the list
+      setUsers(prev => [...prev, newUser]);
+      
+      // Set as current user
+      setUser(newUser);
+      localStorage.setItem('lluvia_user', JSON.stringify(newUser));
+      
+      console.log('New user registered:', newUser);
     } catch (error) {
       console.error('Registration error:', error);
-      throw new Error('Registration failed. Please try again.');
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('lluvia_user');
+  };
+
+  const resetPassword = async (email: string) => {
+    setLoading(true);
+    
     try {
-      localStorage.removeItem('lluvia_user');
-      setUser(null);
+      // Simulate sending reset email
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const user = users.find(u => u.email === email);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // In real implementation, send reset code to email
+      console.log(`Reset code sent to ${email}`);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Password reset error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyResetCode = async (email: string, code: string, newPassword: string) => {
+    setLoading(true);
+    
+    try {
+      // Simulate code verification
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const user = users.find(u => u.email === email);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      
+      // In real implementation, verify code and update password
+      console.log(`Password updated for ${email}`);
+    } catch (error) {
+      console.error('Code verification error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUser = (userId: string, updates: Partial<User>) => {
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? { ...user, ...updates } : user
+    ));
+    
+    // Update current user if it's the same user
+    if (user?.id === userId) {
+      setUser(prev => prev ? { ...prev, ...updates } : null);
+      localStorage.setItem('lluvia_user', JSON.stringify({ ...user, ...updates }));
+    }
+  };
+
+  const deleteUser = (userId: string) => {
+    setUsers(prev => prev.filter(user => user.id !== userId));
+    
+    // Logout if current user is deleted
+    if (user?.id === userId) {
+      logout();
+    }
+  };
+
+  const suspendUser = (userId: string) => {
+    updateUser(userId, { status: 'suspended', isActive: false });
+  };
+
+  const activateUser = (userId: string) => {
+    updateUser(userId, { status: 'active', isActive: true });
+  };
+
+  const sendVerificationEmail = async (email: string) => {
+    setLoading(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`Verification email sent to ${email}`);
+    } catch (error) {
+      console.error('Verification email error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enableTwoFactor = async (userId: string) => {
+    setLoading(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateUser(userId, { twoFactorEnabled: true });
+    } catch (error) {
+      console.error('Enable 2FA error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const disableTwoFactor = async (userId: string) => {
+    setLoading(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateUser(userId, { twoFactorEnabled: false });
+    } catch (error) {
+      console.error('Disable 2FA error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, users, systemStats, login, register, logout, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      users,
+      systemStats,
+      loading,
+      login,
+      loginWithGoogle,
+      register,
+      logout,
+      resetPassword,
+      verifyResetCode,
+      updateUser,
+      deleteUser,
+      suspendUser,
+      activateUser,
+      sendVerificationEmail,
+      enableTwoFactor,
+      disableTwoFactor
+    }}>
       {children}
     </AuthContext.Provider>
   );

@@ -65,7 +65,11 @@ import {
   Server,
   Sparkles,
   Heart,
-  Star
+  Star,
+  Check,
+  EyeOff,
+  TestTube,
+  AlertCircle
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
@@ -149,6 +153,17 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   const [showActions, setShowActions] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
+  // N8N Integration States
+  const [showN8NSettings, setShowN8NSettings] = useState(false);
+  const [n8nUrl, setN8nUrl] = useState('');
+  const [n8nApiKey, setN8nApiKey] = useState('');
+  const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
+  const [n8nConnected, setN8nConnected] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [integrationType, setIntegrationType] = useState<'api' | 'webhook'>('api');
+
   // Get unique categories
   const triggerCategories = ['all', ...new Set(triggers.map(t => t.category))];
   const actionCategories = ['all', ...new Set(actions.map(a => a.category))];
@@ -185,92 +200,165 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
     });
   };
 
-    const sendToN8N = async (automationData: any) => {
-    try {
-      const webhookPayload = {
-        // Basic event info
-        event_type: 'automation_created',
-        timestamp: new Date().toISOString(),
-        
-        // Automation details
-        automation_name: automationData.name,
-        automation_description: automationData.description,
-        trigger_name: automationData.trigger.name,
-        trigger_category: automationData.trigger.category,
-        actions_count: automationData.actions.length,
-        actions: automationData.actions.map((action: Action) => action.name),
-        
-        // User details
-        user_id: user?.id || 'anonymous',
-        user_email: user?.email || 'anonymous@lluvia.ai',
-        user_name: user?.name || 'Anonymous User',
-        user_plan: user?.plan || 'free',
-        
-        // Metadata
-        source: 'lluvia-ai-platform',
-        webhook_id: `webhook_${Date.now()}`,
-        automation_id: `automation_${Date.now()}`
-      };
+  // N8N Connection Test
+  const testN8NConnection = async () => {
+    if (!n8nUrl.trim()) {
+      alert('Please enter your N8N URL');
+      return;
+    }
 
-      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook-test/lluvia', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'LLUVIA-AI-Platform/1.0',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(webhookPayload)
+    setTestingConnection(true);
+    setConnectionStatus('idle');
+
+    try {
+      let testUrl = '';
+      let headers: any = {};
+
+      if (integrationType === 'api') {
+        if (!n8nApiKey.trim()) {
+          alert('Please enter your N8N API Key');
+          return;
+        }
+        testUrl = `${n8nUrl.replace(/\/$/, '')}/api/v1/credentials`;
+        headers = {
+          'X-N8N-API-KEY': n8nApiKey,
+          'Content-Type': 'application/json'
+        };
+      } else {
+        if (!n8nWebhookUrl.trim()) {
+          alert('Please enter your N8N Webhook URL');
+          return;
+        }
+        testUrl = n8nWebhookUrl;
+        headers = {
+          'Content-Type': 'application/json'
+        };
+      }
+
+      const response = await fetch(testUrl, {
+        method: integrationType === 'api' ? 'GET' : 'POST',
+        headers,
+        body: integrationType === 'webhook' ? JSON.stringify({
+          test: true,
+          timestamp: new Date().toISOString()
+        }) : undefined
       });
 
-      console.log('🔍 ===== N8N WEBHOOK DEBUG =====');
-      console.log('📤 Sent Payload:', JSON.stringify(webhookPayload, null, 2));
-      console.log('📡 N8N Response Status:', response.status);
-      console.log('📡 N8N Response Headers:', Object.fromEntries(response.headers.entries()));
-
-      // Read response text only once
-      const responseText = await response.text();
-      const contentType = response.headers.get('content-type');
-      
-      console.log('📡 N8N Response Content-Type:', contentType);
-      console.log('📡 N8N Response Text (First 500 chars):', responseText.substring(0, 500));
-      console.log('📡 N8N Response Full Length:', responseText.length);
-      
-      // Check if it's HTML (N8N might return an HTML page)
-      if (responseText.toLowerCase().includes('<html>') || responseText.toLowerCase().includes('<!doctype')) {
-        console.log('⚠️ WARNING: N8N returned HTML instead of JSON - Webhook might not be configured correctly');
-        console.log('🔧 Check your N8N workflow: Make sure webhook node is active and properly configured');
-      }
-      
-      console.log('🔍 ===========================');
-
-      if (!response.ok) {
-        console.error('❌ N8N Error Response:', responseText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${responseText}`);
-      }
-
-      // Try to parse JSON, but handle cases where response might be empty or not JSON
-      let result;
-
-      if (responseText.trim() === '') {
-        // Empty response is considered success for webhooks
-        result = { message: 'Webhook received successfully', status: 'success' };
-      } else if (contentType && contentType.includes('application/json')) {
-        try {
-          result = JSON.parse(responseText);
-        } catch (jsonError) {
-          console.warn('⚠️ Could not parse JSON response, using text:', responseText);
-          result = { message: responseText, status: 'success' };
-        }
+      if (response.ok) {
+        setConnectionStatus('success');
+        setN8nConnected(true);
+        alert('✅ N8N connection successful!');
       } else {
-        // Non-JSON response (might be HTML or plain text)
-        result = { message: responseText, status: 'success', contentType };
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('N8N connection test failed:', error);
+      setConnectionStatus('error');
+      setN8nConnected(false);
+      alert(`❌ N8N connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  // Create N8N Workflow
+  const createN8NWorkflow = async (automationData: any) => {
+    if (!n8nConnected) {
+      throw new Error('N8N not connected. Please configure your N8N settings first.');
+    }
+
+    // Generate N8N workflow JSON
+    const workflow = {
+      name: automationData.name,
+      nodes: [
+        // Trigger node
+        {
+          id: 'trigger-node',
+          name: automationData.trigger.name,
+          type: 'n8n-nodes-base.webhook',
+          typeVersion: 1,
+          position: [240, 300],
+          parameters: {
+            httpMethod: 'POST',
+            path: `webhook/${automationData.name.toLowerCase().replace(/\s+/g, '-')}`,
+            responseMode: 'responseNode',
+            options: {}
+          }
+        },
+        // Action nodes
+        ...automationData.actions.map((action: Action, index: number) => ({
+          id: `action-node-${index}`,
+          name: action.name,
+          type: `n8n-nodes-base.${action.category.toLowerCase()}`,
+          typeVersion: 1,
+          position: [460 + (index * 220), 300],
+          parameters: {
+            // Basic parameters - would be customized based on action type
+            operation: 'create',
+            resource: action.category.toLowerCase()
+          }
+        }))
+      ],
+      connections: {
+        'trigger-node': {
+          main: [
+            automationData.actions.map((_: Action, index: number) => ({
+              node: `action-node-${index}`,
+              type: 'main',
+              index: 0
+            }))
+          ]
+        }
+      },
+      active: false,
+      settings: {
+        executionOrder: 'v1'
+      },
+      versionId: '1'
+    };
+
+    try {
+      let createUrl = '';
+      let headers: any = {};
+
+      if (integrationType === 'api') {
+        createUrl = `${n8nUrl.replace(/\/$/, '')}/api/v1/workflows`;
+        headers = {
+          'X-N8N-API-KEY': n8nApiKey,
+          'Content-Type': 'application/json'
+        };
+      } else {
+        // For webhook, we'll send the workflow data to be processed
+        createUrl = n8nWebhookUrl;
+        headers = {
+          'Content-Type': 'application/json'
+        };
       }
 
-      console.log('✅ Automation sent to N8N successfully:', result);
-      return { success: true, data: result };
+      const response = await fetch(createUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          workflow,
+          automation: automationData,
+          user: {
+            id: user?.id,
+            email: user?.email,
+            name: user?.name
+          },
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        return { success: true, workflowId: result.id || 'created', data: result };
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     } catch (error) {
-      console.error('❌ Failed to send automation to N8N:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      console.error('Failed to create N8N workflow:', error);
+      throw error;
     }
   };
 
@@ -299,11 +387,16 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
 
     console.log('Creating automation:', automationData);
     
-    // Send to N8N webhook
-    const webhookResult = await sendToN8N(automationData);
-    
-    if (webhookResult.success) {
-      alert('🎉 Automation created and sent to N8N successfully!');
+    try {
+      if (n8nConnected) {
+        // Create workflow in N8N
+        const result = await createN8NWorkflow(automationData);
+        alert(`🎉 Automation created successfully in N8N!\nWorkflow ID: ${result.workflowId}`);
+      } else {
+        // Simulate local creation
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        alert('🎉 Automation created successfully! (Local mode)');
+      }
       
       // Reset form
       setAutomationName('');
@@ -314,11 +407,12 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       setActionSearchTerm('');
       setTriggerCategory('all');
       setActionCategory('all');
-    } else {
-      alert(`⚠️ Automation created but failed to send to N8N: ${webhookResult.error}`);
+    } catch (error) {
+      console.error('Error creating automation:', error);
+      alert(`❌ Failed to create automation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsCreating(false);
     }
-    
-    setIsCreating(false);
   };
 
   const getIcon = (iconName: string) => {
@@ -327,7 +421,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-3 sm:p-6 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -335,40 +429,207 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center space-x-3 bg-gradient-to-r from-purple-600 to-blue-600 p-4 rounded-2xl mb-4 shadow-2xl"
+            className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-purple-600 to-blue-600 p-3 sm:p-4 rounded-2xl mb-4 shadow-2xl"
           >
-            <Sparkles className="w-8 h-8 text-white animate-pulse" />
-            <h1 className="text-3xl font-bold text-white">Create New Automation</h1>
-            <Sparkles className="w-8 h-8 text-white animate-pulse" />
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
+            <h1 className="text-xl sm:text-3xl font-bold text-white">Create New Automation</h1>
+            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
           </motion.div>
-          <p className="text-xl text-gray-300">Build powerful automations in minutes</p>
-            </div>
+          <p className="text-lg sm:text-xl text-gray-300">Build powerful automations in minutes</p>
+          
+          {/* N8N Integration Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-4"
+          >
+            <button
+              onClick={() => setShowN8NSettings(!showN8NSettings)}
+              className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                n8nConnected 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+              }`}
+            >
+              <Globe className="w-4 h-4" />
+              <span>{n8nConnected ? 'N8N Connected' : 'Connect N8N'}</span>
+              {n8nConnected && <Check className="w-4 h-4" />}
+            </button>
+          </motion.div>
+        </div>
             
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* N8N Integration Settings */}
+        <AnimatePresence>
+          {showN8NSettings && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-blue-500/20 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">N8N Integration Settings</h3>
+                </div>
+                <button
+                  onClick={() => setShowN8NSettings(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Integration Type Selection */}
+                <div>
+                  <label className="block text-white font-medium mb-2">Integration Type</label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="api"
+                        checked={integrationType === 'api'}
+                        onChange={(e) => setIntegrationType(e.target.value as 'api' | 'webhook')}
+                        className="text-blue-500"
+                      />
+                      <span className="text-white">API Key</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="webhook"
+                        checked={integrationType === 'webhook'}
+                        onChange={(e) => setIntegrationType(e.target.value as 'api' | 'webhook')}
+                        className="text-blue-500"
+                      />
+                      <span className="text-white">Webhook URL</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* N8N URL */}
+                <div>
+                  <label className="block text-white font-medium mb-2">
+                    N8N URL <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={n8nUrl}
+                    onChange={(e) => setN8nUrl(e.target.value)}
+                    placeholder="https://your-n8n-instance.com"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* API Key or Webhook URL */}
+                {integrationType === 'api' ? (
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      API Key <span className="text-red-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showApiKey ? 'text' : 'password'}
+                        value={n8nApiKey}
+                        onChange={(e) => setN8nApiKey(e.target.value)}
+                        placeholder="Enter your N8N API key"
+                        className="w-full px-3 py-2 pr-10 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                      >
+                        {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-white font-medium mb-2">
+                      Webhook URL <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={n8nWebhookUrl}
+                      onChange={(e) => setN8nWebhookUrl(e.target.value)}
+                      placeholder="https://your-n8n-instance.com/webhook/automation"
+                      className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* Connection Status */}
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={testN8NConnection}
+                    disabled={testingConnection}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded-lg font-medium transition-colors"
+                  >
+                    {testingConnection ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <TestTube className="w-4 h-4" />
+                    )}
+                    <span>{testingConnection ? 'Testing...' : 'Test Connection'}</span>
+                  </button>
+
+                  {connectionStatus === 'success' && (
+                    <div className="flex items-center space-x-2 text-green-400">
+                      <Check className="w-4 h-4" />
+                      <span>Connected</span>
+                    </div>
+                  )}
+
+                  {connectionStatus === 'error' && (
+                    <div className="flex items-center space-x-2 text-red-400">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Connection Failed</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="bg-black/30 rounded-lg p-3">
+                  <p className="text-sm text-gray-300">
+                    <strong>API Key Method:</strong> Direct integration with N8N API for workflow creation.<br/>
+                    <strong>Webhook Method:</strong> Send automation data to your N8N webhook for processing.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Left Column - Details */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
             {/* Automation Details */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl">
-                  <Heart className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl">
+                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Automation Details</h2>
-            </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Automation Details</h2>
+              </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <label className="block text-white font-medium mb-2">
+                  <label className="block text-white font-medium mb-2 text-sm sm:text-base">
                     Name <span className="text-pink-400">*</span>
                   </label>
                   <input
@@ -376,14 +637,14 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     value={automationName}
                     onChange={(e) => setAutomationName(e.target.value)}
                     placeholder="e.g., Gmail to Slack Notifications"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-sm sm:text-base"
                     maxLength={100}
                   />
-                  <p className="text-gray-400 text-sm mt-1">{automationName.length}/100 characters</p>
-                    </div>
+                  <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationName.length}/100 characters</p>
+                </div>
 
                 <div>
-                  <label className="block text-white font-medium mb-2">
+                  <label className="block text-white font-medium mb-2 text-sm sm:text-base">
                     Description <span className="text-gray-400">(Optional)</span>
                   </label>
                   <textarea
@@ -391,51 +652,51 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     onChange={(e) => setAutomationDescription(e.target.value)}
                     placeholder="Describe what this automation does..."
                     rows={3}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none text-sm sm:text-base"
                     maxLength={500}
                   />
-                  <p className="text-gray-400 text-sm mt-1">{automationDescription.length}/500 characters</p>
-                      </div>
+                  <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationDescription.length}/500 characters</p>
+                </div>
               </div>
             </div>
 
             {/* Selected Components Preview */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl">
-                  <CheckCircle className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Selected Components</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Selected Components</h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Selected Trigger */}
                 {selectedTrigger ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl"
+                    className="p-3 sm:p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-500 rounded-lg">
-                        {React.createElement(getIcon(selectedTrigger.icon), { className: "w-5 h-5 text-white" })}
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg">
+                        {React.createElement(getIcon(selectedTrigger.icon), { className: "w-4 h-4 sm:w-5 sm:h-5 text-white" })}
                       </div>
                       <div>
-                        <p className="text-blue-300 text-sm font-medium">TRIGGER</p>
-                        <p className="text-white font-semibold">{selectedTrigger.name}</p>
-              </div>
-            </div>
+                        <p className="text-blue-300 text-xs sm:text-sm font-medium">TRIGGER</p>
+                        <p className="text-white font-semibold text-sm sm:text-base">{selectedTrigger.name}</p>
+                      </div>
+                    </div>
                   </motion.div>
                 ) : (
-                  <div className="p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
-                    <p className="text-gray-400">No trigger selected</p>
+                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
+                    <p className="text-gray-400 text-sm sm:text-base">No trigger selected</p>
                   </div>
                 )}
 
                 {/* Selected Actions */}
                 {selectedActions.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-green-300 text-sm font-medium">ACTIONS ({selectedActions.length})</p>
+                    <p className="text-green-300 text-xs sm:text-sm font-medium">ACTIONS ({selectedActions.length})</p>
                     {selectedActions.map((action, index) => {
                       const IconComponent = getIcon(action.icon);
                       return (
@@ -444,27 +705,27 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-lg flex items-center justify-between"
+                          className="p-2.5 sm:p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-lg flex items-center justify-between"
                         >
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-green-500 rounded-lg">
-                              <IconComponent className="w-4 h-4 text-white" />
+                          <div className="flex items-center space-x-2 sm:space-x-3">
+                            <div className="p-1.5 sm:p-2 bg-green-500 rounded-lg">
+                              <IconComponent className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                             </div>
-                            <span className="text-white font-medium">{action.name}</span>
+                            <span className="text-white font-medium text-sm sm:text-base">{action.name}</span>
                           </div>
-              <button
+                          <button
                             onClick={() => handleActionToggle(action)}
-                            className="text-green-300 hover:text-red-400 transition-colors"
-              >
-                            <X className="w-4 h-4" />
-              </button>
+                            className="text-green-300 hover:text-red-400 transition-colors p-1"
+                          >
+                            <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </button>
                         </motion.div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
-                    <p className="text-gray-400">No actions selected</p>
+                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
+                    <p className="text-gray-400 text-sm sm:text-base">No actions selected</p>
                   </div>
                 )}
               </div>
@@ -476,20 +737,20 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
             {/* Triggers Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
-                    <Zap className="w-6 h-6 text-white" />
-        </div>
-                  <h2 className="text-2xl font-bold text-white">Select Trigger</h2>
-        </div>
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">Select Trigger</h2>
+                </div>
                 <button
                   onClick={() => setShowTriggers(!showTriggers)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm sm:text-base"
                 >
                   {showTriggers ? 'Hide' : 'Browse'}
                 </button>
@@ -562,18 +823,18 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             </div>
 
             {/* Actions Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-                    <Settings className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+                    <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Select Actions</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">Select Actions</h2>
                   <span className="text-gray-400 text-sm">(Optional)</span>
                 </div>
                 <button
                   onClick={() => setShowActions(!showActions)}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                  className="px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm sm:text-base"
                 >
                   {showActions ? 'Hide' : 'Browse'}
                 </button>
@@ -662,13 +923,13 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             {isCreating ? (
               <>
                 <RefreshCw className="w-6 h-6 animate-spin" />
-                <span>Sending to N8N...</span>
+                <span>{n8nConnected ? 'Creating in N8N...' : 'Creating Automation...'}</span>
                 <RefreshCw className="w-6 h-6 animate-spin" />
               </>
             ) : (
               <>
                 <Rocket className="w-6 h-6" />
-                <span>Create Automation</span>
+                <span>{n8nConnected ? 'Create in N8N' : 'Create Automation'}</span>
                 <Star className="w-6 h-6" />
               </>
             )}

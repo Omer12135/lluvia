@@ -190,33 +190,36 @@ const AIChatInterface: React.FC = () => {
   const isAtLimit = user && user.aiMessagesUsed >= user.aiMessagesLimit;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-2xl font-bold text-white mb-2">AI Automation Assistant</h3>
-          <p className="text-gray-400">Get help creating and optimizing your automations</p>
-          {user && (
-            <div className="mt-2 text-sm">
-              <span className="text-gray-500">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+            <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg sm:text-xl font-bold text-white">AI Chat Assistant</h3>
+            {hasAIAccess && (
+              <span className="text-sm sm:text-base text-gray-500">
                 {user.plan === 'free' ? 'AI Chatbot not available on Basic Plan' : 
                  `${user.aiMessagesUsed}/${user.aiMessagesLimit} messages used this month`}
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
         {hasAIAccess && (
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
             <button
               onClick={downloadChat}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
               <Download className="w-4 h-4" />
               <span>Export Chat</span>
             </button>
             <button
               onClick={clearChat}
-              className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              className="flex items-center justify-center space-x-2 bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base"
             >
               <Trash2 className="w-4 h-4" />
               <span>Clear Chat</span>
@@ -227,23 +230,23 @@ const AIChatInterface: React.FC = () => {
 
       {/* Plan Limitation Warning */}
       {!hasAIAccess && (
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6">
-          <div className="flex items-center space-x-3">
-            <AlertCircle className="w-6 h-6 text-yellow-500" />
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 sm:p-6">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-yellow-400 font-medium text-lg">AI Chatbot Not Available</p>
+              <p className="text-yellow-400 font-medium text-base sm:text-lg">AI Chatbot Not Available</p>
               <p className="text-yellow-300 text-sm mt-1">
                 The AI assistant is available on Starter Plan ($19/month) and Pro Plan ($99/month). 
                 Upgrade to get personalized automation help and guidance.
               </p>
-              <div className="mt-4 flex space-x-4">
+              <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="bg-purple-500/20 rounded-lg p-3 border border-purple-500/30">
-                  <p className="text-purple-400 font-medium">Starter Plan</p>
-                  <p className="text-purple-300 text-sm">100 AI messages/month</p>
+                  <p className="text-purple-400 font-medium text-sm sm:text-base">Starter Plan</p>
+                  <p className="text-purple-300 text-xs sm:text-sm">100 AI messages/month</p>
                 </div>
                 <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
-                  <p className="text-blue-400 font-medium">Pro Plan</p>
-                  <p className="text-blue-300 text-sm">1000 AI messages/month</p>
+                  <p className="text-blue-400 font-medium text-sm sm:text-base">Pro Plan</p>
+                  <p className="text-blue-300 text-xs sm:text-sm">1000 AI messages/month</p>
                 </div>
               </div>
             </div>
@@ -253,12 +256,12 @@ const AIChatInterface: React.FC = () => {
 
       {/* Message Limit Warning */}
       {hasAIAccess && isAtLimit && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-          <div className="flex items-center space-x-3">
-            <AlertCircle className="w-5 h-5 text-red-500" />
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 sm:p-4">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-red-400 font-medium">Monthly Message Limit Reached</p>
-              <p className="text-red-300 text-sm">
+              <p className="text-red-400 font-medium text-sm sm:text-base">Monthly Message Limit Reached</p>
+              <p className="text-red-300 text-xs sm:text-sm">
                 You've used all {user?.aiMessagesLimit} AI messages for this month. 
                 {user?.plan === 'starter' ? ' Upgrade to Pro Plan for 1000 messages/month.' : ' Your limit will reset next month.'}
               </p>
@@ -271,14 +274,14 @@ const AIChatInterface: React.FC = () => {
       {hasAIAccess && (
         <div className="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
           {/* Chat Header */}
-          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 p-4 border-b border-white/10">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
+          <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 p-3 sm:p-4 border-b border-white/10">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h4 className="text-lg font-semibold text-white">AI Assistant</h4>
-                <p className="text-sm text-gray-400">
+                <h4 className="text-base sm:text-lg font-semibold text-white">AI Assistant</h4>
+                <p className="text-xs sm:text-sm text-gray-400">
                   Powered by advanced AI • {user?.aiMessagesUsed}/{user?.aiMessagesLimit} messages used
                 </p>
               </div>
@@ -286,7 +289,7 @@ const AIChatInterface: React.FC = () => {
           </div>
 
           {/* Messages Area */}
-          <div className="h-96 overflow-y-auto p-6 space-y-4 bg-slate-900/50">
+          <div className="h-80 sm:h-96 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-slate-900/50 scrollbar-thin">
             {messages.map((message) => (
               <motion.div
                 key={message.id}
@@ -294,10 +297,10 @@ const AIChatInterface: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex items-start space-x-3 max-w-[85%] ${
+                <div className={`flex items-start space-x-2 sm:space-x-3 max-w-[90%] sm:max-w-[85%] ${
                   message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                 }`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                     message.sender === 'user' 
                       ? 'bg-purple-600' 
                       : message.type === 'error'
@@ -307,17 +310,17 @@ const AIChatInterface: React.FC = () => {
                       : 'bg-gradient-to-r from-purple-600 to-blue-600'
                   }`}>
                     {message.sender === 'user' ? (
-                      <User className="w-4 h-4 text-white" />
+                      <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     ) : message.type === 'error' ? (
-                      <AlertCircle className="w-4 h-4 text-white" />
+                      <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     ) : message.type === 'automation' ? (
-                      <Zap className="w-4 h-4 text-white" />
+                      <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     ) : (
-                      <Bot className="w-4 h-4 text-white" />
+                      <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                     )}
                   </div>
                   
-                  <div className={`rounded-2xl p-4 ${
+                  <div className={`rounded-2xl p-3 sm:p-4 ${
                     message.sender === 'user'
                       ? 'bg-purple-600 text-white'
                       : message.type === 'error'
@@ -326,7 +329,7 @@ const AIChatInterface: React.FC = () => {
                       ? 'bg-green-500/20 text-green-300 border border-green-500/30'
                       : 'bg-white/10 text-gray-300 border border-white/20'
                   }`}>
-                    <p className="text-sm whitespace-pre-line leading-relaxed">{message.text}</p>
+                    <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{message.text}</p>
                     <p className="text-xs opacity-70 mt-2">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
@@ -337,14 +340,14 @@ const AIChatInterface: React.FC = () => {
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                    <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
-                  <div className="bg-white/10 rounded-2xl p-4 border border-white/20">
+                  <div className="bg-white/10 rounded-2xl p-3 sm:p-4 border border-white/20">
                     <div className="flex items-center space-x-2">
-                      <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
-                      <span className="text-sm text-gray-400">AI is thinking...</span>
+                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 animate-spin" />
+                      <span className="text-xs sm:text-sm text-gray-400">AI is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -355,8 +358,8 @@ const AIChatInterface: React.FC = () => {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-white/10 bg-slate-900/30">
-            <div className="flex items-center space-x-3">
+          <div className="p-3 sm:p-4 border-t border-white/10 bg-slate-900/30">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="flex-1 relative">
                 <input
                   type="text"
@@ -365,16 +368,16 @@ const AIChatInterface: React.FC = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder={isAtLimit ? "Message limit reached..." : "Ask me about automations, triggers, or workflows..."}
                   disabled={isLoading || isAtLimit}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12"
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 pr-10 sm:pr-12 text-sm sm:text-base"
                 />
-                <Sparkles className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400" />
+                <Sparkles className="absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
               </div>
               <button
                 onClick={handleSendMessage}
                 disabled={!inputText.trim() || isLoading || isAtLimit}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-2.5 sm:p-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
             
@@ -389,25 +392,25 @@ const AIChatInterface: React.FC = () => {
 
       {/* Quick Actions for AI Chat */}
       {hasAIAccess && !isAtLimit && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {[
             {
               title: "Webhook Setup",
               description: "Learn how to create webhook automations",
               prompt: "How do I set up a webhook automation for payment notifications?",
-              icon: <Zap className="w-5 h-5 text-blue-500" />
+              icon: <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             },
             {
               title: "Email Processing",
               description: "Automate email workflows",
               prompt: "Help me create an automation that processes invoice emails",
-              icon: <MessageSquare className="w-5 h-5 text-green-500" />
+              icon: <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
             },
             {
               title: "Data Sync",
               description: "Connect different databases",
               prompt: "How can I sync data between Airtable and Google Sheets?",
-              icon: <CheckCircle className="w-5 h-5 text-purple-500" />
+              icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
             }
           ].map((action, index) => (
             <motion.button
@@ -419,13 +422,13 @@ const AIChatInterface: React.FC = () => {
                 setInputText(action.prompt);
                 setTimeout(() => handleSendMessage(), 100);
               }}
-              className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-200 text-left"
+              className="bg-white/5 rounded-lg p-3 sm:p-4 border border-white/10 hover:bg-white/10 transition-all duration-200 text-left"
             >
-              <div className="flex items-center space-x-3 mb-2">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-2">
                 {action.icon}
-                <h5 className="font-semibold text-white">{action.title}</h5>
+                <h5 className="font-semibold text-white text-sm sm:text-base">{action.title}</h5>
               </div>
-              <p className="text-gray-400 text-sm">{action.description}</p>
+              <p className="text-gray-400 text-xs sm:text-sm">{action.description}</p>
             </motion.button>
           ))}
         </div>

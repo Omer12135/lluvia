@@ -1,3 +1,189 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Mobile Zoom Control - 62% zoom level */
+@media (max-width: 768px) {
+  html {
+    zoom: 0.62;
+    -webkit-text-size-adjust: 62%;
+    transform: scale(0.62);
+    transform-origin: top left;
+    width: 161.29%; /* 100% / 0.62 = 161.29% */
+    height: 161.29%;
+  }
+  
+  body {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  
+  /* Prevent double zoom on input focus */
+  input, textarea, select {
+    font-size: 16px !important;
+    transform: scale(1);
+  }
+  
+  /* Ensure proper touch targets */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    transform: scale(1);
+  }
+}
+
+/* Alternative approach using viewport meta */
+@supports (zoom: 0.62) {
+  @media (max-width: 768px) {
+    html {
+      zoom: 0.62;
+    }
+  }
+}
+
+/* Fallback for browsers that don't support zoom */
+@supports not (zoom: 0.62) {
+  @media (max-width: 768px) {
+    html {
+      font-size: 62%;
+    }
+    
+    body {
+      font-size: 1rem;
+    }
+  }
+}
+
+/* Mobile-specific viewport adjustments */
+@media (max-width: 768px) {
+  /* Ensure proper scaling for all elements */
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Adjust container widths */
+  .container {
+    width: 100%;
+    max-width: none;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Ensure images scale properly */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Adjust grid layouts for zoom */
+  .grid {
+    gap: 0.5rem;
+  }
+  
+  /* Ensure proper spacing */
+  .space-x-2 > * + * {
+    margin-left: 0.5rem;
+  }
+  
+  .space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Better touch targets for mobile */
+button, a {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Improved scrolling on mobile */
+html {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent zoom on input focus on iOS */
+input, textarea, select {
+  font-size: 16px;
+}
+
+/* Mobile-optimized focus states */
+@media (max-width: 640px) {
+  .focus\:ring-2:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.5);
+  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Smooth animations */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Mobile-specific text rendering */
+@media (max-width: 768px) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Mobile-specific utilities */
+  .mobile-touch-target { min-height: 44px; min-width: 44px; }
+  .mobile-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .mobile-text-xs { font-size: 0.75rem; line-height: 1rem; }
+  .mobile-p-2 { padding: 0.5rem; }
+  .mobile-p-3 { padding: 0.75rem; }
+  .mobile-p-4 { padding: 1rem; }
+  .mobile-m-2 { margin: 0.5rem; }
+  .mobile-m-3 { margin: 0.75rem; }
+  .mobile-m-4 { margin: 1rem; }
+  .mobile-gap-2 { gap: 0.5rem; }
+  .mobile-gap-3 { gap: 0.75rem; }
+  .mobile-gap-4 { gap: 1rem; }
+  .mobile-space-x-2 > * + * { margin-left: 0.5rem; }
+  .mobile-space-x-3 > * + * { margin-left: 0.75rem; }
+  .mobile-space-y-2 > * + * { margin-top: 0.5rem; }
+  .mobile-space-y-3 > * + * { margin-top: 0.75rem; }
+}
+
+@layer components {
+  .mobile-card { @apply bg-white/5 rounded-lg border border-white/10 p-3 sm:p-4; }
+  .mobile-button { @apply px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-all duration-200; }
+  .mobile-input { @apply bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent; }
+  .mobile-nav-item { @apply flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors; }
+  .mobile-stats-card { @apply bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20; }
+  .mobile-tab { @apply flex flex-col items-center justify-center min-w-[70px] px-2 py-2 font-medium transition-all duration-200 text-center; }
+}

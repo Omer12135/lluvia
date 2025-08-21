@@ -112,9 +112,9 @@ const AIChatbot: React.FC = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 z-50"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 z-50"
         >
-          <MessageCircle className="w-6 h-6 text-white" />
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </motion.button>
       )}
 
@@ -127,19 +127,19 @@ const AIChatbot: React.FC = () => {
               opacity: 1, 
               y: 0, 
               scale: 1,
-              height: isMinimized ? 60 : 500
+              height: isMinimized ? 60 : window.innerWidth < 640 ? 'calc(100vh - 2rem)' : 500
             }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-96 bg-slate-900 rounded-2xl border border-white/20 shadow-2xl z-50 overflow-hidden"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 bg-slate-900 rounded-2xl border border-white/20 shadow-2xl z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-3 sm:p-4 flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <Bot className="w-3 h-3 sm:w-5 sm:h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">AI Assistant</h3>
+                  <h3 className="font-semibold text-white text-sm sm:text-base">AI Assistant</h3>
                   <p className="text-xs text-white/80">
                     {user.aiMessagesUsed}/{user.aiMessagesLimit} messages used
                   </p>
@@ -165,7 +165,7 @@ const AIChatbot: React.FC = () => {
             {/* Messages */}
             {!isMinimized && (
               <>
-                <div className="h-80 overflow-y-auto p-4 space-y-4">
+                <div className="h-60 sm:h-80 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
                   {messages.map((message) => (
                     <motion.div
                       key={message.id}
@@ -173,27 +173,27 @@ const AIChatbot: React.FC = () => {
                       animate={{ opacity: 1, y: 0 }}
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`flex items-start space-x-2 max-w-[80%] ${
+                      <div className={`flex items-start space-x-2 max-w-[85%] sm:max-w-[80%] ${
                         message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                       }`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                           message.sender === 'user' 
                             ? 'bg-purple-600' 
                             : 'bg-gradient-to-r from-purple-600 to-blue-600'
                         }`}>
                           {message.sender === 'user' ? (
-                            <User className="w-4 h-4 text-white" />
+                            <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                           ) : (
-                            <Bot className="w-4 h-4 text-white" />
+                            <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                           )}
                         </div>
                         
-                        <div className={`rounded-2xl p-3 ${
+                        <div className={`rounded-2xl p-2.5 sm:p-3 ${
                           message.sender === 'user'
                             ? 'bg-purple-600 text-white'
                             : 'bg-white/10 text-gray-300'
                         }`}>
-                          <p className="text-sm whitespace-pre-line">{message.text}</p>
+                          <p className="text-xs sm:text-sm whitespace-pre-line">{message.text}</p>
                           <p className="text-xs opacity-70 mt-1">
                             {message.timestamp.toLocaleTimeString()}
                           </p>
@@ -205,11 +205,11 @@ const AIChatbot: React.FC = () => {
                   {isLoading && (
                     <div className="flex justify-start">
                       <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                          <Bot className="w-4 h-4 text-white" />
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                          <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                         </div>
-                        <div className="bg-white/10 rounded-2xl p-3">
-                          <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                        <div className="bg-white/10 rounded-2xl p-2.5 sm:p-3">
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 animate-spin" />
                         </div>
                       </div>
                     </div>
@@ -219,7 +219,7 @@ const AIChatbot: React.FC = () => {
                 </div>
 
                 {/* Input */}
-                <div className="p-4 border-t border-white/10">
+                <div className="p-3 sm:p-4 border-t border-white/10">
                   <div className="flex items-center space-x-2">
                     <input
                       type="text"
@@ -227,15 +227,15 @@ const AIChatbot: React.FC = () => {
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       placeholder="Ask me about automations..."
-                      className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                      className="flex-1 bg-white/10 border border-white/20 rounded-lg px-2.5 sm:px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs sm:text-sm"
                       disabled={isLoading}
                     />
                     <button
                       onClick={handleSendMessage}
                       disabled={!inputText.trim() || isLoading}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-1.5 sm:p-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="w-4 h-4" />
+                      <Send className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </div>
