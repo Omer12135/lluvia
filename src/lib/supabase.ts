@@ -56,7 +56,7 @@ export interface Database {
           user_id: string;
           email: string;
           name: string;
-          plan: 'free' | 'starter' | 'pro';
+          plan: 'free' | 'pro';
           automations_used: number;
           automations_limit: number;
           ai_messages_used: number;
@@ -69,7 +69,7 @@ export interface Database {
           user_id: string;
           email: string;
           name: string;
-          plan?: 'free' | 'starter' | 'pro';
+          plan?: 'free' | 'pro';
           automations_used?: number;
           automations_limit?: number;
           ai_messages_used?: number;
@@ -82,7 +82,7 @@ export interface Database {
           user_id?: string;
           email?: string;
           name?: string;
-          plan?: 'free' | 'starter' | 'pro';
+          plan?: 'free' | 'pro';
           automations_used?: number;
           automations_limit?: number;
           ai_messages_used?: number;

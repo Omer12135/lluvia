@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   email text NOT NULL,
   name text NOT NULL,
-  plan text DEFAULT 'free' CHECK (plan IN ('free', 'starter', 'pro')),
+  plan text DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
   automations_used integer DEFAULT 0,
   automations_limit integer DEFAULT 2,
   ai_messages_used integer DEFAULT 0,

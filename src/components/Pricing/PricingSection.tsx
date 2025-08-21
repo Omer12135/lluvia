@@ -74,14 +74,14 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className={`relative bg-white/5 rounded-2xl p-8 border transition-all duration-300 hover:bg-white/10 ${
-              product.name === 'Starter Plan'
-                ? 'border-purple-500 ring-2 ring-purple-500/20 scale-105'
+              product.name === 'Pro Plan'
+                ? 'border-blue-500 ring-2 ring-blue-500/20 scale-105'
                 : 'border-white/10 hover:border-white/20'
             }`}
           >
-            {product.name === 'Starter Plan' && (
+            {product.name === 'Pro Plan' && (
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
                   Most Popular
                 </span>
               </div>
