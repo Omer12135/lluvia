@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 export interface Automation {
   id: string;
@@ -9,6 +10,8 @@ export interface Automation {
   createdAt: Date;
   duration?: number;
   result?: any;
+  trigger?: string;
+  actions?: string[];
 }
 
 export interface ExampleAutomation {
@@ -31,7 +34,9 @@ interface AutomationContextType {
   exampleAutomations: ExampleAutomation[];
   currentResult: any;
   isLoading: boolean;
-  addAutomation: (automation: Omit<Automation, 'id' | 'createdAt'>) => void;
+  canCreateAutomation: boolean;
+  automationLimit: number;
+  addAutomation: (automation: Omit<Automation, 'id' | 'createdAt'>) => Promise<boolean>;
   updateAutomationStatus: (id: string, status: Automation['status']) => void;
   deleteAutomation: (id: string) => void;
   setCurrentResult: (result: any) => void;
@@ -39,6 +44,8 @@ interface AutomationContextType {
   addExampleAutomation: (example: Omit<ExampleAutomation, 'id'>) => void;
   updateExampleAutomation: (id: string, example: Partial<ExampleAutomation>) => void;
   deleteExampleAutomation: (id: string) => void;
+  exportAutomationToJson: (automationId: string) => void;
+  exportAllAutomationsToJson: () => void;
 }
 
 const AutomationContext = createContext<AutomationContextType | undefined>(undefined);
@@ -56,9 +63,29 @@ interface AutomationProviderProps {
 }
 
 export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children }) => {
+  const { user } = useAuth();
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [currentResult, setCurrentResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Plan-based limits
+  const getAutomationLimit = () => {
+    if (!user) return 0;
+    switch (user.plan) {
+      case 'free':
+        return 2;
+      case 'pro':
+        return 50;
+      case 'custom':
+        return -1; // Unlimited
+      default:
+        return 0;
+    }
+  };
+
+  const automationLimit = getAutomationLimit();
+  const userAutomations = automations.filter(a => a.userId === user?.id);
+  const canCreateAutomation = Boolean(user && (automationLimit === -1 || userAutomations.length < automationLimit));
 
   const [exampleAutomations, setExampleAutomations] = useState<ExampleAutomation[]>([
     {
@@ -222,13 +249,24 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     }
   ]);
 
-  const addAutomation = (automation: Omit<Automation, 'id' | 'createdAt'>) => {
+  const addAutomation = async (automation: Omit<Automation, 'id' | 'createdAt'>) => {
+    if (!user) {
+      console.error('User not authenticated');
+      return false;
+    }
+    if (automationLimit !== -1 && userAutomations.length >= automationLimit) {
+      console.warn(`Automation limit reached: ${automationLimit}`);
+      return false;
+    }
+
     const newAutomation: Automation = {
       ...automation,
       id: Date.now().toString(),
-      createdAt: new Date()
+      createdAt: new Date(),
+      userId: user.id
     };
     setAutomations(prev => [...prev, newAutomation]);
+    return true;
   };
 
   const updateAutomationStatus = (id: string, status: Automation['status']) => {
@@ -263,11 +301,42 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     setExampleAutomations(prev => prev.filter(example => example.id !== id));
   };
 
+  const exportAutomationToJson = (automationId: string) => {
+    const automation = automations.find(a => a.id === automationId);
+    if (automation) {
+      const data = JSON.stringify(automation, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${automation.name}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const exportAllAutomationsToJson = () => {
+    const data = JSON.stringify(automations, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'automations.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const value: AutomationContextType = {
     automations,
     exampleAutomations,
     currentResult,
     isLoading,
+    canCreateAutomation,
+    automationLimit,
     addAutomation,
     updateAutomationStatus,
     deleteAutomation,
@@ -275,7 +344,9 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     setIsLoading,
     addExampleAutomation,
     updateExampleAutomation,
-    deleteExampleAutomation
+    deleteExampleAutomation,
+    exportAutomationToJson,
+    exportAllAutomationsToJson
   };
 
   return (

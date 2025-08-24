@@ -7,13 +7,14 @@ import {
   Loader2, 
   Download,
   MoreVertical,
-  Play
+  Play,
+  AlertTriangle
 } from 'lucide-react';
 import { useAutomation } from '../context/AutomationContext';
 import { useAuth } from '../context/AuthContext';
 
 const AutomationHistory: React.FC = () => {
-  const { automations } = useAutomation();
+  const { automations, exportAutomationToJson, exportAllAutomationsToJson, automationLimit } = useAutomation();
   const { user } = useAuth();
 
   // Filter automations for current user
@@ -75,10 +76,41 @@ const AutomationHistory: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div>
-        <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Automation History</h3>
-        <p className="text-sm sm:text-base text-gray-400">View and manage your previous automation executions</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Automation History</h3>
+          <p className="text-sm sm:text-base text-gray-400">View and manage your previous automation executions</p>
+        </div>
+        
+        {userAutomations.length > 0 && (
+          <button
+            onClick={exportAllAutomationsToJson}
+            className="mt-2 sm:mt-0 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 text-sm"
+          >
+            <Download className="w-4 h-4" />
+            <span>Export All</span>
+          </button>
+        )}
       </div>
+
+      {/* Plan Limit Warning */}
+      {user?.plan === 'free' && userAutomations.length >= 2 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4"
+        >
+          <div className="flex items-center space-x-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-500" />
+            <div>
+              <h4 className="text-yellow-400 font-medium">Free Plan Limit Reached</h4>
+              <p className="text-yellow-300 text-sm">
+                You have reached the Free Plan limit of 2 automations. Upgrade to Pro Plan to create unlimited automations.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -165,13 +197,21 @@ const AutomationHistory: React.FC = () => {
                   </span>
                   
                   <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => exportAutomationToJson(automation.id)}
+                      className="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                      title="Export to JSON"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    
                     {automation.result && (
                       <button
                         onClick={() => downloadResult(automation)}
                         className="p-1.5 sm:p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                         title="Download Result"
                       >
-                        <Download className="w-4 h-4" />
+                        <Play className="w-4 h-4" />
                       </button>
                     )}
                     

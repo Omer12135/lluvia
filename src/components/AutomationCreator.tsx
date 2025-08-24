@@ -69,6 +69,7 @@ import {
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
+import { useAutomation } from '../context/AutomationContext';
 
 // Icon mapping
 const iconMap: Record<string, any> = {
@@ -137,6 +138,7 @@ interface AutomationCreatorProps {}
 
 const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   const { user } = useAuth();
+  const { addAutomation, canCreateAutomation, automationLimit } = useAutomation();
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
@@ -190,12 +192,18 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       alert('Please enter an automation name');
       return;
     }
-    if (!automationDescription.trim()) {
-      alert('Please enter an automation description');
-      return;
-    }
+
     if (!selectedTrigger) {
       alert('Please select a trigger');
+      return;
+    }
+
+    if (!canCreateAutomation) {
+      if (automationLimit === 2) {
+        alert('You have reached the Free Plan limit of 2 automations. Please upgrade to Pro Plan to create more automations.');
+      } else {
+        alert('You have reached your automation limit. Please upgrade your plan to create more automations.');
+      }
       return;
     }
 
@@ -204,26 +212,32 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
     const automationData = {
       name: automationName,
       description: automationDescription,
-      trigger: selectedTrigger,
-      actions: selectedActions
+      trigger: selectedTrigger?.name || '',
+      actions: selectedActions.map(a => a.name),
+      userId: user?.id || '',
+      status: 'pending' as const
     };
 
     console.log('Creating automation:', automationData);
     
     try {
-      // Simulate local creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('🎉 Automation created successfully!');
+      const success = await addAutomation(automationData);
       
-      // Reset form
-      setAutomationName('');
-      setAutomationDescription('');
-      setSelectedTrigger(null);
-      setSelectedActions([]);
-      setTriggerSearchTerm('');
-      setActionSearchTerm('');
-      setTriggerCategory('all');
-      setActionCategory('all');
+      if (success) {
+        alert('🎉 Automation created successfully!');
+        
+        // Reset form
+        setAutomationName('');
+        setAutomationDescription('');
+        setSelectedTrigger(null);
+        setSelectedActions([]);
+        setTriggerSearchTerm('');
+        setActionSearchTerm('');
+        setTriggerCategory('all');
+        setActionCategory('all');
+      } else {
+        alert('❌ Failed to create automation. Please check your plan limits.');
+      }
     } catch (error) {
       console.error('Error creating automation:', error);
       alert(`❌ Failed to create automation: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -567,7 +581,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         >
           <button
             onClick={handleCreate}
-            disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || isCreating}
+            disabled={!automationName.trim() || !selectedTrigger || isCreating}
             className="w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center justify-center space-x-3 mx-auto"
           >
             {isCreating ? (
