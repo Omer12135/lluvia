@@ -30,7 +30,7 @@ export const stripeProducts: StripeProduct[] = [
     name: 'Custom Plan',
     description: 'Enterprise solutions with custom workflows and dedicated support',
     price: 99.00,
-    mode: 'payment'
+    mode: 'subscription'
   }
 ];
 
