@@ -406,58 +406,58 @@ const LandingPage: React.FC = () => {
 
       {/* Pricing Section */}
       <section id="pricing" className="py-12 sm:py-20 bg-black/20">
-        <div className="container mx-auto px-2 sm:px-6">
-          <div className="text-center mb-6 sm:mb-16">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-16">
             <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Choose Your Plan</h2>
             <p className="text-base sm:text-xl text-gray-400">Start free and scale as you grow</p>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
             {stripeProducts.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`relative bg-white/5 rounded-lg sm:rounded-2xl p-2 sm:p-6 lg:p-8 border transition-all duration-300 hover:bg-white/10 ${
+                className={`relative bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border transition-all duration-300 hover:bg-white/10 ${
                   product.name === 'Custom Plan'
-                    ? 'border-purple-500 ring-1 sm:ring-2 ring-purple-500/20 lg:scale-105'
+                    ? 'border-purple-500 ring-2 ring-purple-500/20 lg:scale-105'
                     : product.name === 'Pro Plan'
-                      ? 'border-blue-500 ring-1 sm:ring-2 ring-blue-500/20'
+                      ? 'border-blue-500 ring-2 ring-blue-500/20'
                       : 'border-white/10 hover:border-white/20'
                 }`}
               >
                 {product.name === 'Custom Plan' && (
-                  <div className="absolute -top-2 sm:-top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-1 sm:px-4 py-0.5 sm:py-1 rounded-full text-xs font-medium">
+                  <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-4 py-1 rounded-full text-xs sm:text-sm font-medium">
                       Enterprise
                     </span>
                   </div>
                 )}
 
-                <div className="text-center mb-2 sm:mb-6 lg:mb-8">
-                  <div className="flex justify-center mb-1 sm:mb-3 lg:mb-4">
+                <div className="text-center mb-6 sm:mb-8">
+                  <div className="flex justify-center mb-3 sm:mb-4">
                     {getPlanIcon(product.name)}
                   </div>
-                  <h3 className="text-xs sm:text-lg lg:text-2xl font-bold text-white mb-1 sm:mb-2">{product.name}</h3>
-                  <div className="mb-1 sm:mb-3 lg:mb-4">
-                    <span className="text-sm sm:text-2xl lg:text-4xl font-bold text-white">
+                  <h3 className="text-lg sm:text-2xl font-bold text-white mb-2">{product.name}</h3>
+                  <div className="mb-3 sm:mb-4">
+                    <span className="text-2xl sm:text-4xl font-bold text-white">
                       {product.price === 0 ? 'Free' : `$${product.price}`}
                     </span>
                     {product.price > 0 && (
-                      <span className="text-gray-400 text-xs sm:text-sm block sm:inline">
+                      <span className="text-gray-400 text-sm sm:text-base">
                         {product.mode === 'subscription' ? '/month' : ' one-time'}
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-400 text-xs sm:text-sm hidden sm:block">{product.description}</p>
+                  <p className="text-gray-400 text-sm sm:text-base">{product.description}</p>
                 </div>
 
-                <div className="space-y-1 sm:space-y-3 lg:space-y-4 mb-2 sm:mb-6 lg:mb-8">
+                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                   {getFeatures(product.name).map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-start space-x-1 sm:space-x-3">
-                      <CheckCircle className="w-2 h-2 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-xs sm:text-sm text-gray-300 leading-tight sm:leading-relaxed">{feature}</span>
+                    <div key={featureIndex} className="flex items-start space-x-3">
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-sm sm:text-base text-gray-300 leading-relaxed">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -465,7 +465,7 @@ const LandingPage: React.FC = () => {
                 <button
                   onClick={() => handleSelectPlan(product.priceId)}
                   disabled={isCurrentPlan(product.name)}
-                  className={`w-full py-1.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-1 sm:space-x-2 text-xs sm:text-sm lg:text-base ${
+                  className={`w-full py-3 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
                     product.name === 'Custom Plan'
                       ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                     : product.name === 'Pro Plan'
@@ -475,10 +475,10 @@ const LandingPage: React.FC = () => {
                       : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  <span className="text-xs sm:text-sm lg:text-base">
-                    {product.price === 0 ? 'Free' : 
-                     isCurrentPlan(product.name) ? 'Current' :
-                     `$${product.price}`}
+                  <span>
+                    {product.price === 0 ? 'Start Free' : 
+                     isCurrentPlan(product.name) ? 'Current Plan' :
+                     `Choose ${product.name}`}
                   </span>
                 </button>
               </motion.div>
