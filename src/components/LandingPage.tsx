@@ -167,7 +167,6 @@ const LandingPage: React.FC = () => {
         return [
           '50 automations per month',
           'All trigger types',
-          'AI Chatbot (500 messages/month)',
           'Webhook integration',
           'Email support',
           'Automation templates',
@@ -186,7 +185,7 @@ const LandingPage: React.FC = () => {
           'Bulk operations',
           'Advanced security',
           'Dedicated support',
-          'Setup by LLUVIA team'
+          '2 hours of setup from LLUVIA'
         ];
       default:
         return [];
@@ -408,21 +407,21 @@ const LandingPage: React.FC = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-12 sm:py-20 bg-black/20">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
+          <div className="text-center mb-8 sm:mb-16">
             <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Choose Your Plan</h2>
-            <p className="text-lg sm:text-xl text-gray-400">Start free and scale as you grow</p>
+            <p className="text-base sm:text-xl text-gray-400">Start free and scale as you grow</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {stripeProducts.map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`relative bg-white/5 rounded-2xl p-6 sm:p-8 border transition-all duration-300 hover:bg-white/10 ${
+                className={`relative bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-8 border transition-all duration-300 hover:bg-white/10 ${
                   product.name === 'Custom Plan'
-                    ? 'border-purple-500 ring-2 ring-purple-500/20 sm:scale-105'
+                    ? 'border-purple-500 ring-2 ring-purple-500/20 lg:scale-105'
                     : product.name === 'Pro Plan'
                       ? 'border-blue-500 ring-2 ring-blue-500/20'
                       : 'border-white/10 hover:border-white/20'
@@ -440,9 +439,9 @@ const LandingPage: React.FC = () => {
                   <div className="flex justify-center mb-3 sm:mb-4">
                     {getPlanIcon(product.name)}
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{product.name}</h3>
+                  <h3 className="text-lg sm:text-2xl font-bold text-white mb-2">{product.name}</h3>
                   <div className="mb-3 sm:mb-4">
-                    <span className="text-3xl sm:text-4xl font-bold text-white">
+                    <span className="text-2xl sm:text-4xl font-bold text-white">
                       {product.price === 0 ? 'Free' : `$${product.price}`}
                     </span>
                     {product.price > 0 && (
@@ -456,9 +455,9 @@ const LandingPage: React.FC = () => {
 
                 <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                   {getFeatures(product.name).map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center space-x-2 sm:space-x-3">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
-                      <span className="text-xs sm:text-sm text-gray-300">{feature}</span>
+                    <div key={featureIndex} className="flex items-start space-x-2 sm:space-x-3">
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm text-gray-300 leading-relaxed">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -466,7 +465,7 @@ const LandingPage: React.FC = () => {
                 <button
                   onClick={() => handleSelectPlan(product.priceId)}
                   disabled={isCurrentPlan(product.name)}
-                  className={`w-full py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
+                  className={`w-full py-3 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
                     product.name === 'Custom Plan'
                       ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
                     : product.name === 'Pro Plan'

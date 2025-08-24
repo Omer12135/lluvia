@@ -29,7 +29,7 @@ export const stripeProducts: StripeProduct[] = [
     priceId: 'price_CustomPlan123',
     name: 'Custom Plan',
     description: 'Enterprise solutions with custom workflows and dedicated support',
-    price: 497.00,
+    price: 99.00,
     mode: 'payment'
   }
 ];
