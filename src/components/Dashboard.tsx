@@ -24,7 +24,7 @@ import AutomationCreator from './AutomationCreator';
 import AutomationHistory from './AutomationHistory';
 import ExampleAutomations from './ExampleAutomations';
 import AutomationGuidance from './AutomationGuidance';
-import AIChatInterface from './AI/AIChatInterface';
+
 import { useAutomation } from '../context/AutomationContext';
 import { getProductByPriceId } from '../stripe-config';
 
@@ -61,7 +61,6 @@ const Dashboard: React.FC = () => {
   const tabs = [
     { id: 'create', label: 'Create', icon: <Plus className="w-4 h-4" />, description: 'Build automations' },
     { id: 'history', label: 'History', icon: <Clock className="w-4 h-4" />, description: 'View past runs' },
-    { id: 'ai-chat', label: 'AI Chat', icon: <Bot className="w-4 h-4" />, description: 'Get help' },
     { id: 'examples', label: 'Examples', icon: <Zap className="w-4 h-4" />, description: 'Browse templates' },
     { id: 'guidance', label: 'Guide', icon: <Settings className="w-4 h-4" />, description: 'Learn best practices' },
   ];
@@ -302,7 +301,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Desktop Tab Navigation */}
-          <div className="hidden lg:grid lg:grid-cols-5 border-b border-white/10">
+          <div className="hidden lg:grid lg:grid-cols-4 border-b border-white/10">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -336,7 +335,7 @@ const Dashboard: React.FC = () => {
             >
               {activeTab === 'create' && <AutomationCreator />}
               {activeTab === 'history' && <AutomationHistory />}
-              {activeTab === 'ai-chat' && <AIChatInterface />}
+
               {activeTab === 'examples' && <ExampleAutomations />}
               {activeTab === 'guidance' && <AutomationGuidance />}
             </motion.div>

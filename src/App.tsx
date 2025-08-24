@@ -9,7 +9,7 @@ import SuccessPage from './components/SuccessPage';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminLogin from './components/Admin/AdminLogin';
-import AIChatbot from './components/AI/AIChatbot';
+
 import { AutomationProvider } from './context/AutomationContext';
 
 function App() {
@@ -27,7 +27,7 @@ function App() {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
-            <AIChatbot />
+
           </AutomationProvider>
         </AdminProvider>
       </Router>

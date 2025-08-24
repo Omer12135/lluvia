@@ -68,7 +68,8 @@ import {
   Code,
   Server,
   Sparkles,
-  Heart
+  Heart,
+  MousePointer
 } from 'lucide-react';
 import { useAutomation } from '../../context/AutomationContext';
 import { triggers, actions } from '../../data/applicationsData';
@@ -115,10 +116,13 @@ const AdminAutomationManager: React.FC = () => {
     { name: 'CreditCard', component: <CreditCard className="w-5 h-5" /> },
     { name: 'BarChart3', component: <BarChart3 className="w-5 h-5" /> },
     { name: 'Rocket', component: <Rocket className="w-5 h-5" /> },
-    { name: 'Heart', component: <Heart className="w-5 h-5" /> }
+    { name: 'Heart', component: <Heart className="w-5 h-5" /> },
+    { name: 'MousePointer', component: <MousePointer className="w-5 h-5" /> },
+    { name: 'Workflow', component: <Workflow className="w-5 h-5" /> }
   ];
 
   const categories = [
+    'Core',
     'Marketing',
     'Data Management', 
     'Communication',

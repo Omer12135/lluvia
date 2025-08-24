@@ -15,6 +15,17 @@ export interface Action {
 }
 
 export const triggers: Trigger[] = [
+  // Core n8n Trigger Nodes (Featured)
+  { id: 'manual', name: 'Manual', description: 'Manual trigger to start workflow', icon: 'MousePointer', category: 'Core' },
+  { id: 'form', name: 'Form', description: 'Form submission trigger', icon: 'FileText', category: 'Core' },
+  { id: 'telegram-message', name: 'On telegram message', description: 'Updates: message', icon: 'MessageSquare', category: 'Communication' },
+  { id: 'schedule', name: 'Schedule', description: 'Scheduled trigger', icon: 'Clock', category: 'Core' },
+  { id: 'webhook', name: 'Webhook', description: 'Webhook trigger (GET)', icon: 'Globe', category: 'Core' },
+  { id: 'gmail-message', name: 'On message received', description: 'Gmail Trigger', icon: 'Mail', category: 'Communication' },
+  { id: 'chat-received', name: 'Chat Received', description: 'Chat message trigger', icon: 'MessageSquare', category: 'Communication' },
+  { id: 'workflow-execution', name: 'executed by another workflow', description: 'Triggered by another workflow', icon: 'Workflow', category: 'Core' },
+  { id: 'airtable-event', name: 'Airtable Event', description: 'Airtable record changes', icon: 'Database', category: 'Database' },
+  
   // Marketing & CRM Triggers
   { id: 'activecampaign', name: 'ActiveCampaign Trigger', description: 'On contact/campaign change', icon: 'Mail', category: 'Marketing' },
   { id: 'acuity-scheduling', name: 'Acuity Scheduling Trigger', description: 'On appointment scheduled', icon: 'Calendar', category: 'Scheduling' },

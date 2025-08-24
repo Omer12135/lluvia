@@ -5,7 +5,7 @@ export interface PricingPlan {
   features: {
     automations: string;
     triggers: string[];
-    aiChatbot: boolean;
+
     aiMessages?: number;
     webhook: boolean;
     apps: number | string;
