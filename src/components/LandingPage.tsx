@@ -160,8 +160,7 @@ const LandingPage: React.FC = () => {
           'All trigger types',
           'Email support',
           'Standard templates',
-          'Basic analytics',
-          'Community support'
+          'Basic analytics'
         ];
       case 'pro plan':
         return [
