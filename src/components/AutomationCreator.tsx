@@ -238,7 +238,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-3 sm:p-6 overflow-y-auto">
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-2 sm:p-6 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,35 +246,35 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center mb-4 sm:mb-8">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-purple-600 to-blue-600 p-3 sm:p-4 rounded-2xl mb-4 shadow-2xl"
+            className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-purple-600 to-blue-600 p-2 sm:p-4 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 shadow-2xl"
           >
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
-            <h1 className="text-xl sm:text-3xl font-bold text-white">Create New Automation</h1>
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
+            <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white animate-pulse" />
+            <h1 className="text-lg sm:text-3xl font-bold text-white">Create New Automation</h1>
+            <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white animate-pulse" />
           </motion.div>
-          <p className="text-lg sm:text-xl text-gray-300">Build powerful automations in minutes</p>
+          <p className="text-sm sm:text-xl text-gray-300">Build powerful automations in minutes</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
           {/* Left Column - Details */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-4 sm:space-y-6"
+            className="space-y-3 sm:space-y-6"
           >
             {/* Automation Details */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
-                <div className="p-2 sm:p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl">
-                  <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg sm:rounded-xl">
+                  <Heart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Automation Details</h2>
+                <h2 className="text-lg sm:text-2xl font-bold text-white">Automation Details</h2>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
@@ -287,7 +287,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     value={automationName}
                     onChange={(e) => setAutomationName(e.target.value)}
                     placeholder="e.g., Gmail to Slack Notifications"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-sm sm:text-base"
+                    className="w-full px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-base sm:text-base"
                     maxLength={100}
                   />
                   <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationName.length}/100 characters</p>
@@ -302,7 +302,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     onChange={(e) => setAutomationDescription(e.target.value)}
                     placeholder="Describe what this automation does..."
                     rows={3}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none text-sm sm:text-base"
+                    className="w-full px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none text-base sm:text-base"
                     maxLength={500}
                   />
                   <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationDescription.length}/500 characters</p>
@@ -311,12 +311,12 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             </div>
 
             {/* Selected Components Preview */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
-                <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl">
-                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl">
+                  <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Selected Components</h2>
+                <h2 className="text-lg sm:text-2xl font-bold text-white">Selected Components</h2>
               </div>
 
               <div className="space-y-3 sm:space-y-4">
@@ -325,7 +325,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-3 sm:p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl"
+                    className="p-3 sm:p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg sm:rounded-xl"
                   >
                     <div className="flex items-center space-x-2 sm:space-x-3">
                       <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg">
@@ -338,7 +338,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     </div>
                   </motion.div>
                 ) : (
-                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
+                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-lg sm:rounded-xl text-center">
                     <p className="text-gray-400 text-sm sm:text-base">No trigger selected</p>
                   </div>
                 )}
@@ -355,26 +355,26 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="p-2.5 sm:p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-lg flex items-center justify-between"
+                          className="p-3 sm:p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-lg flex items-center justify-between"
                         >
                           <div className="flex items-center space-x-2 sm:space-x-3">
                             <div className="p-1.5 sm:p-2 bg-green-500 rounded-lg">
-                              <IconComponent className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                              <IconComponent className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
                             </div>
                             <span className="text-white font-medium text-sm sm:text-base">{action.name}</span>
                           </div>
                           <button
                             onClick={() => handleActionToggle(action)}
-                            className="text-green-300 hover:text-red-400 transition-colors p-1"
+                            className="text-green-300 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/20"
                           >
-                            <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <X className="w-4 h-4 sm:w-4 sm:h-4" />
                           </button>
                         </motion.div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-xl text-center">
+                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-lg sm:rounded-xl text-center">
                     <p className="text-gray-400 text-sm sm:text-base">No actions selected</p>
                   </div>
                 )}
@@ -387,16 +387,16 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="space-y-4 sm:space-y-6"
+            className="space-y-3 sm:space-y-6"
           >
             {/* Triggers Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-3 sm:mb-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
-                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg sm:rounded-xl">
+                    <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-white">Select Trigger</h2>
+                  <h2 className="text-lg sm:text-2xl font-bold text-white">Select Trigger</h2>
                 </div>
                 <button
                   onClick={() => setShowTriggers(!showTriggers)}
@@ -447,18 +447,18 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleTriggerSelect(trigger)}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            className={`p-4 sm:p-3 rounded-lg border cursor-pointer transition-all ${
                               isSelected
                                 ? 'bg-blue-600/30 border-blue-400'
                                 : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400'
                             }`}
                           >
                             <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-500' : 'bg-gray-600'}`}>
-                                <IconComponent className="w-4 h-4 text-white" />
+                              <div className={`p-2.5 sm:p-2 rounded-lg ${isSelected ? 'bg-blue-500' : 'bg-gray-600'}`}>
+                                <IconComponent className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm truncate">{trigger.name}</p>
+                                <p className="text-white font-medium text-sm sm:text-sm truncate">{trigger.name}</p>
                                 <p className="text-gray-400 text-xs truncate">{trigger.description}</p>
                               </div>
                               {isSelected && <CheckCircle className="w-5 h-5 text-blue-400" />}
@@ -473,18 +473,18 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             </div>
 
             {/* Actions Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+              <div className="flex items-center justify-between mb-3 sm:mb-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-                    <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg sm:rounded-xl">
+                    <Settings className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-white">Select Actions</h2>
-                  <span className="text-gray-400 text-sm">(Optional)</span>
+                  <h2 className="text-lg sm:text-2xl font-bold text-white">Select Actions</h2>
+                  <span className="text-gray-400 text-xs sm:text-sm">(Optional)</span>
                 </div>
                 <button
                   onClick={() => setShowActions(!showActions)}
-                  className="px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm sm:text-base"
+                  className="px-4 sm:px-4 py-2.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm sm:text-base"
                 >
                   {showActions ? 'Hide' : 'Browse'}
                 </button>
@@ -496,21 +496,21 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4"
+                    className="space-y-3 sm:space-y-4"
                   >
                     {/* Search and Filter */}
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <input
                         type="text"
                         placeholder="Search actions..."
                         value={actionSearchTerm}
                         onChange={(e) => setActionSearchTerm(e.target.value)}
-                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="flex-1 px-4 py-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-base sm:text-sm"
                       />
                       <select
                         value={actionCategory}
                         onChange={(e) => setActionCategory(e.target.value)}
-                        className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="px-4 py-3 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 text-base sm:text-sm"
                       >
                         {actionCategories.map(category => (
                           <option key={category} value={category} className="bg-gray-800">
@@ -521,7 +521,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     </div>
 
                     {/* Actions Grid */}
-                    <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-3 max-h-64 overflow-y-auto">
                       {filteredActions.map((action) => {
                         const IconComponent = getIcon(action.icon);
                         const isSelected = selectedActions.some(a => a.id === action.id);
@@ -531,15 +531,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handleActionToggle(action)}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            className={`p-4 sm:p-3 rounded-lg border cursor-pointer transition-all ${
                               isSelected
                                 ? 'bg-green-600/30 border-green-400'
                                 : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-green-400'
                             }`}
                           >
                             <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg ${isSelected ? 'bg-green-500' : 'bg-gray-600'}`}>
-                                <IconComponent className="w-4 h-4 text-white" />
+                              <div className={`p-2.5 sm:p-2 rounded-lg ${isSelected ? 'bg-green-500' : 'bg-gray-600'}`}>
+                                <IconComponent className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-white font-medium text-sm truncate">{action.name}</p>
@@ -563,29 +563,29 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="mt-8 text-center"
+          className="mt-6 sm:mt-8 text-center"
         >
           <button
             onClick={handleCreate}
             disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || isCreating}
-            className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-xl font-bold rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center space-x-3 mx-auto"
+            className="w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center justify-center space-x-3 mx-auto"
           >
             {isCreating ? (
               <>
-                <RefreshCw className="w-6 h-6 animate-spin" />
+                <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
                 <span>Creating Automation...</span>
-                <RefreshCw className="w-6 h-6 animate-spin" />
+                <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
               </>
             ) : (
               <>
-                <Rocket className="w-6 h-6" />
+                <Rocket className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>Create Automation</span>
-                <Star className="w-6 h-6" />
+                <Star className="w-5 h-5 sm:w-6 sm:h-6" />
               </>
             )}
           </button>
           {(!automationName.trim() || !selectedTrigger) && (
-            <p className="text-gray-400 text-sm mt-2">
+            <p className="text-gray-400 text-sm mt-3 sm:mt-2">
               {!automationName.trim() ? 'Enter automation name' : 'Select a trigger'} to continue
             </p>
           )}

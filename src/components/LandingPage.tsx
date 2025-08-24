@@ -60,7 +60,12 @@ const LandingPage: React.FC = () => {
   const handleSelectPlan = async (priceId: string) => {
     const product = stripeProducts.find(p => p.priceId === priceId);
     
-    if (product?.price === 0) {
+    if (!product) {
+      console.error('Product not found for priceId:', priceId);
+      return;
+    }
+    
+    if (product.price === 0) {
       // Free plan - redirect to signup  
       navigate('/signup');
     } else {
@@ -202,107 +207,112 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Navigation */}
-      <nav className="relative z-50 bg-black/20 backdrop-blur-sm border-b border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm border-b border-white/10">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <Workflow className="w-3 h-3 sm:w-5 sm:h-5 text-white" />
+            {/* Logo */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                  <path d="M19 15L19.5 17L22 17.5L19.5 18L19 20L18.5 18L16 17.5L18.5 17L19 15Z"/>
+                  <path d="M5 7L5.5 9L8 9.5L5.5 10L5 12L4.5 10L2 9.5L4.5 9L5 7Z"/>
+                </svg>
               </div>
-              <span className="text-lg sm:text-2xl font-bold text-white">AutomateAI</span>
+              <span className="text-xl sm:text-2xl font-bold text-white">LLUVIA AI</span>
             </div>
-            
+
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-              
-              {user ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-gray-300">Welcome, {user.name}</span>
-                  <button
-                    onClick={() => navigate('/dashboard')}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
-                  >
-                    Dashboard
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={handleLogin}
-                    className="text-gray-300 hover:text-white transition-colors"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={handleGetStarted}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
-                  >
-                    Get Started
-                  </button>
-                </div>
-              )}
-            </div>
+            <nav className="hidden lg:flex items-center space-x-6">
+              <a href="#features" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Features</a>
+              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Pricing</a>
+              <a href="#about" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">About</a>
+              <button
+                onClick={handleLogin}
+                className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base"
+              >
+                Login
+              </button>
+              <button
+                onClick={handleGetStarted}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 text-sm sm:text-base font-medium"
+              >
+                Get Started
+              </button>
+            </nav>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-white"
+              className="lg:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation Menu */}
           {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:hidden mt-4 pb-4 border-t border-white/10 pt-4"
+              exit={{ opacity: 0, y: -20 }}
+              className="lg:hidden mt-4 pt-4 border-t border-white/10"
             >
-              <div className="flex flex-col space-y-4">
-                <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
-                <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-                
-                {user ? (
-                  <button
-                    onClick={() => navigate('/dashboard')}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 text-left"
-                  >
-                    Dashboard
-                  </button>
-                ) : (
-                  <div className="flex flex-col space-y-2">
-                    <button
-                      onClick={handleLogin}
-                      className="text-gray-300 hover:text-white transition-colors text-left"
-                    >
-                      Sign In
-                    </button>
-                    <button
-                      onClick={handleGetStarted}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
-                    >
-                      Get Started
-                    </button>
-                  </div>
-                )}
+              <div className="flex flex-col space-y-3">
+                <a 
+                  href="#features" 
+                  className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Features
+                </a>
+                <a 
+                  href="#pricing" 
+                  className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </a>
+                <a 
+                  href="#about" 
+                  className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
+                </a>
+                <button
+                  onClick={() => {
+                    handleLogin();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-gray-300 hover:text-white transition-colors text-base py-2 text-left"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => {
+                    handleGetStarted();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 text-base font-medium w-full"
+                >
+                  Get Started
+                </button>
               </div>
             </motion.div>
           )}
         </div>
-      </nav>
+      </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-12 sm:py-20 lg:py-32">
+      <section className="relative overflow-hidden pt-20 sm:pt-24 lg:pt-32 pb-12 sm:py-20 lg:py-32">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center max-w-4xl mx-auto">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight"
+              className="text-2xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 leading-tight"
             >
               Automate Your
               <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"> Workflow</span>
@@ -312,7 +322,7 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-6 sm:mb-8 leading-relaxed"
+              className="text-base sm:text-xl lg:text-2xl text-gray-300 mb-6 sm:mb-8 leading-relaxed px-2 sm:px-0"
             >
               Connect your favorite apps and automate repetitive tasks with our powerful AI-driven platform. 
               Save hours every day and focus on what matters most.
@@ -322,17 +332,17 @@ const LandingPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4 sm:px-0"
             >
               <button
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl w-full sm:w-auto"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 sm:px-8 py-4 sm:py-4 rounded-lg text-base sm:text-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl w-full sm:w-auto"
               >
                 <span>Start Automating Free</span>
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               
-              <button className="text-gray-300 hover:text-white transition-colors flex items-center space-x-2 w-full sm:w-auto justify-center">
+              <button className="text-gray-300 hover:text-white transition-colors flex items-center justify-center space-x-2 w-full sm:w-auto py-4 sm:py-0">
                 <span>Watch Demo</span>
                 <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-full flex items-center justify-center">
                   <div className="w-0 h-0 border-l-[4px] sm:border-l-[6px] border-l-white border-y-[3px] sm:border-y-[4px] border-y-transparent ml-0.5 sm:ml-1"></div>

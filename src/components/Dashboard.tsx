@@ -283,18 +283,18 @@ const Dashboard: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center justify-center min-w-[70px] px-2 py-2 font-medium transition-all duration-200 text-center border-b-2 ${
+                  className={`flex flex-col items-center justify-center min-w-[80px] px-3 py-3 font-medium transition-all duration-200 text-center border-b-2 ${
                     activeTab === tab.id
                       ? 'text-white border-purple-500 bg-gradient-to-r from-purple-600/30 to-blue-600/30'
                       : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <div className={`p-1 rounded-lg mb-1 ${
+                  <div className={`p-1.5 rounded-lg mb-1.5 ${
                     activeTab === tab.id ? 'bg-purple-500/20' : 'bg-white/10'
                   }`}>
                     {tab.icon}
                   </div>
-                  <div className="text-xs font-semibold">{tab.label}</div>
+                  <div className="text-xs font-semibold leading-tight">{tab.label}</div>
                 </button>
               ))}
             </div>
