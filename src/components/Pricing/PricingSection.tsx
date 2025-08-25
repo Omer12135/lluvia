@@ -108,7 +108,13 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
             </div>
 
             <button
-              onClick={() => product.price > 0 ? onSelectPlan(product.priceId) : null}
+              onClick={() => {
+                if (product.name === 'Pro Plan') {
+                  window.open('https://buy.stripe.com/3cI14ogj405we21ddyfEk02', '_blank');
+                } else if (product.price > 0) {
+                  onSelectPlan(product.priceId);
+                }
+              }}
               disabled={loading}
               className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
                 product.name === 'Pro Plan'

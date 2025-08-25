@@ -601,7 +601,13 @@ const LandingPage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => handleSelectPlan(product.priceId)}
+                  onClick={() => {
+                    if (product.name === 'Pro Plan') {
+                      window.open('https://buy.stripe.com/3cI14ogj405we21ddyfEk02', '_blank');
+                    } else {
+                      handleSelectPlan(product.priceId);
+                    }
+                  }}
                   disabled={isCurrentPlan(product.name)}
                   className={`w-full py-3 sm:py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base ${
                     product.name === 'Pro Plan'

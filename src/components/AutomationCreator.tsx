@@ -316,7 +316,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             className="space-y-3 sm:space-y-6"
           >
             {/* Automation Details */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
                 <div className="p-2 sm:p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg sm:rounded-xl">
                   <Heart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
@@ -356,7 +356,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             </div>
 
             {/* Selected Components Preview */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
                 <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl">
                   <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
@@ -435,7 +435,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             className="space-y-3 sm:space-y-6"
           >
             {/* Triggers Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center justify-between mb-3 sm:mb-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg sm:rounded-xl">
@@ -518,7 +518,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             </div>
 
             {/* Actions Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center justify-between mb-3 sm:mb-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <div className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg sm:rounded-xl">
@@ -602,7 +602,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
              </div>
 
              {/* Platform Selection Section */}
-             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
                <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
                  <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg sm:rounded-xl">
                    <Workflow className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
