@@ -144,6 +144,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [selectedActions, setSelectedActions] = useState<Action[]>([]);
+  const [selectedPlatform, setSelectedPlatform] = useState<'n8n' | 'make' | null>(null);
   const [triggerSearchTerm, setTriggerSearchTerm] = useState('');
   const [actionSearchTerm, setActionSearchTerm] = useState('');
   const [triggerCategory, setTriggerCategory] = useState<string>('all');
@@ -204,6 +205,11 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       return;
     }
 
+    if (!selectedPlatform) {
+      alert('Please select a platform (N8N or Make)');
+      return;
+    }
+
           if (!canCreateAutomation) {
         if (automationLimit === 1) {
         alert('You have reached the Free Plan limit of 1 automation. Please upgrade to Pro Plan to create more automations.');
@@ -215,14 +221,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
 
     setIsCreating(true);
 
-    const automationData = {
-      name: automationName,
-      description: automationDescription,
-      trigger: selectedTrigger?.name || '',
-      actions: selectedActions.map(a => a.name),
-      userId: user?.id || '',
-      status: 'pending' as const
-    };
+         const automationData = {
+       name: automationName,
+       description: automationDescription,
+       trigger: selectedTrigger?.name || '',
+       actions: selectedActions.map(a => a.name),
+       platform: selectedPlatform,
+       userId: user?.id || '',
+       status: 'pending' as const
+     };
 
     console.log('Creating automation:', automationData);
     
@@ -237,6 +244,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         setAutomationDescription('');
         setSelectedTrigger(null);
         setSelectedActions([]);
+        setSelectedPlatform(null);
         setTriggerSearchTerm('');
         setActionSearchTerm('');
         setTriggerCategory('all');
@@ -590,10 +598,111 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </div>
+                             </AnimatePresence>
+             </div>
+
+             {/* Platform Selection Section */}
+             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
+               <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
+                 <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg sm:rounded-xl">
+                   <Workflow className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                 </div>
+                 <h2 className="text-lg sm:text-2xl font-bold text-white">Select Platform</h2>
+                 <span className="text-pink-400 text-xs sm:text-sm">*</span>
+               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                 {/* N8N Option */}
+                 <motion.div
+                   whileHover={{ scale: 1.02 }}
+                   whileTap={{ scale: 0.98 }}
+                   onClick={() => setSelectedPlatform('n8n')}
+                   className={`p-4 sm:p-5 rounded-xl border cursor-pointer transition-all ${
+                     selectedPlatform === 'n8n'
+                       ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 border-blue-400 ring-2 ring-blue-400/20'
+                       : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400'
+                   }`}
+                 >
+                   <div className="flex items-center space-x-3 mb-3">
+                     <div className={`p-2.5 sm:p-3 rounded-lg ${selectedPlatform === 'n8n' ? 'bg-blue-500' : 'bg-gray-600'}`}>
+                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                         <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+                       </svg>
+                     </div>
+                     <div>
+                       <h3 className="text-white font-semibold text-sm sm:text-base">N8N</h3>
+                       <p className="text-gray-400 text-xs sm:text-sm">Open-source automation</p>
+                     </div>
+                     {selectedPlatform === 'n8n' && (
+                       <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 ml-auto" />
+                     )}
+                   </div>
+                   <div className="space-y-2">
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                       <span className="text-gray-300 text-xs sm:text-sm">Free & Open Source</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                       <span className="text-gray-300 text-xs sm:text-sm">Self-hosted</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                       <span className="text-gray-300 text-xs sm:text-sm">Node.js based</span>
+                     </div>
+                   </div>
+                 </motion.div>
+
+                 {/* Make (Integromat) Option */}
+                 <motion.div
+                   whileHover={{ scale: 1.02 }}
+                   whileTap={{ scale: 0.98 }}
+                   onClick={() => setSelectedPlatform('make')}
+                   className={`p-4 sm:p-5 rounded-xl border cursor-pointer transition-all ${
+                     selectedPlatform === 'make'
+                       ? 'bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-400 ring-2 ring-orange-400/20'
+                       : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-orange-400'
+                   }`}
+                 >
+                   <div className="flex items-center space-x-3 mb-3">
+                     <div className={`p-2.5 sm:p-3 rounded-lg ${selectedPlatform === 'make' ? 'bg-orange-500' : 'bg-gray-600'}`}>
+                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                       </svg>
+                     </div>
+                     <div>
+                       <h3 className="text-white font-semibold text-sm sm:text-base">Make (Integromat)</h3>
+                       <p className="text-gray-400 text-xs sm:text-sm">Visual automation platform</p>
+                     </div>
+                     {selectedPlatform === 'make' && (
+                       <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400 ml-auto" />
+                     )}
+                   </div>
+                   <div className="space-y-2">
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                       <span className="text-gray-300 text-xs sm:text-sm">Cloud-based</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                       <span className="text-gray-300 text-xs sm:text-sm">Visual interface</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                       <span className="text-gray-300 text-xs sm:text-sm">Enterprise ready</span>
+                     </div>
+                   </div>
+                 </motion.div>
+               </div>
+
+               {!selectedPlatform && (
+                 <p className="text-gray-400 text-xs sm:text-sm mt-3 text-center">
+                   Please select a platform to continue
+                 </p>
+               )}
+             </div>
+           </motion.div>
+         </div>
 
         {/* Create Button */}
         <motion.div
@@ -604,7 +713,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         >
                      <button
              onClick={handleCreate}
-             disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || isCreating || !canCreateAutomation}
+             disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || !selectedPlatform || isCreating || !canCreateAutomation}
             className={`w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 mx-auto ${
               !canCreateAutomation 
                 ? 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed opacity-50'
@@ -639,9 +748,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
               }
             </p>
           )}
-                     {(!automationName.trim() || !automationDescription.trim() || !selectedTrigger) && canCreateAutomation && (
+                     {(!automationName.trim() || !automationDescription.trim() || !selectedTrigger || !selectedPlatform) && canCreateAutomation && (
              <p className="text-gray-400 text-sm mt-3 sm:mt-2">
-               {!automationName.trim() ? 'Enter automation name' : !automationDescription.trim() ? 'Enter automation description' : 'Select a trigger'} to continue
+               {!automationName.trim() ? 'Enter automation name' : !automationDescription.trim() ? 'Enter automation description' : !selectedTrigger ? 'Select a trigger' : 'Select a platform'} to continue
              </p>
            )}
         </motion.div>
