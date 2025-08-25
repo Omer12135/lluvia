@@ -317,13 +317,13 @@ const LandingPage: React.FC = () => {
             >
               <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">N8N</span>
+                  <img src="/image.png" alt="N8N" className="w-6 h-6 object-contain" />
                 </div>
                 <span className="text-gray-300 text-sm font-medium">N8N</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">Make</span>
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                  <img src="/Trigger Nodes.png" alt="Make" className="w-6 h-6 object-contain" />
                 </div>
                 <span className="text-gray-300 text-sm font-medium">Make</span>
               </div>
