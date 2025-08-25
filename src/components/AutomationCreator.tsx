@@ -194,6 +194,11 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       return;
     }
 
+    if (!automationDescription.trim()) {
+      alert('Please enter an automation description');
+      return;
+    }
+
     if (!selectedTrigger) {
       alert('Please select a trigger');
       return;
@@ -327,20 +332,18 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                   <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationName.length}/100 characters</p>
                 </div>
 
-                <div>
-                  <label className="block text-white font-medium mb-2 text-sm sm:text-base">
-                    Description <span className="text-gray-400">(Optional)</span>
-                  </label>
-                  <textarea
-                    value={automationDescription}
-                    onChange={(e) => setAutomationDescription(e.target.value)}
-                    placeholder="Describe what this automation does..."
-                    rows={3}
-                    className="w-full px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none text-base sm:text-base"
-                    maxLength={500}
-                  />
-                  <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationDescription.length}/500 characters</p>
-                </div>
+                                 <div>
+                   <label className="block text-white font-medium mb-2 text-sm sm:text-base">
+                     Description <span className="text-pink-400">*</span>
+                   </label>
+                   <textarea
+                     value={automationDescription}
+                     onChange={(e) => setAutomationDescription(e.target.value)}
+                     placeholder="Set up an automation that works with my other sub-workflow to send customers personalized emails related to their requests every month. This should run four times a month."
+                     rows={4}
+                     className="w-full px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none text-base sm:text-base"
+                   />
+                 </div>
               </div>
             </div>
 
@@ -599,9 +602,9 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
           transition={{ delay: 0.6 }}
           className="mt-6 sm:mt-8 text-center"
         >
-          <button
-            onClick={handleCreate}
-            disabled={!automationName.trim() || !selectedTrigger || isCreating || !canCreateAutomation}
+                     <button
+             onClick={handleCreate}
+             disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || isCreating || !canCreateAutomation}
             className={`w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 mx-auto ${
               !canCreateAutomation 
                 ? 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed opacity-50'
@@ -636,11 +639,11 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
               }
             </p>
           )}
-          {(!automationName.trim() || !selectedTrigger) && canCreateAutomation && (
-            <p className="text-gray-400 text-sm mt-3 sm:mt-2">
-              {!automationName.trim() ? 'Enter automation name' : 'Select a trigger'} to continue
-            </p>
-          )}
+                     {(!automationName.trim() || !automationDescription.trim() || !selectedTrigger) && canCreateAutomation && (
+             <p className="text-gray-400 text-sm mt-3 sm:mt-2">
+               {!automationName.trim() ? 'Enter automation name' : !automationDescription.trim() ? 'Enter automation description' : 'Select a trigger'} to continue
+             </p>
+           )}
         </motion.div>
       </motion.div>
     </div>
