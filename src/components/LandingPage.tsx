@@ -492,33 +492,102 @@ const LandingPage: React.FC = () => {
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.4 }}
-               className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-2xl p-6 sm:p-8 border border-purple-500/20 text-center"
+               className="relative overflow-hidden bg-gradient-to-br from-emerald-500/20 via-green-500/20 to-blue-500/20 rounded-2xl p-6 sm:p-8 border border-emerald-500/30 text-center shadow-2xl"
              >
-               <div className="flex items-center justify-center space-x-3 mb-4">
-                 <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                   <CheckCircle className="w-6 h-6 text-white" />
-                 </div>
-                 <h3 className="text-2xl sm:text-3xl font-bold text-white">Automation Created!</h3>
+               {/* Animated Background Elements */}
+               <div className="absolute inset-0 overflow-hidden">
+                 <div className="absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-full blur-xl animate-pulse"></div>
+                 <div className="absolute -bottom-10 -left-10 w-16 h-16 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+                 <div className="absolute top-1/2 left-1/4 w-12 h-12 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-full blur-lg animate-bounce"></div>
                </div>
-               <p className="text-lg text-gray-300 mb-6">Your automation is now live and will run automatically</p>
-                               <div className="bg-white/10 rounded-lg p-4 max-w-2xl mx-auto">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm text-gray-300">Status: Active</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm text-gray-300">Last run: 2 min ago</span>
-                    </div>
-                    <button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center space-x-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <span>Download</span>
-                    </button>
-                  </div>
-                </div>
+
+               {/* Success Icon with Animation */}
+               <motion.div
+                 initial={{ scale: 0, rotate: -180 }}
+                 animate={{ scale: 1, rotate: 0 }}
+                 transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                 className="relative z-10 mb-6"
+               >
+                 <div className="w-20 h-20 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-2xl border-4 border-emerald-400/30">
+                   <CheckCircle className="w-10 h-10 text-white animate-pulse" />
+                 </div>
+                 <div className="absolute inset-0 w-20 h-20 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full blur-xl animate-ping opacity-30"></div>
+               </motion.div>
+
+               {/* Title with Glow Effect */}
+               <motion.h3
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.6 }}
+                 className="text-3xl sm:text-4xl font-bold text-white mb-4 relative z-10 drop-shadow-lg"
+               >
+                 <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
+                   Automation Created!
+                 </span>
+               </motion.h3>
+
+               {/* Subtitle */}
+               <motion.p
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.7 }}
+                 className="text-lg sm:text-xl text-gray-200 mb-8 relative z-10"
+               >
+                 Your automation is now live and will run automatically
+               </motion.p>
+
+               {/* Status Card with Enhanced Design */}
+               <motion.div
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ delay: 0.8 }}
+                 className="relative z-10 bg-gradient-to-r from-white/15 to-white/10 backdrop-blur-xl rounded-xl p-6 max-w-2xl mx-auto border border-white/20 shadow-2xl"
+               >
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                   {/* Status */}
+                   <div className="flex items-center justify-center space-x-3 p-3 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-lg border border-emerald-400/30">
+                     <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
+                     <span className="text-sm font-medium text-emerald-200">Status: Active</span>
+                   </div>
+
+                   {/* Last Run */}
+                   <div className="flex items-center justify-center space-x-3 p-3 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-400/30">
+                     <div className="w-3 h-3 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50"></div>
+                     <span className="text-sm font-medium text-blue-200">Last run: 2 min ago</span>
+                   </div>
+
+                   {/* Download Button */}
+                   <motion.button
+                     whileHover={{ scale: 1.05, y: -2 }}
+                     whileTap={{ scale: 0.95 }}
+                     className="bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/25 border border-emerald-400/30 group"
+                   >
+                     <motion.svg
+                       animate={{ y: [0, -2, 0] }}
+                       transition={{ duration: 2, repeat: Infinity }}
+                       className="w-5 h-5 group-hover:scale-110 transition-transform"
+                       fill="none"
+                       stroke="currentColor"
+                       viewBox="0 0 24 24"
+                     >
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                     </motion.svg>
+                     <span className="group-hover:scale-105 transition-transform">Download</span>
+                   </motion.button>
+                 </div>
+
+                 {/* Success Message */}
+                 <motion.div
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   transition={{ delay: 1 }}
+                   className="mt-4 text-center"
+                 >
+                   <p className="text-sm text-emerald-300 font-medium">
+                     🎉 Your automation is ready to boost your productivity!
+                   </p>
+                 </motion.div>
+               </motion.div>
              </motion.div>
            </div>
          </div>
