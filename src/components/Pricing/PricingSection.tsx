@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, Star, Zap, Users, Loader2, Crown } from 'lucide-react';
+import { Check, X, Star, Zap, Users, Loader2 } from 'lucide-react';
 import { stripeProducts } from '../../stripe-config';
 import { useAuth } from '../../context/AuthContext';
 
@@ -18,8 +18,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
         return <Star className="w-6 h-6 text-gray-400" />;
       case 'pro plan':
         return <Users className="w-6 h-6 text-blue-500" />;
-      case 'custom plan':
-        return <Crown className="w-6 h-6 text-purple-500" />;
       default:
         return <Star className="w-6 h-6 text-gray-400" />;
     }
@@ -56,20 +54,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
           'Advanced analytics',
           'Priority support'
         ];
-      case 'custom plan':
-        return [
-          'Everything in Pro',
-          'Unlimited automations',
-          'Custom workflows',
-          'Custom integrations',
-          'Orchestra AI Agent',
-          '1-on-1 onboarding',
-          'SLA guarantee',
-          'Bulk operations',
-          'Advanced security',
-          'Dedicated support',
-          'Setup by LLUVIA team'
-        ];
       default:
         return [];
     }
@@ -82,7 +66,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
         <p className="text-xl text-gray-400">Start free and scale as you grow</p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {stripeProducts.map((product, index) => (
           <motion.div
             key={product.id}
@@ -90,19 +74,11 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className={`relative bg-white/5 rounded-2xl p-8 border transition-all duration-300 hover:bg-white/10 ${
-              product.name === 'Custom Plan'
-                ? 'border-purple-500 ring-2 ring-purple-500/20 scale-105'
+              product.name === 'Pro Plan'
+                ? 'border-blue-500 ring-2 ring-blue-500/20'
                 : 'border-white/10 hover:border-white/20'
             }`}
           >
-            {product.name === 'Custom Plan' && (
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Enterprise
-                </span>
-              </div>
-            )}
-
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
                 {getPlanIcon(product.name)}
@@ -133,9 +109,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
               onClick={() => product.price > 0 ? onSelectPlan(product.priceId) : null}
               disabled={loading}
               className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center space-x-2 ${
-                product.name === 'Custom Plan'
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                : product.name === 'Pro Plan'
+                product.name === 'Pro Plan'
                   ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                 : product.price === 0
                   ? 'bg-gray-600 text-gray-300 cursor-default'
