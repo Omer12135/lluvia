@@ -316,16 +316,10 @@ const LandingPage: React.FC = () => {
               className="flex items-center justify-center space-x-6 mb-6 sm:mb-8"
             >
               <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <img src="/image.png" alt="N8N" className="w-6 h-6 object-contain" />
-                </div>
                 <span className="text-gray-300 text-sm font-medium">N8N</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <img src="/Trigger Nodes.png" alt="Make" className="w-6 h-6 object-contain" />
-                </div>
-                <span className="text-gray-300 text-sm font-medium">Make</span>
+                <span className="text-gray-300 text-sm font-medium">Make (Integromat)</span>
               </div>
             </motion.div>
 
