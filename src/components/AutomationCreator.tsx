@@ -58,6 +58,7 @@ import {
   Monitor,
   RefreshCw,
   Lock,
+  Crown,
   Image as ImageIcon,
   Link,
   Layers,
@@ -138,7 +139,7 @@ interface AutomationCreatorProps {}
 
 const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
   const { user } = useAuth();
-  const { addAutomation, canCreateAutomation, automationLimit } = useAutomation();
+  const { addAutomation, canCreateAutomation, automationLimit, remainingAutomations, currentMonthUsage } = useAutomation();
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
@@ -272,6 +273,25 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white animate-pulse" />
           </motion.div>
           <p className="text-sm sm:text-xl text-gray-300">Build powerful automations in minutes</p>
+          
+          {/* Usage Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-4 flex items-center justify-center space-x-4 text-sm"
+          >
+            <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
+              <Zap className="w-4 h-4 text-yellow-500" />
+              <span className="text-white font-medium">{remainingAutomations}</span>
+              <span className="text-gray-300">remaining</span>
+            </div>
+            <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
+              <Clock className="w-4 h-4 text-blue-500" />
+              <span className="text-white font-medium">{currentMonthUsage}</span>
+              <span className="text-gray-300">/ {automationLimit} used</span>
+            </div>
+          </motion.div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
@@ -429,18 +449,18 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     className="space-y-4"
                   >
                     {/* Search and Filter */}
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <input
                         type="text"
                         placeholder="Search triggers..."
                         value={triggerSearchTerm}
                         onChange={(e) => setTriggerSearchTerm(e.target.value)}
-                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-4 py-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
                       />
                       <select
                         value={triggerCategory}
                         onChange={(e) => setTriggerCategory(e.target.value)}
-                        className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-4 py-3 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
                       >
                         {triggerCategories.map(category => (
                           <option key={category} value={category} className="bg-gray-800">
@@ -581,14 +601,24 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         >
           <button
             onClick={handleCreate}
-            disabled={!automationName.trim() || !selectedTrigger || isCreating}
-            className="w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl hover:from-purple-700 hover:via-pink-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl hover:shadow-purple-500/25 hover:scale-105 flex items-center justify-center space-x-3 mx-auto"
+            disabled={!automationName.trim() || !selectedTrigger || isCreating || !canCreateAutomation}
+            className={`w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 mx-auto ${
+              !canCreateAutomation 
+                ? 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed opacity-50'
+                : 'bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 hover:shadow-purple-500/25 hover:scale-105'
+            }`}
           >
             {isCreating ? (
               <>
                 <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
                 <span>Creating Automation...</span>
                 <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+              </>
+            ) : !canCreateAutomation ? (
+              <>
+                <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span>Upgrade to Create More</span>
+                <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
               </>
             ) : (
               <>
@@ -598,7 +628,12 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
               </>
             )}
           </button>
-          {(!automationName.trim() || !selectedTrigger) && (
+          {!canCreateAutomation && (
+            <p className="text-red-400 text-sm mt-3 sm:mt-2">
+              You've reached your automation limit. Please upgrade your plan to create more automations.
+            </p>
+          )}
+          {(!automationName.trim() || !selectedTrigger) && canCreateAutomation && (
             <p className="text-gray-400 text-sm mt-3 sm:mt-2">
               {!automationName.trim() ? 'Enter automation name' : 'Select a trigger'} to continue
             </p>

@@ -31,7 +31,7 @@ import { getProductByPriceId } from '../stripe-config';
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { automations } = useAutomation();
+  const { automations, remainingAutomations, currentMonthUsage, automationLimit } = useAutomation();
   const [activeTab, setActiveTab] = useState('create');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
       {/* Main Content - Mobile Optimized */}
       <div className="container mx-auto px-3 lg:px-6 py-3 lg:py-8">
         {/* Stats Cards - Ultra Compact Mobile */}
-        <div className="grid grid-cols-3 lg:grid-cols-3 gap-2 lg:gap-6 mb-3 lg:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-6 mb-3 lg:mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -247,10 +247,10 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Success</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">{getSuccessRate()}</p>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">Remaining</p>
+                <p className="text-lg lg:text-3xl font-bold text-white">{remainingAutomations}</p>
               </div>
-              <CheckCircle className="w-4 h-4 lg:w-8 lg:h-8 text-green-500 mt-1 lg:mt-0" />
+              <Zap className="w-4 h-4 lg:w-8 lg:h-8 text-yellow-500 mt-1 lg:mt-0" />
             </div>
           </motion.div>
 
@@ -262,10 +262,25 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Time Saved</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">{getTimeSaved()}</p>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">Used This Month</p>
+                <p className="text-lg lg:text-3xl font-bold text-white">{currentMonthUsage}/{automationLimit}</p>
               </div>
               <Clock className="w-4 h-4 lg:w-8 lg:h-8 text-blue-500 mt-1 lg:mt-0" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white/10 backdrop-blur-lg rounded-lg lg:rounded-xl p-2 lg:p-6 border border-white/20"
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">Success</p>
+                <p className="text-lg lg:text-3xl font-bold text-white">{getSuccessRate()}</p>
+              </div>
+              <CheckCircle className="w-4 h-4 lg:w-8 lg:h-8 text-green-500 mt-1 lg:mt-0" />
             </div>
           </motion.div>
         </div>

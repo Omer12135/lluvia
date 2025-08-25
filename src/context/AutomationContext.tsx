@@ -36,6 +36,8 @@ interface AutomationContextType {
   isLoading: boolean;
   canCreateAutomation: boolean;
   automationLimit: number;
+  remainingAutomations: number;
+  currentMonthUsage: number;
   addAutomation: (automation: Omit<Automation, 'id' | 'createdAt'>) => Promise<boolean>;
   updateAutomationStatus: (id: string, status: Automation['status']) => void;
   deleteAutomation: (id: string) => void;
@@ -46,6 +48,7 @@ interface AutomationContextType {
   deleteExampleAutomation: (id: string) => void;
   exportAutomationToJson: (automationId: string) => void;
   exportAllAutomationsToJson: () => void;
+  refreshUsageData: () => Promise<void>;
 }
 
 const AutomationContext = createContext<AutomationContextType | undefined>(undefined);
@@ -67,6 +70,8 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [currentResult, setCurrentResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [remainingAutomations, setRemainingAutomations] = useState(0);
+  const [currentMonthUsage, setCurrentMonthUsage] = useState(0);
 
   // Plan-based limits
   const getAutomationLimit = () => {
@@ -85,7 +90,21 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
 
   const automationLimit = getAutomationLimit();
   const userAutomations = automations.filter(a => a.userId === user?.id);
-  const canCreateAutomation = Boolean(user && (automationLimit === -1 || userAutomations.length < automationLimit));
+  const canCreateAutomation = Boolean(user && (automationLimit === -1 || remainingAutomations > 0));
+
+  // Function to refresh usage data from database
+  const refreshUsageData = async () => {
+    if (!user) return;
+    
+    try {
+      // This would typically call your Supabase function
+      // For now, we'll simulate the data
+      const remaining = Math.max(0, automationLimit - currentMonthUsage);
+      setRemainingAutomations(remaining);
+    } catch (error) {
+      console.error('Error refreshing usage data:', error);
+    }
+  };
 
   const [exampleAutomations, setExampleAutomations] = useState<ExampleAutomation[]>([
     {
@@ -254,8 +273,10 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
       console.error('User not authenticated');
       return false;
     }
-    if (automationLimit !== -1 && userAutomations.length >= automationLimit) {
-      console.warn(`Automation limit reached: ${automationLimit}`);
+    
+    // Check if user can create automation based on remaining usage
+    if (!canCreateAutomation) {
+      console.warn(`Automation limit reached. Remaining: ${remainingAutomations}`);
       return false;
     }
 
@@ -265,6 +286,11 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
       createdAt: new Date(),
       userId: user.id
     };
+    
+    // Increment usage
+    setCurrentMonthUsage(prev => prev + 1);
+    setRemainingAutomations(prev => Math.max(0, prev - 1));
+    
     setAutomations(prev => [...prev, newAutomation]);
     return true;
   };
@@ -337,6 +363,8 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     isLoading,
     canCreateAutomation,
     automationLimit,
+    remainingAutomations,
+    currentMonthUsage,
     addAutomation,
     updateAutomationStatus,
     deleteAutomation,
@@ -346,7 +374,8 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     updateExampleAutomation,
     deleteExampleAutomation,
     exportAutomationToJson,
-    exportAllAutomationsToJson
+    exportAllAutomationsToJson,
+    refreshUsageData
   };
 
   return (
