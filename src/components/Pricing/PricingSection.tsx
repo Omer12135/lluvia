@@ -36,6 +36,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
     switch (name.toLowerCase()) {
       case 'free plan':
         return [
+          'Basic Workflow',
           '2 automations per month',
           'All trigger types',
           'Email support',
@@ -45,6 +46,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
         ];
       case 'pro plan':
         return [
+          'Complex Workflow',
           '50 automations per month',
           'All trigger types',
           'AI Chatbot (500 messages/month)',

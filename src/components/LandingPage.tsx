@@ -151,6 +151,7 @@ const LandingPage: React.FC = () => {
     switch (name.toLowerCase()) {
       case 'free plan':
         return [
+          'Basic Workflow',
           '2 automations per month',
           'All trigger types',
           'Email support',
@@ -159,6 +160,7 @@ const LandingPage: React.FC = () => {
         ];
       case 'pro plan':
         return [
+          'Complex Workflow',
           '50 automations per month',
           'All trigger types',
           'Webhook integration',
@@ -310,6 +312,26 @@ const LandingPage: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="flex items-center justify-center space-x-6 mb-6 sm:mb-8"
+            >
+              <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
+                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                  <span className="text-black font-bold text-sm">N8N</span>
+                </div>
+                <span className="text-gray-300 text-sm font-medium">N8N</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">Make</span>
+                </div>
+                <span className="text-gray-300 text-sm font-medium">Make</span>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4 sm:px-0"
             >
@@ -453,6 +475,26 @@ const LandingPage: React.FC = () => {
                 </button>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-12 sm:py-20 bg-black/20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">What is LLUVIA AI?</h2>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white/5 rounded-2xl p-6 sm:p-8 lg:p-12 border border-white/10">
+              <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed mb-6">
+                LLUVIA AI is an advanced AI-powered platform that enables individual users and businesses to easily create their own automation solutions. By integrating with powerful automation tools such as N8N and Make (Integromat), it helps you transform complex business processes into smart automations.
+              </p>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed">
+                Without requiring any technical knowledge, you can set up and manage any type of automation—from daily tasks to corporate processes—on your own.
+              </p>
+            </div>
           </div>
         </div>
       </section>
