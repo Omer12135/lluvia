@@ -480,14 +480,66 @@ const LandingPage: React.FC = () => {
             <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">What is LLUVIA AI?</h2>
           </div>
           
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white/5 rounded-2xl p-6 sm:p-8 lg:p-12 border border-white/10">
+          <div className="max-w-6xl mx-auto">
+            {/* Main Description */}
+            <div className="bg-white/5 rounded-2xl p-6 sm:p-8 lg:p-12 border border-white/10 mb-8">
               <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed mb-6">
                 LLUVIA AI is an advanced AI-powered platform that enables individual users and businesses to easily create their own automation solutions. By integrating with powerful automation tools such as N8N and Make (Integromat), it helps you transform complex business processes into smart automations.
               </p>
               <p className="text-base sm:text-lg lg:text-xl text-gray-300 leading-relaxed">
                 Without requiring any technical knowledge, you can set up and manage any type of automation—from daily tasks to corporate processes—on your own.
               </p>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
+              <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-xl p-4 sm:p-6 border border-purple-500/20 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">2K+</div>
+                <div className="text-sm sm:text-base text-gray-300">Happy Users</div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-xl p-4 sm:p-6 border border-blue-500/20 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">80h</div>
+                <div className="text-sm sm:text-base text-gray-300">Hours Saved / Month</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-xl p-4 sm:p-6 border border-green-500/20 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">500+</div>
+                <div className="text-sm sm:text-base text-gray-300">Integrations</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-600/20 to-red-600/20 rounded-xl p-4 sm:p-6 border border-orange-500/20 text-center">
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">99.9%</div>
+                <div className="text-sm sm:text-base text-gray-300">Uptime</div>
+              </div>
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Lightning Fast</h3>
+                </div>
+                <p className="text-sm sm:text-base text-gray-400">Execute automations in milliseconds with our optimized engine</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Enterprise Security</h3>
+                </div>
+                <p className="text-sm sm:text-base text-gray-400">Bank-level encryption and SOC 2 compliance for your data</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Team Collaboration</h3>
+                </div>
+                <p className="text-sm sm:text-base text-gray-400">Work together seamlessly with role-based access control</p>
+              </div>
             </div>
           </div>
         </div>
