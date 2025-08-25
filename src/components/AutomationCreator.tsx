@@ -307,13 +307,13 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-          {/* Left Column - Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          {/* Automation Details */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="space-y-3 sm:space-y-6"
+            className="lg:col-span-1 xl:col-span-1"
           >
             {/* Automation Details */}
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
@@ -355,7 +355,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
               </div>
             </div>
 
-            {/* Selected Components Preview */}
+          </motion.div>
+
+          {/* Selected Components Preview */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="lg:col-span-1 xl:col-span-1"
+          >
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
                 <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl">
@@ -427,14 +435,13 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
             </div>
           </motion.div>
 
-          {/* Right Column - Triggers & Actions */}
+          {/* Triggers Section */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-3 sm:space-y-6"
+            transition={{ delay: 0.5 }}
+            className="lg:col-span-1 xl:col-span-1"
           >
-            {/* Triggers Section */}
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center justify-between mb-3 sm:mb-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -516,8 +523,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                 )}
               </AnimatePresence>
             </div>
+          </motion.div>
 
-            {/* Actions Section */}
+          {/* Actions Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6 }}
+            className="lg:col-span-1 xl:col-span-1"
+          >
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
               <div className="flex items-center justify-between mb-3 sm:mb-6">
                 <div className="flex items-center space-x-2 sm:space-x-3">
@@ -600,9 +614,16 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                 )}
                              </AnimatePresence>
              </div>
+          </motion.div>
 
-             {/* Platform Selection Section */}
-             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
+          {/* Platform Selection Section */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.7 }}
+            className="lg:col-span-1 xl:col-span-1"
+          >
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl min-h-[400px]">
                <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
                  <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg sm:rounded-xl">
                    <Workflow className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
@@ -708,7 +729,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.8 }}
           className="mt-6 sm:mt-8 text-center"
         >
                      <button
