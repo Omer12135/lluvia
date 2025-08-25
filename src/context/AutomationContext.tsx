@@ -70,10 +70,6 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [currentResult, setCurrentResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [remainingAutomations, setRemainingAutomations] = useState(() => {
-    const limit = getAutomationLimit();
-    return Math.max(0, limit);
-  });
   const [currentMonthUsage, setCurrentMonthUsage] = useState(0);
 
   // Plan-based limits
@@ -90,6 +86,11 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
         return 0;
     }
   };
+
+  const [remainingAutomations, setRemainingAutomations] = useState(() => {
+    const limit = getAutomationLimit();
+    return Math.max(0, limit);
+  });
 
   const automationLimit = getAutomationLimit();
   const userAutomations = automations.filter(a => a.userId === user?.id);
