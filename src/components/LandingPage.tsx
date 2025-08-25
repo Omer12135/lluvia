@@ -204,11 +204,12 @@ const LandingPage: React.FC = () => {
               <span className="text-xl sm:text-2xl font-bold text-white">LLUVIA AI</span>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-6">
-              <a href="#features" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Features</a>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Pricing</a>
-              <a href="#about" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">About</a>
+                         {/* Desktop Navigation */}
+             <nav className="hidden lg:flex items-center space-x-6">
+               <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">How It Works</a>
+               <a href="#features" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Features</a>
+               <a href="#pricing" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Pricing</a>
+               <a href="#about" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">About</a>
               <button
                 onClick={handleLogin}
                 className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base"
@@ -240,14 +241,21 @@ const LandingPage: React.FC = () => {
               exit={{ opacity: 0, y: -20 }}
               className="lg:hidden mt-4 pt-4 border-t border-white/10"
             >
-              <div className="flex flex-col space-y-3">
-                <a 
-                  href="#features" 
-                  className="text-gray-300 hover:text-white transition-colors text-base py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Features
-                </a>
+                             <div className="flex flex-col space-y-3">
+                 <a 
+                   href="#how-it-works" 
+                   className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                   onClick={() => setIsMobileMenuOpen(false)}
+                 >
+                   How It Works
+                 </a>
+                 <a 
+                   href="#features" 
+                   className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                   onClick={() => setIsMobileMenuOpen(false)}
+                 >
+                   Features
+                 </a>
                 <a 
                   href="#pricing" 
                   className="text-gray-300 hover:text-white transition-colors text-base py-2"
@@ -374,31 +382,166 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-12 sm:py-20 bg-black/20">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Powerful Automation Features</h2>
-            <p className="text-lg sm:text-xl text-gray-400">Everything you need to automate your business processes</p>
-          </div>
+             {/* How It Works Section */}
+       <section id="how-it-works" className="py-12 sm:py-20 bg-black/20">
+         <div className="container mx-auto px-4 sm:px-6">
+           <div className="text-center mb-12 sm:mb-16">
+             <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">How It Works</h2>
+             <p className="text-lg sm:text-xl text-gray-400">Create your automation in just 3 simple steps</p>
+           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white/5 rounded-xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300"
-              >
-                <div className="mb-4 sm:mb-6">{feature.icon}</div>
-                <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">{feature.title}</h3>
-                <p className="text-sm sm:text-base text-gray-400 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+           <div className="max-w-5xl mx-auto">
+             {/* Steps */}
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-12">
+               {/* Step 1: Prompt */}
+               <motion.div
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.1 }}
+                 className="relative"
+               >
+                 <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-2xl p-6 sm:p-8 border border-purple-500/20 text-center">
+                   <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                     <span className="text-2xl font-bold text-white">1</span>
+                   </div>
+                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">Prompt</h3>
+                   <p className="text-gray-300 mb-6">Describe what you want to automate in natural language</p>
+                   <div className="bg-white/10 rounded-lg p-4 text-left">
+                     <p className="text-sm text-gray-300 italic">"When a new email arrives, save it to Google Sheets and send a notification to Slack"</p>
+                   </div>
+                 </div>
+                 
+                 {/* Arrow */}
+                 <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                   <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                     <ArrowRight className="w-4 h-4 text-white" />
+                   </div>
+                 </div>
+               </motion.div>
+
+               {/* Step 2: Choose Trigger */}
+               <motion.div
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.2 }}
+                 className="relative"
+               >
+                 <div className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 rounded-2xl p-6 sm:p-8 border border-blue-500/20 text-center">
+                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                     <span className="text-2xl font-bold text-white">2</span>
+                   </div>
+                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">Choose Trigger</h3>
+                   <p className="text-gray-300 mb-6">Select what will start your automation</p>
+                   <div className="bg-white/10 rounded-lg p-4 text-left">
+                     <div className="flex items-center space-x-2 mb-2">
+                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                       <span className="text-sm text-gray-300">New Email (Gmail)</span>
+                     </div>
+                     <div className="flex items-center space-x-2 mb-2">
+                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                       <span className="text-sm text-gray-300">New Form Submission</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                       <span className="text-sm text-gray-300">Scheduled Time</span>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 {/* Arrow */}
+                 <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                   <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                     <ArrowRight className="w-4 h-4 text-white" />
+                   </div>
+                 </div>
+               </motion.div>
+
+               {/* Step 3: Choose Actions */}
+               <motion.div
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.3 }}
+               >
+                 <div className="bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-2xl p-6 sm:p-8 border border-green-500/20 text-center">
+                   <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                     <span className="text-2xl font-bold text-white">3</span>
+                   </div>
+                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">Choose Actions</h3>
+                   <p className="text-gray-300 mb-6">Define what happens when triggered</p>
+                   <div className="bg-white/10 rounded-lg p-4 text-left">
+                     <div className="flex items-center space-x-2 mb-2">
+                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                       <span className="text-sm text-gray-300">Save to Google Sheets</span>
+                     </div>
+                     <div className="flex items-center space-x-2 mb-2">
+                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                       <span className="text-sm text-gray-300">Send Slack Message</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                       <span className="text-sm text-gray-300">Create Calendar Event</span>
+                     </div>
+                   </div>
+                 </div>
+               </motion.div>
+             </div>
+
+             {/* Result */}
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.4 }}
+               className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-2xl p-6 sm:p-8 border border-purple-500/20 text-center"
+             >
+               <div className="flex items-center justify-center space-x-3 mb-4">
+                 <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                   <CheckCircle className="w-6 h-6 text-white" />
+                 </div>
+                 <h3 className="text-2xl sm:text-3xl font-bold text-white">Automation Created!</h3>
+               </div>
+               <p className="text-lg text-gray-300 mb-6">Your automation is now live and will run automatically</p>
+               <div className="bg-white/10 rounded-lg p-4 max-w-2xl mx-auto">
+                 <div className="flex items-center justify-between">
+                   <div className="flex items-center space-x-3">
+                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                     <span className="text-sm text-gray-300">Status: Active</span>
+                   </div>
+                   <div className="flex items-center space-x-3">
+                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                     <span className="text-sm text-gray-300">Last run: 2 min ago</span>
+                   </div>
+                 </div>
+               </div>
+             </motion.div>
+           </div>
+         </div>
+       </section>
+
+       {/* Features Section */}
+       <section id="features" className="py-12 sm:py-20 bg-black/20">
+         <div className="container mx-auto px-4 sm:px-6">
+           <div className="text-center mb-12 sm:mb-16">
+             <h2 className="text-2xl sm:text-4xl font-bold text-white mb-4">Powerful Automation Features</h2>
+             <p className="text-lg sm:text-xl text-gray-400">Everything you need to automate your business processes</p>
+           </div>
+
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+             {features.map((feature, index) => (
+               <motion.div
+                 key={index}
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: index * 0.1 }}
+                 className="bg-white/5 rounded-xl p-6 sm:p-8 border border-white/10 hover:bg-white/10 transition-all duration-300"
+               >
+                 <div className="mb-4 sm:mb-6">{feature.icon}</div>
+                 <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">{feature.title}</h3>
+                 <p className="text-sm sm:text-base text-gray-400 leading-relaxed">{feature.description}</p>
+               </motion.div>
+             ))}
+           </div>
+         </div>
+       </section>
 
       {/* Pricing Section */}
       <section id="pricing" className="py-12 sm:py-20 bg-black/20">
