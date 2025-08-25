@@ -406,9 +406,9 @@ const LandingPage: React.FC = () => {
                    </div>
                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">Prompt</h3>
                    <p className="text-gray-300 mb-6">Describe what you want to automate in natural language</p>
-                   <div className="bg-white/10 rounded-lg p-4 text-left">
-                     <p className="text-sm text-gray-300 italic">"When a new email arrives, save it to Google Sheets and send a notification to Slack"</p>
-                   </div>
+                                       <div className="bg-white/10 rounded-lg p-4 text-left h-20 flex items-center">
+                      <p className="text-sm text-gray-300 italic">"When a new email arrives, save it to Google Sheets and send a notification to Slack"</p>
+                    </div>
                  </div>
                  
                  {/* Arrow */}
@@ -432,20 +432,20 @@ const LandingPage: React.FC = () => {
                    </div>
                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">Choose Trigger</h3>
                    <p className="text-gray-300 mb-6">Select what will start your automation</p>
-                   <div className="bg-white/10 rounded-lg p-4 text-left">
-                     <div className="flex items-center space-x-2 mb-2">
-                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                       <span className="text-sm text-gray-300">New Email (Gmail)</span>
-                     </div>
-                     <div className="flex items-center space-x-2 mb-2">
-                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                       <span className="text-sm text-gray-300">New Form Submission</span>
-                     </div>
-                     <div className="flex items-center space-x-2">
-                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                       <span className="text-sm text-gray-300">Scheduled Time</span>
-                     </div>
-                   </div>
+                                       <div className="bg-white/10 rounded-lg p-4 text-left h-20 flex flex-col justify-center">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-sm text-gray-300">New Email (Gmail)</span>
+                      </div>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm text-gray-300">New Form Submission</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <span className="text-sm text-gray-300">Scheduled Time</span>
+                      </div>
+                    </div>
                  </div>
                  
                  {/* Arrow */}
@@ -468,20 +468,20 @@ const LandingPage: React.FC = () => {
                    </div>
                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">Choose Actions</h3>
                    <p className="text-gray-300 mb-6">Define what happens when triggered</p>
-                   <div className="bg-white/10 rounded-lg p-4 text-left">
-                     <div className="flex items-center space-x-2 mb-2">
-                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                       <span className="text-sm text-gray-300">Save to Google Sheets</span>
-                     </div>
-                     <div className="flex items-center space-x-2 mb-2">
-                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                       <span className="text-sm text-gray-300">Send Slack Message</span>
-                     </div>
-                     <div className="flex items-center space-x-2">
-                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                       <span className="text-sm text-gray-300">Create Calendar Event</span>
-                     </div>
-                   </div>
+                                       <div className="bg-white/10 rounded-lg p-4 text-left h-20 flex flex-col justify-center">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-sm text-gray-300">Save to Google Sheets</span>
+                      </div>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm text-gray-300">Send Slack Message</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <span className="text-sm text-gray-300">Create Calendar Event</span>
+                      </div>
+                    </div>
                  </div>
                </motion.div>
              </div>
@@ -500,18 +500,24 @@ const LandingPage: React.FC = () => {
                  <h3 className="text-2xl sm:text-3xl font-bold text-white">Automation Created!</h3>
                </div>
                <p className="text-lg text-gray-300 mb-6">Your automation is now live and will run automatically</p>
-               <div className="bg-white/10 rounded-lg p-4 max-w-2xl mx-auto">
-                 <div className="flex items-center justify-between">
-                   <div className="flex items-center space-x-3">
-                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                     <span className="text-sm text-gray-300">Status: Active</span>
-                   </div>
-                   <div className="flex items-center space-x-3">
-                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                     <span className="text-sm text-gray-300">Last run: 2 min ago</span>
-                   </div>
-                 </div>
-               </div>
+                               <div className="bg-white/10 rounded-lg p-4 max-w-2xl mx-auto">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm text-gray-300">Status: Active</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm text-gray-300">Last run: 2 min ago</span>
+                    </div>
+                    <button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-emerald-600 transition-all duration-200 flex items-center space-x-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Download</span>
+                    </button>
+                  </div>
+                </div>
              </motion.div>
            </div>
          </div>
@@ -654,36 +660,7 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">Lightning Fast</h3>
-                </div>
-                <p className="text-sm sm:text-base text-gray-400">Execute automations in milliseconds with our optimized engine</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">Enterprise Security</h3>
-                </div>
-                <p className="text-sm sm:text-base text-gray-400">Bank-level encryption and SOC 2 compliance for your data</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                    <Users className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white">Team Collaboration</h3>
-                </div>
-                <p className="text-sm sm:text-base text-gray-400">Work together seamlessly with role-based access control</p>
-              </div>
-            </div>
+            
           </div>
         </div>
       </section>
