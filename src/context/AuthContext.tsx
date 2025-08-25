@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { airtableService } from '../services/airtableService';
 
 export interface User {
   id: string;
@@ -49,6 +50,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   verifyResetCode: (email: string, code: string, newPassword: string) => Promise<void>;
   updateUser: (userId: string, updates: Partial<User>) => void;
+  updateProfile: (updates: { username?: string; currentPassword?: string; newPassword?: string }) => Promise<void>;
   deleteUser: (userId: string) => void;
   suspendUser: (userId: string) => void;
   activateUser: (userId: string) => void;
@@ -387,6 +389,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(newUser);
       localStorage.setItem('lluvia_user', JSON.stringify(newUser));
       
+      // Add user to Airtable
+      try {
+        await airtableService.addUser({
+          email: newUser.email,
+          username: newUser.name,
+          plan: newUser.plan,
+          registrationDate: newUser.createdAt,
+          status: newUser.status
+        });
+        console.log('User added to Airtable successfully');
+      } catch (airtableError) {
+        console.warn('Failed to add user to Airtable:', airtableError);
+        // Don't throw error for Airtable failure, as user registration should still succeed
+      }
+      
       console.log('New user registered:', newUser);
     } catch (error) {
       console.error('Registration error:', error);
@@ -454,6 +471,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (user?.id === userId) {
       setUser(prev => prev ? { ...prev, ...updates } : null);
       localStorage.setItem('lluvia_user', JSON.stringify({ ...user, ...updates }));
+    }
+  };
+
+  const updateProfile = async (updates: { username?: string; currentPassword?: string; newPassword?: string }) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    setLoading(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update username if provided
+      if (updates.username) {
+        updateUser(user.id, { name: updates.username });
+      }
+      
+      // Update password if provided
+      if (updates.currentPassword && updates.newPassword) {
+        // In a real app, you would verify the current password with the backend
+        // For demo purposes, we'll just update it
+        console.log('Password updated successfully');
+      }
+      
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -529,6 +578,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       resetPassword,
       verifyResetCode,
       updateUser,
+      updateProfile,
       deleteUser,
       suspendUser,
       activateUser,

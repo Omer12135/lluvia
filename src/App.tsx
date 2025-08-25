@@ -7,6 +7,7 @@ import LoginPage from './components/Auth/LoginPage';
 import SignupPage from './components/Auth/SignupPage';
 import SuccessPage from './components/SuccessPage';
 import Dashboard from './components/Dashboard';
+import Settings from './components/Settings';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminLogin from './components/Admin/AdminLogin';
 
@@ -24,6 +25,7 @@ function App() {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/success" element={<SuccessPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
