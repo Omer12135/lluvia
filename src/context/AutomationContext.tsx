@@ -77,7 +77,7 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
     if (!user) return 0;
     switch (user.plan) {
       case 'free':
-        return 2;
+        return 1;
       case 'pro':
         return 50;
       case 'custom':

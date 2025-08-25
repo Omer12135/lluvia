@@ -12,7 +12,7 @@ export const stripeProducts: StripeProduct[] = [
     id: 'prod_SneCt1kgIN2csV',
     priceId: 'price_1Rs2uSK4TeoPEcnVpJo9DVHV',
     name: 'Free Plan',
-    description: 'Basic Workflow - 2 free automations to get started with workflow automation',
+    description: 'Basic Workflow - 1 free automation to get started with workflow automation',
     price: 0.00,
     mode: 'payment'
   },

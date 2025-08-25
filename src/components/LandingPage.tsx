@@ -19,7 +19,8 @@ import {
   Calendar,
   BarChart3,
   Loader2,
-  Share2
+  Share2,
+  Linkedin
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './Auth/AuthModal';
@@ -152,7 +153,7 @@ const LandingPage: React.FC = () => {
       case 'free plan':
         return [
           'Basic Workflow',
-          '2 automations per month',
+          '1 automation per month',
           'All trigger types',
           'Email support',
           'Standard templates',
@@ -365,7 +366,7 @@ const LandingPage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-                <span className="text-xs sm:text-base">2 free automations</span>
+                <span className="text-xs sm:text-base">1 free automation</span>
               </div>
               <div className="flex items-center space-x-2">
                 <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
@@ -660,6 +661,28 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
 
+            {/* LinkedIn Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-6 sm:p-8 border border-blue-500/20 text-center"
+            >
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <Linkedin className="w-8 h-8 text-blue-500" />
+                <h3 className="text-2xl sm:text-3xl font-bold text-white">Follow Us on LinkedIn</h3>
+              </div>
+              <p className="text-base sm:text-lg text-gray-300 mb-6">Stay updated with the latest automation tips, industry insights, and company news</p>
+              <a
+                href="https://uk.linkedin.com/company/lluvia-ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold"
+              >
+                <Linkedin className="w-5 h-5" />
+                <span>Visit Our LinkedIn Page</span>
+              </a>
+            </motion.div>
             
           </div>
         </div>

@@ -105,7 +105,7 @@ const AutomationHistory: React.FC = () => {
             <div>
               <h4 className="text-yellow-400 font-medium">Free Plan Limit Reached</h4>
               <p className="text-yellow-300 text-sm">
-                You have reached the Free Plan limit of 2 automations. Upgrade to Pro Plan to create unlimited automations.
+                You have reached the Free Plan limit of 1 automation. Upgrade to Pro Plan to create unlimited automations.
               </p>
             </div>
           </div>

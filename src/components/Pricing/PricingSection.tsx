@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, Star, Zap, Users, Loader2 } from 'lucide-react';
+import { Check, X, Star, Zap, Users, Loader2, Linkedin } from 'lucide-react';
 import { stripeProducts } from '../../stripe-config';
 import { useAuth } from '../../context/AuthContext';
 
@@ -37,7 +37,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
       case 'free plan':
         return [
           'Basic Workflow',
-          '2 automations per month',
+          '1 automation per month',
           'All trigger types',
           'Email support',
           'Standard templates',
@@ -131,6 +131,31 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan, loading =
             </button>
           </motion.div>
         ))}
+      </div>
+
+      {/* LinkedIn Section */}
+      <div className="mt-16 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl p-8 border border-blue-500/20"
+        >
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <Linkedin className="w-8 h-8 text-blue-500" />
+            <h3 className="text-2xl font-bold text-white">Follow Us on LinkedIn</h3>
+          </div>
+          <p className="text-gray-300 mb-6">Stay updated with the latest automation tips, industry insights, and company news</p>
+          <a
+            href="https://uk.linkedin.com/company/lluvia-ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold"
+          >
+            <Linkedin className="w-5 h-5" />
+            <span>Visit Our LinkedIn Page</span>
+          </a>
+        </motion.div>
       </div>
     </div>
   );
