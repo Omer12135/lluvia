@@ -630,7 +630,10 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
           </button>
           {!canCreateAutomation && (
             <p className="text-red-400 text-sm mt-3 sm:mt-2">
-              You've reached your automation limit. Please upgrade your plan to create more automations.
+              {automationLimit === 2 
+                ? 'You have reached the Free Plan limit of 2 automations. Please upgrade to Pro Plan to create more automations.'
+                : 'You have reached your automation limit. Please upgrade your plan to create more automations.'
+              }
             </p>
           )}
           {(!automationName.trim() || !selectedTrigger) && canCreateAutomation && (

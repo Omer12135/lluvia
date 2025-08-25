@@ -70,7 +70,10 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [currentResult, setCurrentResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [remainingAutomations, setRemainingAutomations] = useState(0);
+  const [remainingAutomations, setRemainingAutomations] = useState(() => {
+    const limit = getAutomationLimit();
+    return Math.max(0, limit);
+  });
   const [currentMonthUsage, setCurrentMonthUsage] = useState(0);
 
   // Plan-based limits
@@ -90,7 +93,26 @@ export const AutomationProvider: React.FC<AutomationProviderProps> = ({ children
 
   const automationLimit = getAutomationLimit();
   const userAutomations = automations.filter(a => a.userId === user?.id);
-  const canCreateAutomation = Boolean(user && (automationLimit === -1 || remainingAutomations > 0));
+  
+  // Calculate remaining automations based on current usage
+  const calculatedRemaining = Math.max(0, automationLimit - currentMonthUsage);
+  const canCreateAutomation = Boolean(user && (automationLimit === -1 || calculatedRemaining > 0));
+  
+  // Update remainingAutomations state if it's different
+  React.useEffect(() => {
+    if (calculatedRemaining !== remainingAutomations) {
+      setRemainingAutomations(calculatedRemaining);
+    }
+  }, [calculatedRemaining, remainingAutomations]);
+
+  // Update values when user plan changes
+  React.useEffect(() => {
+    if (user) {
+      const limit = getAutomationLimit();
+      const remaining = Math.max(0, limit - currentMonthUsage);
+      setRemainingAutomations(remaining);
+    }
+  }, [user?.plan, currentMonthUsage]);
 
   // Function to refresh usage data from database
   const refreshUsageData = async () => {
