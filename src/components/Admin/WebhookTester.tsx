@@ -43,7 +43,7 @@ const WebhookTester: React.FC = () => {
     automation_id: `automation_${Date.now()}`
   });
 
-  const webhookUrl = 'https://lluviaomer.app.n8n.cloud/webhook/lluvia';
+  const [webhookUrl, setWebhookUrl] = useState('https://lluviaomer.app.n8n.cloud/webhook/lluvia');
 
   const testWebhook = async (method: 'GET' | 'POST') => {
     const testKey = `${method.toLowerCase()}_test`;
@@ -235,6 +235,21 @@ const WebhookTester: React.FC = () => {
         </div>
       </div>
 
+      {/* N8N Webhook Setup Instructions */}
+      <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/20">
+        <div className="flex items-center space-x-3 mb-4">
+          <Globe className="w-6 h-6 text-blue-400" />
+          <h4 className="text-lg font-semibold text-white">N8N Webhook Setup Instructions</h4>
+        </div>
+        <div className="space-y-3 text-sm text-gray-300">
+          <p>1. Go to <a href="https://lluviaomer.app.n8n.cloud" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">N8N Dashboard</a></p>
+          <p>2. Create a new workflow</p>
+          <p>3. Add a "Webhook" trigger node</p>
+          <p>4. Copy the generated webhook URL</p>
+          <p>5. Paste it in the field below</p>
+        </div>
+      </div>
+
       {/* Webhook URL Display */}
       <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
         <div className="flex items-center justify-between mb-4">
@@ -251,7 +266,13 @@ const WebhookTester: React.FC = () => {
           </button>
         </div>
         <div className="bg-black/30 rounded-xl p-4">
-          <code className="text-purple-300 text-sm break-all">{webhookUrl}</code>
+          <input
+            type="text"
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            className="w-full bg-transparent text-purple-300 text-sm border-none outline-none"
+            placeholder="Enter your N8N webhook URL"
+          />
         </div>
       </div>
 
