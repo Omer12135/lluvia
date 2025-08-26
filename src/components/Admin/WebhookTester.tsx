@@ -8,8 +8,10 @@ import {
   Globe,
   Clock,
   AlertTriangle,
-  Copy
+  Copy,
+  Zap
 } from 'lucide-react';
+import { testWebhook } from '../../services/webhookService';
 
 interface TestResult {
   success: boolean;
@@ -41,7 +43,7 @@ const WebhookTester: React.FC = () => {
     automation_id: `automation_${Date.now()}`
   });
 
-  const webhookUrl = 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia';
+  const webhookUrl = 'https://lluviaomer.app.n8n.cloud/webhook/lluvia';
 
   const testWebhook = async (method: 'GET' | 'POST') => {
     const testKey = `${method.toLowerCase()}_test`;
@@ -148,6 +150,39 @@ const WebhookTester: React.FC = () => {
     setTesting(false);
   };
 
+  const testWebhookService = async () => {
+    setTesting(true);
+    try {
+      const result = await testWebhook();
+      console.log('Webhook test result:', result);
+      
+      // Add result to test results
+      setTestResults(prev => ({
+        ...prev,
+        service_test: {
+          success: result.success,
+          status: result.success ? 200 : 500,
+          data: result.data,
+          error: result.error,
+          duration: result.duration,
+          timestamp: result.timestamp
+        }
+      }));
+    } catch (error) {
+      console.error('Webhook service test error:', error);
+      setTestResults(prev => ({
+        ...prev,
+        service_test: {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: Date.now()
+        }
+      }));
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const copyTestData = () => {
     navigator.clipboard.writeText(JSON.stringify(testData, null, 2));
   };
@@ -171,18 +206,33 @@ const WebhookTester: React.FC = () => {
           <h3 className="text-2xl font-bold text-white mb-2">Webhook Connectivity Test</h3>
           <p className="text-gray-400">Test your N8n webhook endpoints to ensure they're working correctly</p>
         </div>
-        <button
-          onClick={testAllWebhooks}
-          disabled={testing}
-          className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-purple-500/25"
-        >
-          {testing ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Play className="w-5 h-5" />
-          )}
-          <span>{testing ? 'Testing...' : 'Test All Webhooks'}</span>
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={testAllWebhooks}
+            disabled={testing}
+            className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-purple-500/25"
+          >
+            {testing ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Play className="w-5 h-5" />
+            )}
+            <span>{testing ? 'Testing...' : 'Test All Webhooks'}</span>
+          </button>
+          
+          <button
+            onClick={testWebhookService}
+            disabled={testing}
+            className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 shadow-lg hover:shadow-green-500/25"
+          >
+            {testing ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Zap className="w-5 h-5" />
+            )}
+            <span>{testing ? 'Testing...' : 'Test Webhook Service'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Webhook URL Display */}

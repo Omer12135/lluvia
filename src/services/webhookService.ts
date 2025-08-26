@@ -124,4 +124,51 @@ class WebhookService {
 export const webhookService = new WebhookService();
 
 export const processLegacyWebhook = async (payload: any): Promise<WebhookResult> => {
-}
+  return webhookService.processLegacyWebhook(payload);
+};
+
+// Test webhook function
+export const testWebhook = async (): Promise<WebhookResult> => {
+  const testPayload = {
+    event_type: 'automation_created',
+    timestamp: Date.now(),
+    automation_name: 'Test Automation',
+    automation_description: 'Testing webhook connectivity',
+    trigger_name: 'Test Trigger',
+    user_id: 'test_user',
+    user_email: 'test@lluvia.ai',
+    user_name: 'Test User',
+    user_plan: 'pro',
+    source: 'lluvia-ai-platform',
+    webhook_id: `test_${Date.now()}`,
+    automation_id: `automation_${Date.now()}`
+  };
+
+  try {
+    const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'LLUVIA-AI-Platform/1.0'
+      },
+      body: JSON.stringify(testPayload)
+    });
+
+    const responseText = await response.text();
+    
+    return {
+      success: response.ok,
+      data: responseText,
+      error: response.ok ? undefined : `HTTP ${response.status}: ${response.statusText}`,
+      timestamp: Date.now(),
+      duration: 0
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: Date.now(),
+      duration: 0
+    };
+  }
+};
