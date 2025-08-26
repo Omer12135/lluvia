@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
@@ -18,7 +18,17 @@ import {
   BookOpen,
   Tag,
   User,
-  FileText
+  FileText,
+  Bold,
+  Italic,
+  Underline,
+  Link,
+  List,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Image,
+  Video
 } from 'lucide-react';
 import { useBlog, BlogPost } from '../../context/BlogContext';
 import { useAuth } from '../../context/AuthContext';
@@ -40,6 +50,11 @@ const AdminBlogManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -81,6 +96,36 @@ const AdminBlogManager: React.FC = () => {
   const handleTagInput = (value: string) => {
     const tags = value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
     setFormData(prev => ({ ...prev, tags }));
+  };
+
+  // Rich Text Editor Functions
+  const execCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    contentRef.current?.focus();
+  };
+
+  const insertImage = (imageUrl: string) => {
+    const img = `<img src="${imageUrl}" alt="Blog Image" style="max-width: 100%; height: auto; margin: 10px 0;" />`;
+    document.execCommand('insertHTML', false, img);
+    setShowImageModal(false);
+    contentRef.current?.focus();
+  };
+
+  const insertLink = () => {
+    if (linkUrl && linkText) {
+      const link = `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+      document.execCommand('insertHTML', false, link);
+      setShowLinkModal(false);
+      setLinkUrl('');
+      setLinkText('');
+      contentRef.current?.focus();
+    }
+  };
+
+  const handleContentChange = () => {
+    if (contentRef.current) {
+      setFormData(prev => ({ ...prev, content: contentRef.current?.innerHTML || '' }));
+    }
   };
 
   const resetForm = () => {
@@ -394,15 +439,116 @@ const AdminBlogManager: React.FC = () => {
 
                 {/* Content */}
                 <div>
-                                     <label className="block text-white font-medium mb-2">Content *</label>
-                   <textarea
-                     value={formData.content}
-                     onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                     rows={10}
-                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                     placeholder="Full content of the blog post..."
-                     required
-                   />
+                  <label className="block text-white font-medium mb-2">Content *</label>
+                  
+                  {/* Rich Text Editor Toolbar */}
+                  <div className="bg-white/10 border border-white/20 rounded-t-lg p-2 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => execCommand('bold')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Bold"
+                    >
+                      <Bold className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execCommand('italic')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Italic"
+                    >
+                      <Italic className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execCommand('underline')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Underline"
+                    >
+                      <Underline className="w-4 h-4 text-white" />
+                    </button>
+                    
+                    <div className="w-px h-6 bg-white/20"></div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => execCommand('insertUnorderedList')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Bullet List"
+                    >
+                      <List className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execCommand('insertOrderedList')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Numbered List"
+                    >
+                      <List className="w-4 h-4 text-white" />
+                    </button>
+                    
+                    <div className="w-px h-6 bg-white/20"></div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => execCommand('justifyLeft')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Align Left"
+                    >
+                      <AlignLeft className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execCommand('justifyCenter')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Align Center"
+                    >
+                      <AlignCenter className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => execCommand('justifyRight')}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Align Right"
+                    >
+                      <AlignRight className="w-4 h-4 text-white" />
+                    </button>
+                    
+                    <div className="w-px h-6 bg-white/20"></div>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setShowLinkModal(true)}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Insert Link"
+                    >
+                      <Link className="w-4 h-4 text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowImageModal(true)}
+                      className="p-2 hover:bg-white/20 rounded transition-colors"
+                      title="Insert Image"
+                    >
+                      <Image className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                  
+                  {/* Rich Text Editor Content */}
+                  <div
+                    ref={contentRef}
+                    contentEditable
+                    onInput={handleContentChange}
+                    onBlur={handleContentChange}
+                    dangerouslySetInnerHTML={{ __html: formData.content }}
+                    className="w-full min-h-[300px] px-4 py-3 bg-white/10 border border-t-0 border-white/20 rounded-b-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none overflow-y-auto"
+                    style={{ 
+                      outline: 'none',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap'
+                    }}
+                    placeholder="Full content of the blog post..."
+                  />
                 </div>
 
                 {/* Category and Read Time */}
@@ -533,6 +679,155 @@ const AdminBlogManager: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Link Modal */}
+      <AnimatePresence>
+        {showLinkModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowLinkModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold text-white mb-4">Insert Link</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white font-medium mb-2">Link Text</label>
+                  <input
+                    type="text"
+                    value={linkText}
+                    onChange={(e) => setLinkText(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Link text..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-medium mb-2">URL</label>
+                  <input
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://example.com"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowLinkModal(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={insertLink}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Insert Link
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Image Modal */}
+      <AnimatePresence>
+        {showImageModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowImageModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold text-white mb-4">Insert Image</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-white font-medium mb-2">Image URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const input = e.target as HTMLInputElement;
+                        insertImage(input.value);
+                      }
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-white font-medium mb-2">Or Upload Image</label>
+                  <label className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg cursor-pointer hover:bg-white/20 transition-colors">
+                    <Upload className="w-4 h-4 text-white" />
+                    <span className="text-white">Choose File</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            insertImage(e.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowImageModal(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const input = document.querySelector('input[type="url"]') as HTMLInputElement;
+                    if (input?.value) {
+                      insertImage(input.value);
+                    }
+                  }}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Insert Image
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
