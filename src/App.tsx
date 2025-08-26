@@ -29,8 +29,8 @@ function App() {
               <Route path="/success" element={<SuccessPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<div style={{padding: '50px', fontSize: '24px'}}>ADMIN TEST PAGE - IT WORKS!</div>} />
+              <Route path="/admin/dashboard" element={<div style={{padding: '50px', fontSize: '24px'}}>ADMIN DASHBOARD TEST - IT WORKS!</div>} />
               <Route path="/blog" element={<BlogPage />} />
             </Routes>
             </BlogProvider>

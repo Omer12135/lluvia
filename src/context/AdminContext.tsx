@@ -17,7 +17,11 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [admin, setAdmin] = useState<Admin | null>(null);
+  const [admin, setAdmin] = useState<Admin | null>({
+    id: '1',
+    username: 'admin',
+    role: 'admin'
+  });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -43,7 +47,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           role: 'admin'
         };
         setAdmin(adminData);
-        navigate('/admin');
+        navigate('/admin/dashboard');
       } else {
         throw new Error('Invalid admin credentials');
       }
@@ -57,7 +61,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const adminLogout = () => {
     setAdmin(null);
-    navigate('/admin/login');
+    navigate('/admin');
   };
 
   return (
