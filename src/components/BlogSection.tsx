@@ -243,13 +243,11 @@ const BlogSection: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6"
+          className="mt-12 grid grid-cols-2 gap-6 max-w-md mx-auto"
         >
                      {[
              { label: 'Total Posts', value: publishedPosts.length, icon: BookOpen },
              { label: 'Categories', value: categories.length - 1, icon: Filter },
-             { label: 'Total Views', value: publishedPosts.reduce((sum, post) => sum + post.views, 0), icon: Eye },
-             { label: 'Total Likes', value: publishedPosts.reduce((sum, post) => sum + post.likes, 0), icon: Heart },
            ].map((stat, index) => (
             <div
               key={stat.label}
