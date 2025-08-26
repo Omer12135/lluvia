@@ -28,7 +28,22 @@ import {
   AlignCenter,
   AlignRight,
   Image,
-  Video
+  Video,
+  Heading1,
+  Heading2,
+  Heading3,
+  Quote,
+  Code,
+  Table,
+  Palette,
+  Type,
+  Minus,
+  CheckSquare,
+  Square,
+  RotateCcw,
+  RotateCw,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { useBlog, BlogPost } from '../../context/BlogContext';
 import { useAuth } from '../../context/AuthContext';
@@ -54,6 +69,10 @@ const AdminBlogManager: React.FC = () => {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [backgroundColor, setBackgroundColor] = useState('#1f2937');
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
@@ -105,21 +124,105 @@ const AdminBlogManager: React.FC = () => {
   };
 
   const insertImage = (imageUrl: string) => {
-    const img = `<img src="${imageUrl}" alt="Blog Image" style="max-width: 100%; height: auto; margin: 10px 0;" />`;
+    const img = `<img src="${imageUrl}" alt="Blog Image" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />`;
     document.execCommand('insertHTML', false, img);
     setShowImageModal(false);
+    setUploadedImages(prev => [...prev, imageUrl]);
     contentRef.current?.focus();
   };
 
   const insertLink = () => {
     if (linkUrl && linkText) {
-      const link = `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+      const link = `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">${linkText}</a>`;
       document.execCommand('insertHTML', false, link);
       setShowLinkModal(false);
       setLinkUrl('');
       setLinkText('');
       contentRef.current?.focus();
     }
+  };
+
+  const insertHeading = (level: number) => {
+    const heading = `<h${level} style="margin: 20px 0 10px 0; font-weight: bold; color: ${textColor};">Heading ${level}</h${level}>`;
+    document.execCommand('insertHTML', false, heading);
+    contentRef.current?.focus();
+  };
+
+  const insertQuote = () => {
+    const quote = `<blockquote style="border-left: 4px solid #3b82f6; padding-left: 20px; margin: 20px 0; font-style: italic; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 8px;">Quote text here</blockquote>`;
+    document.execCommand('insertHTML', false, quote);
+    contentRef.current?.focus();
+  };
+
+  const insertCode = () => {
+    const code = `<pre style="background: #1f2937; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #374151; margin: 15px 0;"><code>Your code here</code></pre>`;
+    document.execCommand('insertHTML', false, code);
+    contentRef.current?.focus();
+  };
+
+  const insertTable = () => {
+    const table = `<table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #374151;">
+      <thead>
+        <tr style="background: #374151;">
+          <th style="padding: 12px; text-align: left; border: 1px solid #4b5563;">Header 1</th>
+          <th style="padding: 12px; text-align: left; border: 1px solid #4b5563;">Header 2</th>
+          <th style="padding: 12px; text-align: left; border: 1px solid #4b5563;">Header 3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 12px; border: 1px solid #4b5563;">Data 1</td>
+          <td style="padding: 12px; border: 1px solid #4b5563;">Data 2</td>
+          <td style="padding: 12px; border: 1px solid #4b5563;">Data 3</td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border: 1px solid #4b5563;">Data 4</td>
+          <td style="padding: 12px; border: 1px solid #4b5563;">Data 5</td>
+          <td style="padding: 12px; border: 1px solid #4b5563;">Data 6</td>
+        </tr>
+      </tbody>
+    </table>`;
+    document.execCommand('insertHTML', false, table);
+    contentRef.current?.focus();
+  };
+
+  const insertChecklist = () => {
+    const checklist = `<div style="margin: 15px 0;">
+      <div style="display: flex; align-items: center; margin: 8px 0;">
+        <input type="checkbox" style="margin-right: 10px;" />
+        <span>Checklist item 1</span>
+      </div>
+      <div style="display: flex; align-items: center; margin: 8px 0;">
+        <input type="checkbox" style="margin-right: 10px;" />
+        <span>Checklist item 2</span>
+      </div>
+      <div style="display: flex; align-items: center; margin: 8px 0;">
+        <input type="checkbox" style="margin-right: 10px;" />
+        <span>Checklist item 3</span>
+      </div>
+    </div>`;
+    document.execCommand('insertHTML', false, checklist);
+    contentRef.current?.focus();
+  };
+
+  const insertDivider = () => {
+    const divider = `<hr style="border: none; height: 2px; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899); margin: 30px 0; border-radius: 1px;" />`;
+    document.execCommand('insertHTML', false, divider);
+    contentRef.current?.focus();
+  };
+
+  const setTextColor = (color: string) => {
+    document.execCommand('foreColor', false, color);
+    contentRef.current?.focus();
+  };
+
+  const setBackgroundColor = (color: string) => {
+    document.execCommand('hiliteColor', false, color);
+    contentRef.current?.focus();
+  };
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
   };
 
   const handleContentChange = () => {
@@ -141,7 +244,9 @@ const AdminBlogManager: React.FC = () => {
     });
     setSelectedImage(null);
     setImagePreview('');
+    setUploadedImages([]);
     setEditingId(null);
+    setIsFullscreen(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -442,96 +547,206 @@ const AdminBlogManager: React.FC = () => {
                   <label className="block text-white font-medium mb-2">Content *</label>
                   
                   {/* Rich Text Editor Toolbar */}
-                  <div className="bg-white/10 border border-white/20 rounded-t-lg p-2 flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => execCommand('bold')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Bold"
-                    >
-                      <Bold className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => execCommand('italic')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Italic"
-                    >
-                      <Italic className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => execCommand('underline')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Underline"
-                    >
-                      <Underline className="w-4 h-4 text-white" />
-                    </button>
-                    
-                    <div className="w-px h-6 bg-white/20"></div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => execCommand('insertUnorderedList')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Bullet List"
-                    >
-                      <List className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => execCommand('insertOrderedList')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Numbered List"
-                    >
-                      <List className="w-4 h-4 text-white" />
-                    </button>
-                    
-                    <div className="w-px h-6 bg-white/20"></div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => execCommand('justifyLeft')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Align Left"
-                    >
-                      <AlignLeft className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => execCommand('justifyCenter')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Align Center"
-                    >
-                      <AlignCenter className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => execCommand('justifyRight')}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Align Right"
-                    >
-                      <AlignRight className="w-4 h-4 text-white" />
-                    </button>
-                    
-                    <div className="w-px h-6 bg-white/20"></div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => setShowLinkModal(true)}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Insert Link"
-                    >
-                      <Link className="w-4 h-4 text-white" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowImageModal(true)}
-                      className="p-2 hover:bg-white/20 rounded transition-colors"
-                      title="Insert Image"
-                    >
-                      <Image className="w-4 h-4 text-white" />
-                    </button>
+                  <div className="bg-white/10 border border-white/20 rounded-t-lg p-3">
+                    {/* First Row - Basic Formatting */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => execCommand('bold')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Bold"
+                      >
+                        <Bold className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => execCommand('italic')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Italic"
+                      >
+                        <Italic className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => execCommand('underline')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Underline"
+                      >
+                        <Underline className="w-4 h-4 text-white" />
+                      </button>
+                      
+                      <div className="w-px h-6 bg-white/20"></div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => insertHeading(1)}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Heading 1"
+                      >
+                        <Heading1 className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertHeading(2)}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Heading 2"
+                      >
+                        <Heading2 className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertHeading(3)}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Heading 3"
+                      >
+                        <Heading3 className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+
+                    {/* Second Row - Lists and Alignment */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => execCommand('insertUnorderedList')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Bullet List"
+                      >
+                        <List className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => execCommand('insertOrderedList')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Numbered List"
+                      >
+                        <List className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={insertChecklist}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Checklist"
+                      >
+                        <CheckSquare className="w-4 h-4 text-white" />
+                      </button>
+                      
+                      <div className="w-px h-6 bg-white/20"></div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => execCommand('justifyLeft')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Align Left"
+                      >
+                        <AlignLeft className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => execCommand('justifyCenter')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Align Center"
+                      >
+                        <AlignCenter className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => execCommand('justifyRight')}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Align Right"
+                      >
+                        <AlignRight className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+
+                    {/* Third Row - Special Elements */}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <button
+                        type="button"
+                        onClick={insertQuote}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Insert Quote"
+                      >
+                        <Quote className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={insertCode}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Insert Code"
+                      >
+                        <Code className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={insertTable}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Insert Table"
+                      >
+                        <Table className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={insertDivider}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Insert Divider"
+                      >
+                        <Minus className="w-4 h-4 text-white" />
+                      </button>
+                      
+                      <div className="w-px h-6 bg-white/20"></div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setShowLinkModal(true)}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Insert Link"
+                      >
+                        <Link className="w-4 h-4 text-white" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowImageModal(true)}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title="Insert Image"
+                      >
+                        <Image className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+
+                    {/* Fourth Row - Colors and Fullscreen */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white text-sm">Text:</span>
+                        <input
+                          type="color"
+                          value={textColor}
+                          onChange={(e) => setTextColor(e.target.value)}
+                          className="w-8 h-8 rounded border border-white/20 cursor-pointer"
+                          title="Text Color"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white text-sm">BG:</span>
+                        <input
+                          type="color"
+                          value={backgroundColor}
+                          onChange={(e) => setBackgroundColor(e.target.value)}
+                          className="w-8 h-8 rounded border border-white/20 cursor-pointer"
+                          title="Background Color"
+                        />
+                      </div>
+                      
+                      <div className="w-px h-6 bg-white/20"></div>
+                      
+                      <button
+                        type="button"
+                        onClick={toggleFullscreen}
+                        className="p-2 hover:bg-white/20 rounded transition-colors"
+                        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                      >
+                        {isFullscreen ? <Minimize2 className="w-4 h-4 text-white" /> : <Maximize2 className="w-4 h-4 text-white" />}
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Rich Text Editor Content */}
@@ -541,7 +756,11 @@ const AdminBlogManager: React.FC = () => {
                     onInput={handleContentChange}
                     onBlur={handleContentChange}
                     dangerouslySetInnerHTML={{ __html: formData.content }}
-                    className="w-full min-h-[300px] px-4 py-3 bg-white/10 border border-t-0 border-white/20 rounded-b-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none overflow-y-auto"
+                    className={`w-full px-4 py-3 bg-white/10 border border-t-0 border-white/20 rounded-b-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none overflow-y-auto transition-all duration-300 ${
+                      isFullscreen 
+                        ? 'fixed inset-4 z-50 bg-gray-900 border-2 border-purple-500 rounded-xl shadow-2xl' 
+                        : 'min-h-[300px]'
+                    }`}
                     style={{ 
                       outline: 'none',
                       wordWrap: 'break-word',
@@ -805,6 +1024,33 @@ const AdminBlogManager: React.FC = () => {
                     />
                   </label>
                 </div>
+
+                {/* Uploaded Images Preview */}
+                {uploadedImages.length > 0 && (
+                  <div>
+                    <label className="block text-white font-medium mb-2">Uploaded Images ({uploadedImages.length})</label>
+                    <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto">
+                      {uploadedImages.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={imageUrl}
+                            alt={`Uploaded ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-lg border border-white/20"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => insertImage(imageUrl)}
+                              className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
+                            >
+                              Insert
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="flex items-center justify-end space-x-3 mt-6">
