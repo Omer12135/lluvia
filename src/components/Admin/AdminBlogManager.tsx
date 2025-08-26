@@ -71,8 +71,8 @@ const AdminBlogManager: React.FC = () => {
   const [linkText, setLinkText] = useState('');
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [textColor, setTextColor] = useState('#ffffff');
-  const [backgroundColor, setBackgroundColor] = useState('#1f2937');
+  const [textColor, setTextColorState] = useState('#ffffff');
+  const [backgroundColor, setBackgroundColorState] = useState('#1f2937');
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
@@ -720,7 +720,7 @@ const AdminBlogManager: React.FC = () => {
                         <input
                           type="color"
                           value={textColor}
-                          onChange={(e) => setTextColor(e.target.value)}
+                          onChange={(e) => setTextColorState(e.target.value)}
                           className="w-8 h-8 rounded border border-white/20 cursor-pointer"
                           title="Text Color"
                         />
@@ -730,7 +730,7 @@ const AdminBlogManager: React.FC = () => {
                         <input
                           type="color"
                           value={backgroundColor}
-                          onChange={(e) => setBackgroundColor(e.target.value)}
+                          onChange={(e) => setBackgroundColorState(e.target.value)}
                           className="w-8 h-8 rounded border border-white/20 cursor-pointer"
                           title="Background Color"
                         />
