@@ -12,6 +12,7 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminLogin from './components/Admin/AdminLogin';
 
 import { AutomationProvider } from './context/AutomationContext';
+import { BlogProvider } from './context/BlogContext';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       <Router>
         <AdminProvider>
           <AutomationProvider>
+            <BlogProvider>
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -29,6 +31,7 @@ function App() {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
+            </BlogProvider>
 
           </AutomationProvider>
         </AdminProvider>

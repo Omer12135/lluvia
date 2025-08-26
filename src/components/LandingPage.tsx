@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from './Auth/AuthModal';
+import BlogSection from './BlogSection';
 import { createClient } from '@supabase/supabase-js';
 import { stripeProducts } from '../stripe-config';
 
@@ -762,6 +763,9 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Blog Section */}
+      <BlogSection />
 
       {/* CTA Section */}
       <section className="py-12 sm:py-20">

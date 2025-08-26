@@ -11,7 +11,8 @@ import {
   BarChart3,
   Zap,
   LogOut,
-  User
+  User,
+  BookOpen
 } from 'lucide-react';
 import WebhookManager from './WebhookManager';
 import WebhookTester from './WebhookTester';
@@ -22,6 +23,7 @@ import ExampleAutomationManager from './ExampleAutomationManager';
 import AdminAutomationManager from './AdminAutomationManager';
 import AutomationRequestsManager from './AutomationRequestsManager';
 import UserManagement from './UserManagement';
+import AdminBlogManager from './AdminBlogManager';
 import { useAutomation } from '../../context/AutomationContext';
 
 const AdminDashboard: React.FC = () => {
@@ -43,6 +45,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'n8n-debug', label: 'N8N Debug', icon: <Settings className="w-4 h-4" /> },
     { id: 'admin-automations', label: 'Add Automations', icon: <Zap className="w-4 h-4" /> },
     { id: 'examples', label: 'Example Automations', icon: <Zap className="w-4 h-4" /> },
+    { id: 'blog', label: 'Blog Yönetimi', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];
@@ -218,6 +221,7 @@ const AdminDashboard: React.FC = () => {
               {activeTab === 'n8n-debug' && <N8NDebugger />}
               {activeTab === 'admin-automations' && <AdminAutomationManager />}
               {activeTab === 'examples' && <ExampleAutomationManager />}
+              {activeTab === 'blog' && <AdminBlogManager />}
 
               {activeTab === 'users' && (
                 <UserManagement
