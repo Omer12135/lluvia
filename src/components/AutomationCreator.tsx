@@ -445,7 +445,7 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                 </div>
                 <button
                   onClick={() => setShowTriggers(!showTriggers)}
-                  className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm sm:text-base"
+                  className="px-4 sm:px-4 py-2.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm sm:text-base"
                 >
                   {showTriggers ? 'Hide' : 'Browse'}
                 </button>
@@ -525,7 +525,6 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
                     <Settings className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <h2 className="text-lg sm:text-2xl font-bold text-white">Select Actions</h2>
-                  <span className="text-gray-400 text-xs sm:text-sm">(Optional)</span>
                 </div>
                 <button
                   onClick={() => setShowActions(!showActions)}

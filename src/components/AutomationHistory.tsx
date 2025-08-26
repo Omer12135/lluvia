@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Clock, 
@@ -8,7 +8,10 @@ import {
   Download,
   MoreVertical,
   Play,
-  AlertTriangle
+  AlertTriangle,
+  Filter,
+  SortAsc,
+  SortDesc
 } from 'lucide-react';
 import { useAutomation } from '../context/AutomationContext';
 import { useAuth } from '../context/AuthContext';
@@ -16,9 +19,60 @@ import { useAuth } from '../context/AuthContext';
 const AutomationHistory: React.FC = () => {
   const { automations, exportAutomationToJson, exportAllAutomationsToJson, automationLimit } = useAutomation();
   const { user } = useAuth();
+  
+  // State for filtering and sorting
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'name' | 'status'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Filter automations for current user
   const userAutomations = user ? automations.filter(a => a.userId === user.id) : [];
+
+  // Get unique categories and statuses
+  const categories = useMemo(() => {
+    const cats = [...new Set(userAutomations.map(a => a.trigger || 'Uncategorized'))];
+    return ['all', ...cats];
+  }, [userAutomations]);
+
+  const statuses = useMemo(() => {
+    const stats = [...new Set(userAutomations.map(a => a.status))];
+    return ['all', ...stats];
+  }, [userAutomations]);
+
+  // Filtered and sorted automations
+  const filteredAndSortedAutomations = useMemo(() => {
+    let filtered = userAutomations.filter(automation => {
+      const matchesCategory = selectedCategory === 'all' || automation.trigger === selectedCategory;
+      const matchesStatus = selectedStatus === 'all' || automation.status === selectedStatus;
+      const matchesSearch = automation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           automation.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesCategory && matchesStatus && matchesSearch;
+    });
+
+    // Sort automations
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [userAutomations, selectedCategory, selectedStatus, searchTerm, sortBy, sortOrder]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -133,9 +187,87 @@ const AutomationHistory: React.FC = () => {
         ))}
       </div>
 
+      {/* Filtering and Sorting Controls */}
+      {userAutomations.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/5 rounded-lg p-4 sm:p-6 border border-white/10"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-blue-400" />
+              <h4 className="text-white font-semibold">Filters & Sorting</h4>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Search automations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              
+              {/* Category Filter */}
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {categories.map(category => (
+                  <option key={category} value={category} className="bg-gray-800">
+                    {category === 'all' ? 'All Categories' : category}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Status Filter */}
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {statuses.map(status => (
+                  <option key={status} value={status} className="bg-gray-800">
+                    {status === 'all' ? 'All Statuses' : status}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Sort By */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'date' | 'name' | 'status')}
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="date" className="bg-gray-800">Sort by Date</option>
+                <option value="name" className="bg-gray-800">Sort by Name</option>
+                <option value="status" className="bg-gray-800">Sort by Status</option>
+              </select>
+              
+              {/* Sort Order */}
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors flex items-center space-x-1 text-sm"
+              >
+                {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                <span>{sortOrder === 'asc' ? 'Asc' : 'Desc'}</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Results Count */}
+          <div className="mt-3 text-sm text-gray-400">
+            Showing {filteredAndSortedAutomations.length} of {userAutomations.length} automations
+          </div>
+        </motion.div>
+      )}
+
       {/* Automation List */}
       <div className="space-y-3 sm:space-y-4">
-        {userAutomations.length === 0 ? (
+        {filteredAndSortedAutomations.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -168,7 +300,7 @@ const AutomationHistory: React.FC = () => {
             </div>
           </motion.div>
         ) : (
-          userAutomations.map((automation, index) => (
+          filteredAndSortedAutomations.map((automation, index) => (
             <motion.div
               key={automation.id}
               initial={{ opacity: 0, x: -20 }}
