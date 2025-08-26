@@ -211,7 +211,8 @@ const LandingPage: React.FC = () => {
                <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">How It Works</a>
                <a href="#features" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Features</a>
                <a href="#pricing" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Pricing</a>
-               <a href="#about" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">About</a>
+                               <a href="#about" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">About</a>
+                <Link to="/blog" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Blog</Link>
               <button
                 onClick={handleLogin}
                 className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base"
@@ -265,13 +266,20 @@ const LandingPage: React.FC = () => {
                 >
                   Pricing
                 </a>
-                <a 
-                  href="#about" 
-                  className="text-gray-300 hover:text-white transition-colors text-base py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  About
-                </a>
+                                 <a 
+                   href="#about" 
+                   className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                   onClick={() => setIsMobileMenuOpen(false)}
+                 >
+                   About
+                 </a>
+                 <Link 
+                   to="/blog" 
+                   className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                   onClick={() => setIsMobileMenuOpen(false)}
+                 >
+                   Blog
+                 </Link>
                 <button
                   onClick={() => {
                     handleLogin();

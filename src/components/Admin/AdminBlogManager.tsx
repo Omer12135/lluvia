@@ -163,10 +163,10 @@ const AdminBlogManager: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Blog Yönetimi</h3>
-          <p className="text-sm sm:text-base text-gray-400">Blog yazılarını yönetin ve yayınlayın</p>
-        </div>
+                 <div>
+           <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Blog Management</h3>
+           <p className="text-sm sm:text-base text-gray-400">Manage and publish blog posts</p>
+         </div>
         
         <button
           onClick={() => {
@@ -176,7 +176,7 @@ const AdminBlogManager: React.FC = () => {
           className="mt-2 sm:mt-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
         >
           <Plus className="w-4 h-4" />
-          <span>Yeni Yazı</span>
+                     <span>New Post</span>
         </button>
       </div>
 
@@ -186,7 +186,7 @@ const AdminBlogManager: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            placeholder="Blog yazılarında ara..."
+                         placeholder="Search blog posts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -198,9 +198,9 @@ const AdminBlogManager: React.FC = () => {
           onChange={(e) => setStatusFilter(e.target.value as 'all' | 'draft' | 'published')}
           className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
-          <option value="all">Tüm Durumlar</option>
-          <option value="draft">Taslak</option>
-          <option value="published">Yayınlanmış</option>
+                     <option value="all">All Status</option>
+           <option value="draft">Draft</option>
+           <option value="published">Published</option>
         </select>
       </div>
 
@@ -235,7 +235,7 @@ const AdminBlogManager: React.FC = () => {
                         ? 'text-green-400 bg-green-500/20' 
                         : 'text-yellow-400 bg-yellow-500/20'
                     }`}>
-                      {post.status === 'published' ? 'Yayında' : 'Taslak'}
+                                             {post.status === 'published' ? 'Published' : 'Draft'}
                     </span>
                   </div>
                   
@@ -326,9 +326,9 @@ const AdminBlogManager: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-12 bg-white/5 rounded-lg border border-white/10"
           >
-            <BookOpen className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-            <h4 className="text-lg font-semibold text-white mb-2">Henüz Blog Yazısı Yok</h4>
-            <p className="text-gray-400">İlk blog yazınızı oluşturmaya başlayın!</p>
+                         <BookOpen className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+             <h4 className="text-lg font-semibold text-white mb-2">No Blog Posts Yet</h4>
+             <p className="text-gray-400">Start creating your first blog post!</p>
           </motion.div>
         )}
       </div>
@@ -350,9 +350,9 @@ const AdminBlogManager: React.FC = () => {
             >
               <div className="p-6 border-b border-white/10">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-white">
-                    {editingId ? 'Blog Yazısını Düzenle' : 'Yeni Blog Yazısı'}
-                  </h3>
+                                     <h3 className="text-xl font-bold text-white">
+                     {editingId ? 'Edit Blog Post' : 'New Blog Post'}
+                   </h3>
                   <button
                     onClick={() => {
                       setShowAddForm(false);
@@ -368,54 +368,54 @@ const AdminBlogManager: React.FC = () => {
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 {/* Title */}
                 <div>
-                  <label className="block text-white font-medium mb-2">Başlık *</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Blog yazısı başlığı..."
-                    required
-                  />
+                                     <label className="block text-white font-medium mb-2">Title *</label>
+                   <input
+                     type="text"
+                     value={formData.title}
+                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                     placeholder="Blog post title..."
+                     required
+                   />
                 </div>
 
                 {/* Excerpt */}
                 <div>
-                  <label className="block text-white font-medium mb-2">Özet *</label>
-                  <textarea
-                    value={formData.excerpt}
-                    onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                    placeholder="Blog yazısının kısa özeti..."
-                    required
-                  />
+                                     <label className="block text-white font-medium mb-2">Excerpt *</label>
+                   <textarea
+                     value={formData.excerpt}
+                     onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+                     rows={3}
+                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                     placeholder="Short summary of the blog post..."
+                     required
+                   />
                 </div>
 
                 {/* Content */}
                 <div>
-                  <label className="block text-white font-medium mb-2">İçerik *</label>
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                    rows={10}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                    placeholder="Blog yazısının tam içeriği..."
-                    required
-                  />
+                                     <label className="block text-white font-medium mb-2">Content *</label>
+                   <textarea
+                     value={formData.content}
+                     onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                     rows={10}
+                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                     placeholder="Full content of the blog post..."
+                     required
+                   />
                 </div>
 
                 {/* Category and Read Time */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-white font-medium mb-2">Kategori *</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      required
-                    >
-                      <option value="">Kategori Seçin</option>
+                                     <div>
+                     <label className="block text-white font-medium mb-2">Category *</label>
+                     <select
+                       value={formData.category}
+                       onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                       required
+                     >
+                       <option value="">Select Category</option>
                       {categories.map(category => (
                         <option key={category} value={category} className="bg-gray-800">
                           {category}
@@ -424,8 +424,8 @@ const AdminBlogManager: React.FC = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-white font-medium mb-2">Okuma Süresi (dakika)</label>
+                                     <div>
+                     <label className="block text-white font-medium mb-2">Reading Time (minutes)</label>
                     <input
                       type="number"
                       value={formData.readTime}
@@ -439,20 +439,20 @@ const AdminBlogManager: React.FC = () => {
 
                 {/* Tags */}
                 <div>
-                  <label className="block text-white font-medium mb-2">Etiketler</label>
-                  <input
-                    type="text"
-                    value={formData.tags.join(', ')}
-                    onChange={(e) => handleTagInput(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="etiket1, etiket2, etiket3..."
-                  />
-                  <p className="text-gray-400 text-sm mt-1">Etiketleri virgülle ayırın</p>
+                                     <label className="block text-white font-medium mb-2">Tags</label>
+                   <input
+                     type="text"
+                     value={formData.tags.join(', ')}
+                     onChange={(e) => handleTagInput(e.target.value)}
+                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                     placeholder="tag1, tag2, tag3..."
+                   />
+                   <p className="text-gray-400 text-sm mt-1">Separate tags with commas</p>
                 </div>
 
                 {/* Image Upload */}
                 <div>
-                  <label className="block text-white font-medium mb-2">Kapak Görseli</label>
+                                     <label className="block text-white font-medium mb-2">Featured Image</label>
                   <div className="space-y-4">
                     {imagePreview && (
                       <div className="relative">
@@ -478,7 +478,7 @@ const AdminBlogManager: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       <label className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg cursor-pointer hover:bg-white/20 transition-colors">
                         <Upload className="w-4 h-4 text-white" />
-                        <span className="text-white">Görsel Yükle</span>
+                                                 <span className="text-white">Upload Image</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -491,7 +491,7 @@ const AdminBlogManager: React.FC = () => {
                         type="url"
                         value={formData.imageUrl}
                         onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                        placeholder="Veya görsel URL'si girin..."
+                                                 placeholder="Or enter image URL..."
                         className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
@@ -506,8 +506,8 @@ const AdminBlogManager: React.FC = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                    <option value="draft">Taslak</option>
-                    <option value="published">Yayınla</option>
+                                         <option value="draft">Draft</option>
+                     <option value="published">Publish</option>
                   </select>
                 </div>
 
@@ -519,17 +519,17 @@ const AdminBlogManager: React.FC = () => {
                       setShowAddForm(false);
                       resetForm();
                     }}
-                    className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    İptal
-                  </button>
+                                         className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
+                   >
+                     Cancel
+                   </button>
                   
                   <button
                     type="submit"
                     className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{editingId ? 'Güncelle' : 'Kaydet'}</span>
+                                         <span>{editingId ? 'Update' : 'Save'}</span>
                   </button>
                 </div>
               </form>

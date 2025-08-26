@@ -45,7 +45,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'n8n-debug', label: 'N8N Debug', icon: <Settings className="w-4 h-4" /> },
     { id: 'admin-automations', label: 'Add Automations', icon: <Zap className="w-4 h-4" /> },
     { id: 'examples', label: 'Example Automations', icon: <Zap className="w-4 h-4" /> },
-    { id: 'blog', label: 'Blog Yönetimi', icon: <BookOpen className="w-4 h-4" /> },
+         { id: 'blog', label: 'Blog Management', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];

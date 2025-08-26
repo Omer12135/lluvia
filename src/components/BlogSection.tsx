@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { 
   Calendar, 
   Clock, 
@@ -61,12 +62,12 @@ const BlogSection: React.FC = () => {
             <BookOpen className="w-5 h-5 text-white" />
             <span className="text-white font-medium text-sm">Blog</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Otomasyon Dünyasından
-          </h2>
-          <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
-            En son otomasyon trendleri, ipuçları ve başarı hikayeleri
-          </p>
+                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+             From the Automation World
+           </h2>
+           <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto">
+             Latest automation trends, tips, and success stories
+           </p>
         </motion.div>
 
         {/* Search and Filter */}
@@ -80,13 +81,13 @@ const BlogSection: React.FC = () => {
             {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Blog yazılarında ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
+                             <input
+                 type="text"
+                 placeholder="Search blog posts..."
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+               />
             </div>
 
             {/* Category Filter */}
@@ -97,11 +98,11 @@ const BlogSection: React.FC = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                {categories.map(category => (
-                  <option key={category} value={category} className="bg-gray-800">
-                    {category === 'all' ? 'Tüm Kategoriler' : category}
-                  </option>
-                ))}
+                                 {categories.map(category => (
+                   <option key={category} value={category} className="bg-gray-800">
+                     {category === 'all' ? 'All Categories' : category}
+                   </option>
+                 ))}
               </select>
             </div>
           </div>
@@ -183,10 +184,10 @@ const BlogSection: React.FC = () => {
                         <span>{post.likes}</span>
                       </div>
                     </div>
-                    <button className="flex items-center space-x-1 text-purple-400 hover:text-purple-300 transition-colors">
-                      <span>Devamını Oku</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                                         <button className="flex items-center space-x-1 text-purple-400 hover:text-purple-300 transition-colors">
+                       <span>Read More</span>
+                       <ArrowRight className="w-4 h-4" />
+                     </button>
                   </div>
                 </div>
               </motion.article>
@@ -198,9 +199,9 @@ const BlogSection: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             className="text-center py-12"
           >
-            <BookOpen className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">Henüz Blog Yazısı Yok</h3>
-            <p className="text-gray-400">Yakında harika içeriklerle burada olacağız!</p>
+                         <BookOpen className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+             <h3 className="text-xl font-semibold text-white mb-2">No Blog Posts Yet</h3>
+             <p className="text-gray-400">We'll have amazing content here soon!</p>
           </motion.div>
         )}
 
@@ -215,11 +216,27 @@ const BlogSection: React.FC = () => {
               onClick={() => setDisplayCount(prev => prev + 6)}
               className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 flex items-center space-x-2 mx-auto"
             >
-              <span>Daha Fazla Göster</span>
-              <ArrowRight className="w-5 h-5" />
+                             <span>Load More</span>
+               <ArrowRight className="w-5 h-5" />
             </button>
           </motion.div>
         )}
+
+        {/* View All Posts Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="text-center mb-12"
+        >
+          <Link
+            to="/blog"
+            className="inline-flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
+          >
+            <span>View All Posts</span>
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </motion.div>
 
         {/* Stats */}
         <motion.div
@@ -228,12 +245,12 @@ const BlogSection: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6"
         >
-          {[
-            { label: 'Toplam Yazı', value: publishedPosts.length, icon: BookOpen },
-            { label: 'Kategori', value: categories.length - 1, icon: Filter },
-            { label: 'Toplam Görüntüleme', value: publishedPosts.reduce((sum, post) => sum + post.views, 0), icon: Eye },
-            { label: 'Toplam Beğeni', value: publishedPosts.reduce((sum, post) => sum + post.likes, 0), icon: Heart },
-          ].map((stat, index) => (
+                     {[
+             { label: 'Total Posts', value: publishedPosts.length, icon: BookOpen },
+             { label: 'Categories', value: categories.length - 1, icon: Filter },
+             { label: 'Total Views', value: publishedPosts.reduce((sum, post) => sum + post.views, 0), icon: Eye },
+             { label: 'Total Likes', value: publishedPosts.reduce((sum, post) => sum + post.likes, 0), icon: Heart },
+           ].map((stat, index) => (
             <div
               key={stat.label}
               className="text-center p-4 bg-white/5 rounded-lg border border-white/10"

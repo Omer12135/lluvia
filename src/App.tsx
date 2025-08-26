@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminLogin from './components/Admin/AdminLogin';
+import BlogPage from './components/BlogPage';
 
 import { AutomationProvider } from './context/AutomationContext';
 import { BlogProvider } from './context/BlogContext';
@@ -30,6 +31,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/blog" element={<BlogPage />} />
             </Routes>
             </BlogProvider>
 
