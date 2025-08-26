@@ -213,6 +213,7 @@ const LandingPage: React.FC = () => {
                <a href="#pricing" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Pricing</a>
                                <a href="#about" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">About</a>
                 <Link to="/blog" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Blog</Link>
+                <Link to="/admin" className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base">Admin</Link>
               <button
                 onClick={handleLogin}
                 className="text-gray-300 hover:text-white transition-colors text-sm sm:text-base"
@@ -279,6 +280,13 @@ const LandingPage: React.FC = () => {
                    onClick={() => setIsMobileMenuOpen(false)}
                  >
                    Blog
+                 </Link>
+                 <Link 
+                   to="/admin" 
+                   className="text-gray-300 hover:text-white transition-colors text-base py-2"
+                   onClick={() => setIsMobileMenuOpen(false)}
+                 >
+                   Admin
                  </Link>
                 <button
                   onClick={() => {
