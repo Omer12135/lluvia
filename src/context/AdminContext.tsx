@@ -43,7 +43,7 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           role: 'admin'
         };
         setAdmin(adminData);
-        navigate('/admin/dashboard');
+        navigate('/admin');
       } else {
         throw new Error('Invalid admin credentials');
       }
