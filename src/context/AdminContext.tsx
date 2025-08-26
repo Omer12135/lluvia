@@ -17,11 +17,7 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [admin, setAdmin] = useState<Admin | null>({
-    id: '1',
-    username: 'admin',
-    role: 'admin'
-  });
+  const [admin, setAdmin] = useState<Admin | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
