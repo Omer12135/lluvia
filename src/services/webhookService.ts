@@ -1,18 +1,17 @@
 import { supabase } from '../lib/supabase';
 
 export interface AutomationWebhookData {
-  automationName: string;
-  automationDescription: string;
-  trigger: string;
-  actions: string[];
-  platform: string;
-  userId: string;
-  userEmail?: string;
-  userName?: string;
-  status: string;
-  createdAt: string;
-  userPlan?: string;
-  automationId?: string;
+  event_type: string;
+  timestamp: string;
+  automation_name: string;
+  automation_description: string;
+  trigger_name: string;
+  user_id: string;
+  user_email?: string;
+  user_name?: string;
+  user_plan?: string;
+  automation_id?: string;
+  test?: boolean;
 }
 
 export const webhookService = {
@@ -25,20 +24,17 @@ export const webhookService = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          automationName: data.automationName,
-          automationDescription: data.automationDescription,
-          trigger: data.trigger,
-          actions: data.actions,
-          platform: data.platform,
-          userId: data.userId,
-          userEmail: data.userEmail,
-          userName: data.userName,
-          userPlan: data.userPlan,
-          status: data.status,
-          createdAt: data.createdAt,
-          automationId: data.automationId,
-          timestamp: new Date().toISOString(),
-          source: 'automation-creator'
+          event_type: data.event_type,
+          timestamp: data.timestamp,
+          automation_name: data.automation_name,
+          automation_description: data.automation_description,
+          trigger_name: data.trigger_name,
+          user_id: data.user_id,
+          user_email: data.user_email,
+          user_name: data.user_name,
+          user_plan: data.user_plan,
+          automation_id: data.automation_id,
+          test: data.test
         }),
       });
 
@@ -73,18 +69,17 @@ export const webhookService = {
   async testWebhookWithData(): Promise<boolean> {
     try {
       const testData: AutomationWebhookData = {
-        automationName: 'Test Automation',
-        automationDescription: 'This is a test automation to verify webhook connectivity',
-        trigger: 'Test Trigger',
-        actions: ['Test Action 1', 'Test Action 2'],
-        platform: 'n8n',
-        userId: 'test-user-id',
-        userEmail: 'test@example.com',
-        userName: 'Test User',
-        userPlan: 'pro',
-        status: 'test',
-        createdAt: new Date().toISOString(),
-        automationId: 'test-automation-' + Date.now()
+        event_type: 'automation_created',
+        timestamp: new Date().toISOString(),
+        automation_name: 'Debug Test Automation',
+        automation_description: 'Testing N8N webhook connectivity',
+        trigger_name: 'Debug Trigger',
+        user_id: 'debug_user',
+        user_email: 'debug@lluvia.ai',
+        user_name: 'Debug User',
+        user_plan: 'pro',
+        automation_id: 'debug-automation-' + Date.now(),
+        test: true
       };
 
       const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
@@ -92,12 +87,7 @@ export const webhookService = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...testData,
-          timestamp: new Date().toISOString(),
-          source: 'webhook-test',
-          testMode: true
-        }),
+        body: JSON.stringify(testData),
       });
 
       if (!response.ok) {

@@ -240,18 +240,17 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       if (success) {
         // Webhook'a veri gönder
         const webhookData: AutomationWebhookData = {
-          automationName: automationName,
-          automationDescription: automationDescription,
-          trigger: selectedTrigger?.name || '',
-          actions: selectedActions.map(a => a.name),
-          platform: selectedPlatform,
-          userId: user?.id || '',
-          userEmail: user?.email,
-          userName: user?.name,
-          userPlan: user?.plan,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-          automationId: Date.now().toString()
+          event_type: 'automation_created',
+          timestamp: new Date().toISOString(),
+          automation_name: automationName,
+          automation_description: automationDescription,
+          trigger_name: selectedTrigger?.name || '',
+          user_id: user?.id || '',
+          user_email: user?.email,
+          user_name: user?.name,
+          user_plan: user?.plan,
+          automation_id: Date.now().toString(),
+          test: false
         };
 
         try {
