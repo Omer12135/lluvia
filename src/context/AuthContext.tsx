@@ -132,20 +132,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Create user profile
-  const createUserProfile = async (userId: string) => {
+  const createUserProfile = async (userId: string, userData?: User) => {
     console.log('createUserProfile called with userId:', userId);
     console.log('Current user state:', user);
+    console.log('Passed user data:', userData);
     
-    if (!user) {
-      console.error('User state is null, cannot create profile');
+    const userToUse = userData || user;
+    
+    if (!userToUse) {
+      console.error('User data is null, cannot create profile');
       return;
     }
 
     try {
       console.log('Creating profile with data:', {
         user_id: userId,
-        email: user.email,
-        name: user.user_metadata?.name || user.email!.split('@')[0],
+        email: userToUse.email,
+        name: userToUse.user_metadata?.name || userToUse.email!.split('@')[0],
         plan: 'free',
         automations_limit: 2,
         ai_messages_limit: 0
@@ -155,8 +158,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .from('user_profiles')
         .insert({
           user_id: userId,
-          email: user.email!,
-          name: user.user_metadata?.name || user.email!.split('@')[0],
+          email: userToUse.email!,
+          name: userToUse.user_metadata?.name || userToUse.email!.split('@')[0],
           plan: 'free',
           automations_limit: 2,
           ai_messages_limit: 0
@@ -280,7 +283,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error) {
           console.log('Profile not found, creating manually...');
           // If profile doesn't exist, create it manually
-          await createUserProfile(data.user.id);
+          await createUserProfile(data.user.id, data.user);
         }
       } else {
         console.log('No user data returned');
