@@ -71,6 +71,7 @@ import {
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
 import { useAutomation } from '../context/AutomationContext';
+import { webhookService, AutomationWebhookData } from '../services/webhookService';
 
 // Icon mapping
 const iconMap: Record<string, any> = {
@@ -221,15 +222,15 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
 
     setIsCreating(true);
 
-         const automationData = {
-       name: automationName,
-       description: automationDescription,
-       trigger: selectedTrigger?.name || '',
-       actions: selectedActions.map(a => a.name),
-       platform: selectedPlatform,
-       userId: user?.id || '',
-       status: 'pending' as const
-     };
+    const automationData = {
+      name: automationName,
+      description: automationDescription,
+      trigger: selectedTrigger?.name || '',
+      actions: selectedActions.map(a => a.name),
+      platform: selectedPlatform,
+      userId: user?.id || '',
+      status: 'pending' as const
+    };
 
     console.log('Creating automation:', automationData);
     
@@ -237,6 +238,33 @@ const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
       const success = await addAutomation(automationData);
       
       if (success) {
+        // Webhook'a veri gönder
+        const webhookData: AutomationWebhookData = {
+          automationName: automationName,
+          automationDescription: automationDescription,
+          trigger: selectedTrigger?.name || '',
+          actions: selectedActions.map(a => a.name),
+          platform: selectedPlatform,
+          userId: user?.id || '',
+          userEmail: user?.email,
+          userName: user?.name,
+          userPlan: user?.plan,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          automationId: Date.now().toString()
+        };
+
+        try {
+          const webhookSuccess = await webhookService.sendAutomationData(webhookData);
+          if (webhookSuccess) {
+            console.log('✅ Webhook data sent successfully');
+          } else {
+            console.warn('⚠️ Failed to send webhook data');
+          }
+        } catch (webhookError) {
+          console.error('❌ Webhook error:', webhookError);
+        }
+
         alert('🎉 Automation created successfully!');
         
         // Reset form

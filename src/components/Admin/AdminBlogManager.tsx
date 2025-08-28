@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import { 
   Plus, 
   Edit, 
@@ -19,44 +21,50 @@ import {
   Tag,
   User,
   FileText,
+  Link,
+  Eye as PreviewIcon,
+  Settings,
+  Globe,
+  Hash,
+  Type,
+  Palette,
   Bold,
   Italic,
   Underline,
-  Link,
   List,
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Image,
-  Video,
+  Quote,
+  Code,
   Heading1,
   Heading2,
   Heading3,
-  Quote,
-  Code,
-  Table,
-  Palette,
-  Type,
   Minus,
   CheckSquare,
   Square,
   RotateCcw,
   RotateCw,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Loader2
 } from 'lucide-react';
 import { useBlog, BlogPost } from '../../context/BlogContext';
 import { useAuth } from '../../context/AuthContext';
+import { blogService, CreateBlogPostData, generateSlug } from '../../services/blogService';
 
 const AdminBlogManager: React.FC = () => {
   const { user } = useAuth();
   const { 
     blogPosts, 
+    loading,
+    error,
     addBlogPost, 
     updateBlogPost, 
     deleteBlogPost, 
     publishBlogPost, 
-    unpublishBlogPost 
+    unpublishBlogPost,
+    refreshPosts
   } = useBlog();
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -65,15 +73,10 @@ const AdminBlogManager: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [linkText, setLinkText] = useState('');
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [textColor, setTextColorState] = useState('#ffffff');
-  const [backgroundColor, setBackgroundColorState] = useState('#1f2937');
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const quillRef = useRef<ReactQuill>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -83,7 +86,10 @@ const AdminBlogManager: React.FC = () => {
     tags: [] as string[],
     readTime: 5,
     imageUrl: '',
-    status: 'draft' as 'draft' | 'published'
+    status: 'draft' as 'draft' | 'published',
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: [] as string[]
   });
 
   const categories = [
@@ -99,16 +105,137 @@ const AdminBlogManager: React.FC = () => {
     'Finans'
   ];
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // React Quill modules configuration
+  const modules = {
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'align': [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video'],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler,
+        link: linkHandler
+      }
+    },
+    clipboard: {
+      matchVisual: false,
+      // HTML etiketlerini temizle ve sadece text olarak al
+      onPaste: function(e: any) {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text/plain');
+        const quill = quillRef.current?.getEditor();
+        const range = quill?.getSelection();
+        if (quill && range) {
+          // HTML etiketlerini temizle
+          const cleanText = cleanHtmlContent(text);
+          quill.insertText(range.index, cleanText);
+          
+          // Cursor pozisyonunu güncelle
+          setTimeout(() => {
+            quill.setSelection({ index: range.index + cleanText.length, length: 0 });
+          }, 10);
+        }
+      }
+    }
+  };
+
+  const formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video',
+    'color', 'background',
+    'align', 'direction',
+    'code-block', 'script'
+  ];
+
+  // HTML etiketlerini temizleme fonksiyonu
+  const cleanHtmlContent = (html: string): string => {
+    // HTML etiketlerini kaldır ve sadece text içeriğini al
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Fazla boşlukları temizle ve satır sonlarını koru
+    return text.replace(/\s+/g, ' ').trim();
+  };
+
+
+
+
+
+
+
+
+
+  // Image handler for Quill
+  function imageHandler() {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (file) {
+        try {
+          setUploadingImage(true);
+          const path = `blog-images/${Date.now()}-${file.name}`;
+          const imageUrl = await blogService.uploadImage(file, path);
+          
+          const quill = quillRef.current?.getEditor();
+          const range = quill?.getSelection();
+          if (quill && range) {
+            quill.insertEmbed(range.index, 'image', imageUrl);
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          alert('Resim yüklenirken hata oluştu!');
+        } finally {
+          setUploadingImage(false);
+        }
+      }
+    };
+  }
+
+  // Link handler for Quill
+  function linkHandler() {
+    const url = prompt('Link URL girin:');
+    if (url) {
+      const quill = quillRef.current?.getEditor();
+      const range = quill?.getSelection();
+      if (quill && range) {
+        quill.insertText(range.index, url, 'link', url);
+      }
+    }
+  }
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-        setFormData(prev => ({ ...prev, imageUrl: e.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        setUploadingImage(true);
+        const path = `blog-images/${Date.now()}-${file.name}`;
+        const imageUrl = await blogService.uploadImage(file, path);
+        setImagePreview(imageUrl);
+        setFormData(prev => ({ ...prev, imageUrl }));
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Resim yüklenirken hata oluştu!');
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -117,119 +244,12 @@ const AdminBlogManager: React.FC = () => {
     setFormData(prev => ({ ...prev, tags }));
   };
 
-  // Rich Text Editor Functions
-  const execCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    contentRef.current?.focus();
+  const handleMetaKeywordsInput = (value: string) => {
+    const keywords = value.split(',').map(keyword => keyword.trim()).filter(keyword => keyword.length > 0);
+    setFormData(prev => ({ ...prev, metaKeywords: keywords }));
   };
 
-  const insertImage = (imageUrl: string) => {
-    const img = `<img src="${imageUrl}" alt="Blog Image" style="max-width: 100%; height: auto; margin: 10px 0; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />`;
-    document.execCommand('insertHTML', false, img);
-    setShowImageModal(false);
-    setUploadedImages(prev => [...prev, imageUrl]);
-    contentRef.current?.focus();
-  };
 
-  const insertLink = () => {
-    if (linkUrl && linkText) {
-      const link = `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" style="color: #3b82f6; text-decoration: underline;">${linkText}</a>`;
-      document.execCommand('insertHTML', false, link);
-      setShowLinkModal(false);
-      setLinkUrl('');
-      setLinkText('');
-      contentRef.current?.focus();
-    }
-  };
-
-  const insertHeading = (level: number) => {
-    const heading = `<h${level} style="margin: 20px 0 10px 0; font-weight: bold; color: ${textColor};">Heading ${level}</h${level}>`;
-    document.execCommand('insertHTML', false, heading);
-    contentRef.current?.focus();
-  };
-
-  const insertQuote = () => {
-    const quote = `<blockquote style="border-left: 4px solid #3b82f6; padding-left: 20px; margin: 20px 0; font-style: italic; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 8px;">Quote text here</blockquote>`;
-    document.execCommand('insertHTML', false, quote);
-    contentRef.current?.focus();
-  };
-
-  const insertCode = () => {
-    const code = `<pre style="background: #1f2937; color: #10b981; padding: 15px; border-radius: 8px; overflow-x: auto; border: 1px solid #374151; margin: 15px 0;"><code>Your code here</code></pre>`;
-    document.execCommand('insertHTML', false, code);
-    contentRef.current?.focus();
-  };
-
-  const insertTable = () => {
-    const table = `<table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #374151;">
-      <thead>
-        <tr style="background: #374151;">
-          <th style="padding: 12px; text-align: left; border: 1px solid #4b5563;">Header 1</th>
-          <th style="padding: 12px; text-align: left; border: 1px solid #4b5563;">Header 2</th>
-          <th style="padding: 12px; text-align: left; border: 1px solid #4b5563;">Header 3</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="padding: 12px; border: 1px solid #4b5563;">Data 1</td>
-          <td style="padding: 12px; border: 1px solid #4b5563;">Data 2</td>
-          <td style="padding: 12px; border: 1px solid #4b5563;">Data 3</td>
-        </tr>
-        <tr>
-          <td style="padding: 12px; border: 1px solid #4b5563;">Data 4</td>
-          <td style="padding: 12px; border: 1px solid #4b5563;">Data 5</td>
-          <td style="padding: 12px; border: 1px solid #4b5563;">Data 6</td>
-        </tr>
-      </tbody>
-    </table>`;
-    document.execCommand('insertHTML', false, table);
-    contentRef.current?.focus();
-  };
-
-  const insertChecklist = () => {
-    const checklist = `<div style="margin: 15px 0;">
-      <div style="display: flex; align-items: center; margin: 8px 0;">
-        <input type="checkbox" style="margin-right: 10px;" />
-        <span>Checklist item 1</span>
-      </div>
-      <div style="display: flex; align-items: center; margin: 8px 0;">
-        <input type="checkbox" style="margin-right: 10px;" />
-        <span>Checklist item 2</span>
-      </div>
-      <div style="display: flex; align-items: center; margin: 8px 0;">
-        <input type="checkbox" style="margin-right: 10px;" />
-        <span>Checklist item 3</span>
-      </div>
-    </div>`;
-    document.execCommand('insertHTML', false, checklist);
-    contentRef.current?.focus();
-  };
-
-  const insertDivider = () => {
-    const divider = `<hr style="border: none; height: 2px; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899); margin: 30px 0; border-radius: 1px;" />`;
-    document.execCommand('insertHTML', false, divider);
-    contentRef.current?.focus();
-  };
-
-  const setTextColor = (color: string) => {
-    document.execCommand('foreColor', false, color);
-    contentRef.current?.focus();
-  };
-
-  const setBackgroundColor = (color: string) => {
-    document.execCommand('hiliteColor', false, color);
-    contentRef.current?.focus();
-  };
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
-  };
-
-  const handleContentChange = () => {
-    if (contentRef.current) {
-      setFormData(prev => ({ ...prev, content: contentRef.current?.innerHTML || '' }));
-    }
-  };
 
   const resetForm = () => {
     setFormData({
@@ -240,34 +260,53 @@ const AdminBlogManager: React.FC = () => {
       tags: [],
       readTime: 5,
       imageUrl: '',
-      status: 'draft'
+      status: 'draft',
+      metaTitle: '',
+      metaDescription: '',
+      metaKeywords: []
     });
     setSelectedImage(null);
     setImagePreview('');
-    setUploadedImages([]);
     setEditingId(null);
-    setIsFullscreen(false);
+    setShowPreview(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) return;
 
-    const postData = {
-      ...formData,
-      author: user.name || user.email || 'Admin',
-      authorId: user.id || 'admin',
-    };
+    try {
+      setIsSubmitting(true);
+      
+      const postData = {
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        author: user.name || user.email || 'Admin',
+        authorId: user.id || '',
+        imageUrl: formData.imageUrl || undefined,
+        category: formData.category,
+        tags: formData.tags,
+        status: formData.status,
+        readTime: formData.readTime,
+      };
 
-    if (editingId) {
-      updateBlogPost(editingId, postData);
-    } else {
-      addBlogPost(postData);
+      if (editingId) {
+        await updateBlogPost(editingId, postData);
+      } else {
+        await addBlogPost(postData);
+      }
+
+      resetForm();
+      setShowAddForm(false);
+      await refreshPosts();
+    } catch (error) {
+      console.error('Error saving blog post:', error);
+      alert('Blog yazısı kaydedilirken hata oluştu!');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    resetForm();
-    setShowAddForm(false);
   };
 
   const handleEdit = (post: BlogPost) => {
@@ -279,16 +318,25 @@ const AdminBlogManager: React.FC = () => {
       tags: post.tags,
       readTime: post.readTime,
       imageUrl: post.imageUrl || '',
-      status: post.status
+      status: post.status,
+      metaTitle: '',
+      metaDescription: '',
+      metaKeywords: []
     });
     setImagePreview(post.imageUrl || '');
     setEditingId(post.id);
     setShowAddForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Bu blog yazısını silmek istediğinizden emin misiniz?')) {
-      deleteBlogPost(id);
+      try {
+        await deleteBlogPost(id);
+        await refreshPosts();
+      } catch (error) {
+        console.error('Error deleting blog post:', error);
+        alert('Blog yazısı silinirken hata oluştu!');
+      }
     }
   };
 
@@ -299,7 +347,7 @@ const AdminBlogManager: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('tr-TR', {
       year: 'numeric',
       month: 'short',
@@ -309,14 +357,23 @@ const AdminBlogManager: React.FC = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <span className="ml-2 text-white">Blog yazıları yükleniyor...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                 <div>
-           <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Blog Management</h3>
-           <p className="text-sm sm:text-base text-gray-400">Manage and publish blog posts</p>
-         </div>
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Blog Management</h3>
+          <p className="text-sm sm:text-base text-gray-400">Manage and publish blog posts</p>
+        </div>
         
         <button
           onClick={() => {
@@ -326,9 +383,26 @@ const AdminBlogManager: React.FC = () => {
           className="mt-2 sm:mt-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
         >
           <Plus className="w-4 h-4" />
-                     <span>New Post</span>
+          <span>New Post</span>
         </button>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-500/10 border border-red-500/20 rounded-lg p-4"
+        >
+          <div className="flex items-center space-x-3">
+            <X className="w-5 h-5 text-red-500" />
+            <div>
+              <h4 className="text-red-400 font-medium">Error</h4>
+              <p className="text-red-300 text-sm">{error}</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -336,7 +410,7 @@ const AdminBlogManager: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-                         placeholder="Search blog posts..."
+            placeholder="Search blog posts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -348,9 +422,9 @@ const AdminBlogManager: React.FC = () => {
           onChange={(e) => setStatusFilter(e.target.value as 'all' | 'draft' | 'published')}
           className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
-                     <option value="all">All Status</option>
-           <option value="draft">Draft</option>
-           <option value="published">Published</option>
+          <option value="all">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
         </select>
       </div>
 
@@ -385,7 +459,7 @@ const AdminBlogManager: React.FC = () => {
                         ? 'text-green-400 bg-green-500/20' 
                         : 'text-yellow-400 bg-yellow-500/20'
                     }`}>
-                                             {post.status === 'published' ? 'Published' : 'Draft'}
+                      {post.status === 'published' ? 'Published' : 'Draft'}
                     </span>
                   </div>
                   
@@ -398,7 +472,7 @@ const AdminBlogManager: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-3 h-3" />
-                      <span>{formatDate(post.createdAt)}</span>
+                      <span>{formatDate(post.createdAt.toString())}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Clock className="w-3 h-3" />
@@ -435,7 +509,7 @@ const AdminBlogManager: React.FC = () => {
                 <button
                   onClick={() => handleEdit(post)}
                   className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20 rounded-lg transition-colors"
-                  title="Düzenle"
+                  title="Edit"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
@@ -444,7 +518,7 @@ const AdminBlogManager: React.FC = () => {
                   <button
                     onClick={() => publishBlogPost(post.id)}
                     className="p-2 text-green-400 hover:text-green-300 hover:bg-green-500/20 rounded-lg transition-colors"
-                    title="Yayınla"
+                    title="Publish"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
@@ -452,7 +526,7 @@ const AdminBlogManager: React.FC = () => {
                   <button
                     onClick={() => unpublishBlogPost(post.id)}
                     className="p-2 text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 rounded-lg transition-colors"
-                    title="Yayından Kaldır"
+                    title="Unpublish"
                   >
                     <EyeOff className="w-4 h-4" />
                   </button>
@@ -461,7 +535,7 @@ const AdminBlogManager: React.FC = () => {
                 <button
                   onClick={() => handleDelete(post.id)}
                   className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-colors"
-                  title="Sil"
+                  title="Delete"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -476,9 +550,9 @@ const AdminBlogManager: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-12 bg-white/5 rounded-lg border border-white/10"
           >
-                         <BookOpen className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-             <h4 className="text-lg font-semibold text-white mb-2">No Blog Posts Yet</h4>
-             <p className="text-gray-400">Start creating your first blog post!</p>
+            <BookOpen className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+            <h4 className="text-lg font-semibold text-white mb-2">No Blog Posts Yet</h4>
+            <p className="text-gray-400">Start creating your first blog post!</p>
           </motion.div>
         )}
       </div>
@@ -496,13 +570,13 @@ const AdminBlogManager: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gray-900 rounded-xl border border-white/20 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              className="bg-gray-900 rounded-xl border border-white/20 w-full max-w-6xl max-h-[90vh] overflow-y-auto"
             >
               <div className="p-6 border-b border-white/10">
                 <div className="flex items-center justify-between">
-                                     <h3 className="text-xl font-bold text-white">
-                     {editingId ? 'Edit Blog Post' : 'New Blog Post'}
-                   </h3>
+                  <h3 className="text-xl font-bold text-white">
+                    {editingId ? 'Edit Blog Post' : 'New Blog Post'}
+                  </h3>
                   <button
                     onClick={() => {
                       setShowAddForm(false);
@@ -518,269 +592,143 @@ const AdminBlogManager: React.FC = () => {
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 {/* Title */}
                 <div>
-                                     <label className="block text-white font-medium mb-2">Title *</label>
-                   <input
-                     type="text"
-                     value={formData.title}
-                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                     placeholder="Blog post title..."
-                     required
-                   />
+                  <label className="block text-white font-medium mb-2">Title *</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Blog post title..."
+                    required
+                  />
                 </div>
 
                 {/* Excerpt */}
                 <div>
-                                     <label className="block text-white font-medium mb-2">Excerpt *</label>
-                   <textarea
-                     value={formData.excerpt}
-                     onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                     rows={3}
-                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                     placeholder="Short summary of the blog post..."
-                     required
-                   />
+                  <label className="block text-white font-medium mb-2">Excerpt *</label>
+                  <textarea
+                    value={formData.excerpt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                    placeholder="Short summary of the blog post..."
+                    required
+                  />
                 </div>
 
                 {/* Content */}
                 <div>
                   <label className="block text-white font-medium mb-2">Content *</label>
                   
-                  {/* Rich Text Editor Toolbar */}
-                  <div className="bg-white/10 border border-white/20 rounded-t-lg p-3">
-                    {/* First Row - Basic Formatting */}
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={() => execCommand('bold')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Bold"
-                      >
-                        <Bold className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => execCommand('italic')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Italic"
-                      >
-                        <Italic className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => execCommand('underline')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Underline"
-                      >
-                        <Underline className="w-4 h-4 text-white" />
-                      </button>
-                      
-                      <div className="w-px h-6 bg-white/20"></div>
-                      
-                      <button
-                        type="button"
-                        onClick={() => insertHeading(1)}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Heading 1"
-                      >
-                        <Heading1 className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => insertHeading(2)}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Heading 2"
-                      >
-                        <Heading2 className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => insertHeading(3)}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Heading 3"
-                      >
-                        <Heading3 className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-
-                    {/* Second Row - Lists and Alignment */}
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={() => execCommand('insertUnorderedList')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Bullet List"
-                      >
-                        <List className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => execCommand('insertOrderedList')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Numbered List"
-                      >
-                        <List className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertChecklist}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Checklist"
-                      >
-                        <CheckSquare className="w-4 h-4 text-white" />
-                      </button>
-                      
-                      <div className="w-px h-6 bg-white/20"></div>
-                      
-                      <button
-                        type="button"
-                        onClick={() => execCommand('justifyLeft')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Align Left"
-                      >
-                        <AlignLeft className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => execCommand('justifyCenter')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Align Center"
-                      >
-                        <AlignCenter className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => execCommand('justifyRight')}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Align Right"
-                      >
-                        <AlignRight className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-
-                    {/* Third Row - Special Elements */}
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <button
-                        type="button"
-                        onClick={insertQuote}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Insert Quote"
-                      >
-                        <Quote className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertCode}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Insert Code"
-                      >
-                        <Code className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertTable}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Insert Table"
-                      >
-                        <Table className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={insertDivider}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Insert Divider"
-                      >
-                        <Minus className="w-4 h-4 text-white" />
-                      </button>
-                      
-                      <div className="w-px h-6 bg-white/20"></div>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setShowLinkModal(true)}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Insert Link"
-                      >
-                        <Link className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowImageModal(true)}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title="Insert Image"
-                      >
-                        <Image className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-
-                    {/* Fourth Row - Colors and Fullscreen */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-white text-sm">Text:</span>
-                        <input
-                          type="color"
-                          value={textColor}
-                          onChange={(e) => setTextColorState(e.target.value)}
-                          className="w-8 h-8 rounded border border-white/20 cursor-pointer"
-                          title="Text Color"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-white text-sm">BG:</span>
-                        <input
-                          type="color"
-                          value={backgroundColor}
-                          onChange={(e) => setBackgroundColorState(e.target.value)}
-                          className="w-8 h-8 rounded border border-white/20 cursor-pointer"
-                          title="Background Color"
-                        />
-                      </div>
-                      
-                      <div className="w-px h-6 bg-white/20"></div>
-                      
-                      <button
-                        type="button"
-                        onClick={toggleFullscreen}
-                        className="p-2 hover:bg-white/20 rounded transition-colors"
-                        title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                      >
-                        {isFullscreen ? <Minimize2 className="w-4 h-4 text-white" /> : <Maximize2 className="w-4 h-4 text-white" />}
-                      </button>
-                    </div>
+                  {/* React Quill Editor */}
+                  <div className="bg-white/10 border border-white/20 rounded-lg overflow-hidden">
+                    <ReactQuill
+                      ref={quillRef}
+                      theme="snow"
+                      value={formData.content}
+                      onChange={(content: string) => {
+                        // State'i güncelle
+                        setFormData(prev => ({ ...prev, content }));
+                      }}
+                      modules={modules}
+                      formats={formats}
+                      placeholder="Write your blog post content here..."
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: 'white'
+                      }}
+                    />
                   </div>
                   
-                  {/* Rich Text Editor Content */}
-                  <div
-                    ref={contentRef}
-                    contentEditable
-                    onInput={handleContentChange}
-                    onBlur={handleContentChange}
-                    dangerouslySetInnerHTML={{ __html: formData.content }}
-                    className={`w-full px-4 py-3 bg-white/10 border border-t-0 border-white/20 rounded-b-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none overflow-y-auto transition-all duration-300 ${
-                      isFullscreen 
-                        ? 'fixed inset-4 z-50 bg-gray-900 border-2 border-purple-500 rounded-xl shadow-2xl' 
-                        : 'min-h-[300px]'
-                    }`}
-                    style={{ 
-                      outline: 'none',
-                      wordWrap: 'break-word',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                    placeholder="Full content of the blog post..."
-                  />
+                  {/* Custom Quill Styles */}
+                  <style>{`
+                    .ql-editor {
+                      background: transparent !important;
+                      color: white !important;
+                      min-height: 300px;
+                      font-size: 16px;
+                      line-height: 1.6;
+                    }
+                    .ql-editor p {
+                      margin-bottom: 1rem;
+                    }
+                    .ql-editor h1, .ql-editor h2, .ql-editor h3 {
+                      color: white !important;
+                      margin-top: 1.5rem;
+                      margin-bottom: 1rem;
+                    }
+                    .ql-editor blockquote {
+                      border-left: 4px solid #8b5cf6;
+                      padding-left: 1rem;
+                      margin: 1rem 0;
+                      font-style: italic;
+                      background: rgba(139, 92, 246, 0.1);
+                      padding: 1rem;
+                      border-radius: 0.5rem;
+                    }
+                    .ql-editor code {
+                      background: #1f2937;
+                      color: #10b981;
+                      padding: 0.25rem 0.5rem;
+                      border-radius: 0.25rem;
+                      font-family: 'Courier New', monospace;
+                    }
+                    .ql-editor pre {
+                      background: #1f2937;
+                      color: #10b981;
+                      padding: 1rem;
+                      border-radius: 0.5rem;
+                      overflow-x: auto;
+                      border: 1px solid #374151;
+                      margin: 1rem 0;
+                    }
+                    .ql-toolbar {
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      border: none !important;
+                      border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+                    }
+                    .ql-toolbar button {
+                      color: white !important;
+                    }
+                    .ql-toolbar button:hover {
+                      color: #8b5cf6 !important;
+                    }
+                    .ql-toolbar .ql-active {
+                      color: #8b5cf6 !important;
+                    }
+                    .ql-toolbar .ql-stroke {
+                      stroke: white !important;
+                    }
+                    .ql-toolbar .ql-fill {
+                      fill: white !important;
+                    }
+                    .ql-toolbar .ql-picker {
+                      color: white !important;
+                    }
+                    .ql-toolbar .ql-picker-options {
+                      background: #374151 !important;
+                      border: 1px solid #4b5563 !important;
+                    }
+                    .ql-toolbar .ql-picker-item {
+                      color: white !important;
+                    }
+                    .ql-toolbar .ql-picker-item:hover {
+                      background: #4b5563 !important;
+                    }
+                  `}</style>
                 </div>
 
                 {/* Category and Read Time */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                     <div>
-                     <label className="block text-white font-medium mb-2">Category *</label>
-                     <select
-                       value={formData.category}
-                       onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                       required
-                     >
-                       <option value="">Select Category</option>
+                  <div>
+                    <label className="block text-white font-medium mb-2">Category *</label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      required
+                    >
+                      <option value="">Select Category</option>
                       {categories.map(category => (
                         <option key={category} value={category} className="bg-gray-800">
                           {category}
@@ -789,8 +737,8 @@ const AdminBlogManager: React.FC = () => {
                     </select>
                   </div>
 
-                                     <div>
-                     <label className="block text-white font-medium mb-2">Reading Time (minutes)</label>
+                  <div>
+                    <label className="block text-white font-medium mb-2">Reading Time (minutes)</label>
                     <input
                       type="number"
                       value={formData.readTime}
@@ -804,20 +752,20 @@ const AdminBlogManager: React.FC = () => {
 
                 {/* Tags */}
                 <div>
-                                     <label className="block text-white font-medium mb-2">Tags</label>
-                   <input
-                     type="text"
-                     value={formData.tags.join(', ')}
-                     onChange={(e) => handleTagInput(e.target.value)}
-                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                     placeholder="tag1, tag2, tag3..."
-                   />
-                   <p className="text-gray-400 text-sm mt-1">Separate tags with commas</p>
+                  <label className="block text-white font-medium mb-2">Tags</label>
+                  <input
+                    type="text"
+                    value={formData.tags.join(', ')}
+                    onChange={(e) => handleTagInput(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="tag1, tag2, tag3..."
+                  />
+                  <p className="text-gray-400 text-sm mt-1">Separate tags with commas</p>
                 </div>
 
                 {/* Image Upload */}
                 <div>
-                                     <label className="block text-white font-medium mb-2">Featured Image</label>
+                  <label className="block text-white font-medium mb-2">Featured Image</label>
                   <div className="space-y-4">
                     {imagePreview && (
                       <div className="relative">
@@ -842,13 +790,20 @@ const AdminBlogManager: React.FC = () => {
                     
                     <div className="flex items-center space-x-4">
                       <label className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg cursor-pointer hover:bg-white/20 transition-colors">
-                        <Upload className="w-4 h-4 text-white" />
-                                                 <span className="text-white">Upload Image</span>
+                        {uploadingImage ? (
+                          <Loader2 className="w-4 h-4 text-white animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4 text-white" />
+                        )}
+                        <span className="text-white">
+                          {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                        </span>
                         <input
                           type="file"
                           accept="image/*"
                           onChange={handleImageUpload}
                           className="hidden"
+                          disabled={uploadingImage}
                         />
                       </label>
                       
@@ -856,23 +811,67 @@ const AdminBlogManager: React.FC = () => {
                         type="url"
                         value={formData.imageUrl}
                         onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                                                 placeholder="Or enter image URL..."
+                        placeholder="Or enter image URL..."
                         className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
                   </div>
                 </div>
 
+                {/* SEO Section */}
+                <div className="border-t border-white/10 pt-6">
+                  <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+                    <Globe className="w-5 h-5 mr-2" />
+                    SEO Settings
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-white font-medium mb-2">Meta Title</label>
+                      <input
+                        type="text"
+                        value={formData.metaTitle}
+                        onChange={(e) => setFormData(prev => ({ ...prev, metaTitle: e.target.value }))}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="SEO title for search engines..."
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white font-medium mb-2">Meta Description</label>
+                      <textarea
+                        value={formData.metaDescription}
+                        onChange={(e) => setFormData(prev => ({ ...prev, metaDescription: e.target.value }))}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        placeholder="SEO description for search engines..."
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white font-medium mb-2">Meta Keywords</label>
+                      <input
+                        type="text"
+                        value={formData.metaKeywords.join(', ')}
+                        onChange={(e) => handleMetaKeywordsInput(e.target.value)}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="keyword1, keyword2, keyword3..."
+                      />
+                      <p className="text-gray-400 text-sm mt-1">Separate keywords with commas</p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Status */}
                 <div>
-                  <label className="block text-white font-medium mb-2">Durum</label>
+                  <label className="block text-white font-medium mb-2">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
-                                         <option value="draft">Draft</option>
-                     <option value="published">Publish</option>
+                    <option value="draft">Draft</option>
+                    <option value="published">Publish</option>
                   </select>
                 </div>
 
@@ -884,196 +883,25 @@ const AdminBlogManager: React.FC = () => {
                       setShowAddForm(false);
                       resetForm();
                     }}
-                                         className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
-                   >
-                     Cancel
-                   </button>
+                    className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
                   
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
+                    disabled={isSubmitting}
+                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Save className="w-4 h-4" />
-                                         <span>{editingId ? 'Update' : 'Save'}</span>
+                    {isSubmitting ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    <span>{editingId ? 'Update' : 'Save'}</span>
                   </button>
                 </div>
               </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Link Modal */}
-      <AnimatePresence>
-        {showLinkModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowLinkModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-xl font-bold text-white mb-4">Insert Link</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-white font-medium mb-2">Link Text</label>
-                  <input
-                    type="text"
-                    value={linkText}
-                    onChange={(e) => setLinkText(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Link text..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-white font-medium mb-2">URL</label>
-                  <input
-                    type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="https://example.com"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowLinkModal(false)}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={insertLink}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Insert Link
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Image Modal */}
-      <AnimatePresence>
-        {showImageModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowImageModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-xl font-bold text-white mb-4">Insert Image</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-white font-medium mb-2">Image URL</label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        const input = e.target as HTMLInputElement;
-                        insertImage(input.value);
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-white font-medium mb-2">Or Upload Image</label>
-                  <label className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg cursor-pointer hover:bg-white/20 transition-colors">
-                    <Upload className="w-4 h-4 text-white" />
-                    <span className="text-white">Choose File</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (e) => {
-                            insertImage(e.target?.result as string);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-
-                {/* Uploaded Images Preview */}
-                {uploadedImages.length > 0 && (
-                  <div>
-                    <label className="block text-white font-medium mb-2">Uploaded Images ({uploadedImages.length})</label>
-                    <div className="grid grid-cols-2 gap-3 max-h-40 overflow-y-auto">
-                      {uploadedImages.map((imageUrl, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={imageUrl}
-                            alt={`Uploaded ${index + 1}`}
-                            className="w-full h-20 object-cover rounded-lg border border-white/20"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                            <button
-                              type="button"
-                              onClick={() => insertImage(imageUrl)}
-                              className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
-                            >
-                              Insert
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center justify-end space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowImageModal(false)}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const input = document.querySelector('input[type="url"]') as HTMLInputElement;
-                    if (input?.value) {
-                      insertImage(input.value);
-                    }
-                  }}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Insert Image
-                </button>
-              </div>
             </motion.div>
           </motion.div>
         )}

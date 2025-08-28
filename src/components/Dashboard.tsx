@@ -27,6 +27,7 @@ import AutomationGuidance from './AutomationGuidance';
 
 import { useAutomation } from '../context/AutomationContext';
 import { getProductByPriceId } from '../stripe-config';
+import { webhookService } from '../services/webhookService';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const Dashboard: React.FC = () => {
   const { automations, remainingAutomations, currentMonthUsage, automationLimit } = useAutomation();
   const [activeTab, setActiveTab] = useState('create');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
 
   // Listen for tab change events from child components
   useEffect(() => {
@@ -76,6 +78,32 @@ const Dashboard: React.FC = () => {
 
   const getTimeSaved = () => {
     return "80h/monthly";
+  };
+
+  // Webhook test fonksiyonu
+  const handleTestWebhook = async () => {
+    setIsTestingWebhook(true);
+    try {
+      // Önce bağlantıyı test et
+      const connectionSuccess = await webhookService.testWebhook();
+      if (!connectionSuccess) {
+        alert('❌ Webhook bağlantısı başarısız!');
+        return;
+      }
+
+      // Sonra test verisi gönder
+      const dataSuccess = await webhookService.testWebhookWithData();
+      if (dataSuccess) {
+        alert('✅ Webhook bağlantısı ve veri gönderimi başarılı!');
+      } else {
+        alert('⚠️ Bağlantı var ama veri gönderimi başarısız!');
+      }
+    } catch (error) {
+      console.error('Webhook test error:', error);
+      alert('❌ Webhook test hatası!');
+    } finally {
+      setIsTestingWebhook(false);
+    }
   };
 
   // Get current plan name
@@ -150,12 +178,26 @@ const Dashboard: React.FC = () => {
                     <span className="text-gray-300">{runningAutomations} Running</span>
                   </div>
                 </div>
-                <button
-                  onClick={logout}
-                  className="text-gray-400 hover:text-white transition-colors text-xs"
-                >
-                  Logout
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleTestWebhook}
+                    disabled={isTestingWebhook}
+                    className="text-gray-400 hover:text-white transition-colors text-xs"
+                    title="Test Webhook"
+                  >
+                    {isTestingWebhook ? (
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Zap className="w-3 h-3" />
+                    )}
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="text-gray-400 hover:text-white transition-colors text-xs"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -206,6 +248,18 @@ const Dashboard: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleTestWebhook}
+                  disabled={isTestingWebhook}
+                  className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                  title="Test Webhook"
+                >
+                  {isTestingWebhook ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                </button>
                 <button
                   onClick={() => navigate('/settings')}
                   className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"

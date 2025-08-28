@@ -22,6 +22,8 @@ export interface BlogPost {
 interface BlogContextType {
   blogPosts: BlogPost[];
   publishedPosts: BlogPost[];
+  loading: boolean;
+  error: string | null;
   addBlogPost: (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views' | 'likes'>) => void;
   updateBlogPost: (id: string, updates: Partial<BlogPost>) => void;
   deleteBlogPost: (id: string) => void;
@@ -33,6 +35,7 @@ interface BlogContextType {
   getPostsByCategory: (category: string) => BlogPost[];
   getPostsByAuthor: (authorId: string) => BlogPost[];
   searchPosts: (query: string) => BlogPost[];
+  refreshPosts: () => Promise<void>;
 }
 
 const BlogContext = createContext<BlogContextType | undefined>(undefined);
@@ -47,6 +50,8 @@ export const useBlog = () => {
 
 export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Local storage'dan blog yazılarını yükle
   useEffect(() => {
@@ -148,9 +153,33 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const refreshPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Local storage'dan yeniden yükle
+      const savedPosts = localStorage.getItem('blogPosts');
+      if (savedPosts) {
+        const posts = JSON.parse(savedPosts).map((post: any) => ({
+          ...post,
+          createdAt: new Date(post.createdAt),
+          updatedAt: new Date(post.updatedAt),
+          publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
+        }));
+        setBlogPosts(posts);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to refresh posts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value: BlogContextType = {
     blogPosts,
     publishedPosts,
+    loading,
+    error,
     addBlogPost,
     updateBlogPost,
     deleteBlogPost,
@@ -162,6 +191,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getPostsByCategory,
     getPostsByAuthor,
     searchPosts,
+    refreshPosts,
   };
 
   return (
