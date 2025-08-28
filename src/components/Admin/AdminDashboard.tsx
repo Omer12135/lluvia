@@ -1,304 +1,387 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Navigate } from 'react-router-dom';
 import { 
-  Shield, 
   Users, 
+  Zap, 
+  TrendingUp, 
+  DollarSign, 
   Activity, 
-  DollarSign,
-  Globe,
-  Settings,
+  Shield, 
+  Settings, 
   BarChart3,
-  Zap,
-  LogOut,
-  User,
-  BookOpen
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  UserCheck,
+  UserX,
+  Crown,
+  Star,
+  Globe,
+  Mail,
+  Github,
+  Smartphone,
+  Lock,
+  Eye
 } from 'lucide-react';
-import WebhookManager from './WebhookManager';
-import WebhookTester from './WebhookTester';
-import N8NDebugger from './N8NDebugger';
-import { useAuth, User as UserType } from '../../context/AuthContext';
-import { useAdmin } from '../../context/AdminContext';
-import ExampleAutomationManager from './ExampleAutomationManager';
-import AdminAutomationManager from './AdminAutomationManager';
-import AutomationRequestsManager from './AutomationRequestsManager';
-import UserManagement from './UserManagement';
-import AdminBlogManager from './AdminBlogManager';
-import { useAutomation } from '../../context/AutomationContext';
+import { userService, automationService } from '../../lib/supabase';
 
-const AdminDashboard: React.FC = () => {
-  const { systemStats, users, updateUser, deleteUser, suspendUser, activateUser } = useAuth();
-  const { admin, adminLogout } = useAdmin();
-  const { automations } = useAutomation();
-  const [activeTab, setActiveTab] = useState('overview');
+interface SystemStats {
+  totalUsers: number;
+  activeUsers: number;
+  suspendedUsers: number;
+  pendingUsers: number;
+  freeUsers: number;
+  proUsers: number;
+  customUsers: number;
+  emailUsers: number;
+  googleUsers: number;
+  githubUsers: number;
+  verifiedUsers: number;
+  twoFactorUsers: number;
+  totalAutomations: number;
+  activeAutomations: number;
+  monthlyRevenue: number;
+  systemUptime: number;
+}
 
-  // Redirect if not authenticated as admin
-  if (!admin) {
-    return <Navigate to="/admin/login" replace />;
-  }
+interface AdminDashboardProps {
+  onNavigate: (section: string) => void;
+}
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'requests', label: 'Automation Requests', icon: <Activity className="w-4 h-4" /> },
-    { id: 'webhooks', label: 'Webhooks', icon: <Globe className="w-4 h-4" /> },
-    { id: 'webhook-test', label: 'Webhook Test', icon: <Globe className="w-4 h-4" /> },
-    { id: 'n8n-debug', label: 'N8N Debug', icon: <Settings className="w-4 h-4" /> },
-    { id: 'admin-automations', label: 'Add Automations', icon: <Zap className="w-4 h-4" /> },
-    { id: 'examples', label: 'Example Automations', icon: <Zap className="w-4 h-4" /> },
-         { id: 'blog', label: 'Blog Management', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'users', label: 'Users', icon: <Users className="w-4 h-4" /> },
-    { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
-  ];
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+  const [stats, setStats] = useState<SystemStats>({
+    totalUsers: 0,
+    activeUsers: 0,
+    suspendedUsers: 0,
+    pendingUsers: 0,
+    freeUsers: 0,
+    proUsers: 0,
+    customUsers: 0,
+    emailUsers: 0,
+    googleUsers: 0,
+    githubUsers: 0,
+    verifiedUsers: 0,
+    twoFactorUsers: 0,
+    totalAutomations: 0,
+    activeAutomations: 0,
+    monthlyRevenue: 0,
+    systemUptime: 99.9
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  const stats = [
-    { 
-      label: 'Total Users', 
-      value: systemStats.totalUsers.toString(), 
-      icon: <Users className="w-6 h-6 text-blue-500" />, 
-      change: systemStats.totalUsers > 0 ? '+' + Math.round((systemStats.totalUsers / 10) * 100) / 10 + '%' : '0%'
-    },
-    { 
-      label: 'Active Automations', 
-      value: systemStats.activeAutomations.toString(), 
-      icon: <Zap className="w-6 h-6 text-purple-500" />, 
-      change: systemStats.activeAutomations > 0 ? '+' + Math.round((systemStats.activeAutomations / 50) * 100) / 10 + '%' : '0%'
-    },
-    { 
-      label: 'Monthly Revenue', 
-      value: '$' + systemStats.monthlyRevenue.toLocaleString(), 
-      icon: <DollarSign className="w-6 h-6 text-green-500" />, 
-      change: systemStats.monthlyRevenue > 0 ? '+' + Math.round((systemStats.monthlyRevenue / 1000) * 100) / 10 + '%' : '0%'
-    },
-    { 
-      label: 'System Uptime', 
-      value: systemStats.systemUptime.toFixed(1) + '%', 
-      icon: <Activity className="w-6 h-6 text-orange-500" />, 
-      change: '+0.1%'
-    },
-  ];
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Kullanıcı istatistiklerini getir
+      const userStats = await userService.getUserStats();
+      
+      // Otomasyon istatistiklerini getir
+      const allAutomations = await automationService.getAllAutomations();
+      const activeAutomations = allAutomations.filter(a => a.status === 'completed' || a.status === 'running').length;
+
+      // Aylık gelir hesapla
+      const monthlyRevenue = (userStats.proUsers * 39) + (userStats.customUsers * 497);
+
+      const newStats: SystemStats = {
+        ...userStats,
+        totalAutomations: allAutomations.length,
+        activeAutomations,
+        monthlyRevenue,
+        systemUptime: 99.9
+      };
+
+      setStats(newStats);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+      setError('İstatistikler yüklenirken hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const StatCard = ({ 
+    title, 
+    value, 
+    icon: Icon, 
+    color = 'blue', 
+    trend = null,
+    subtitle = null 
+  }: {
+    title: string;
+    value: string | number;
+    icon: any;
+    color?: string;
+    trend?: { value: number; isPositive: boolean } | null;
+    subtitle?: string | null;
+  }) => {
+    const colorClasses = {
+      blue: 'bg-blue-500',
+      green: 'bg-green-500',
+      purple: 'bg-purple-500',
+      orange: 'bg-orange-500',
+      red: 'bg-red-500',
+      indigo: 'bg-indigo-500'
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          {trend && (
+            <div className={`flex items-center space-x-1 text-sm ${
+              trend.isPositive ? 'text-green-400' : 'text-red-400'
+            }`}>
+              <TrendingUp className={`w-4 h-4 ${trend.isPositive ? '' : 'rotate-180'}`} />
+              <span>{trend.value}%</span>
+            </div>
+          )}
+        </div>
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-1">{value}</h3>
+          <p className="text-gray-300 text-sm">{title}</p>
+          {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
+        </div>
+      </motion.div>
+    );
+  };
+
+  const QuickActionCard = ({ 
+    title, 
+    description, 
+    icon: Icon, 
+    color = 'blue',
+    onClick 
+  }: {
+    title: string;
+    description: string;
+    icon: any;
+    color?: string;
+    onClick: () => void;
+  }) => {
+    const colorClasses = {
+      blue: 'bg-blue-500 hover:bg-blue-600',
+      green: 'bg-green-500 hover:bg-green-600',
+      purple: 'bg-purple-500 hover:bg-purple-600',
+      orange: 'bg-orange-500 hover:bg-orange-600',
+      red: 'bg-red-500 hover:bg-red-600',
+      indigo: 'bg-indigo-500 hover:bg-indigo-600'
+    };
+
+    return (
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl cursor-pointer transition-all hover:border-white/30"
+      >
+        <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]} w-fit mb-4`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <p className="text-gray-300 text-sm">{description}</p>
+      </motion.div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
-      <div className="bg-black/20 backdrop-blur-sm border-b border-white/10">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">Admin Dashboard</span>
-            </div>
-            
-            {/* Admin User Info & Logout */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
-                <User className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-white">{admin?.username}</span>
-              </div>
-              <button
-                onClick={adminLogout}
-                className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </button>
-            </div>
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+            <p className="text-gray-300">Sistem genelinde kullanıcı ve otomasyon yönetimi</p>
           </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 py-8">
-        {/* Tab Navigation */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 mb-8 overflow-hidden">
-          <div className="grid grid-cols-9 border-b border-white/10">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center space-y-2 px-4 py-4 font-medium transition-all duration-200 text-center ${
-                  activeTab === tab.id
-                    ? 'text-white bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b-4 border-purple-500'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5 hover:scale-105'
-                }`}
-              >
-                <div className={`p-2 rounded-lg ${
-                  activeTab === tab.id ? 'bg-purple-500/20' : 'bg-white/10'
-                }`}>
-                {tab.icon}
-                </div>
-                <div className="text-sm font-semibold">{tab.label}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <p className="text-gray-400 text-sm">Son güncelleme</p>
+              <p className="text-white text-sm">{lastUpdated.toLocaleTimeString('tr-TR')}</p>
+            </div>
+            <button
+              onClick={fetchStats}
+              disabled={loading}
+              className="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors"
             >
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-white">System Overview</h3>
-                  
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {stats.map((stat, index) => (
-                      <motion.div
-                        key={stat.label}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-white/5 rounded-xl p-6 border border-white/10"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-2xl font-bold text-white">{stat.value}</p>
-                            <p className="text-gray-400 text-sm">{stat.label}</p>
-                            <p className="text-green-400 text-xs mt-1">{stat.change} from last month</p>
-                          </div>
-                          {stat.icon}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Enhanced User Statistics */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                      <h4 className="text-lg font-semibold text-white mb-4">User Analytics</h4>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Google Users</span>
-                          <span className="text-white font-semibold">{systemStats.googleUsers}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Email Users</span>
-                          <span className="text-white font-semibold">{systemStats.emailUsers}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Verified Users</span>
-                          <span className="text-white font-semibold">{systemStats.verifiedUsers}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">2FA Enabled</span>
-                          <span className="text-white font-semibold">{systemStats.twoFactorUsers}</span>
-                          </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                      <h4 className="text-lg font-semibold text-white mb-4">Recent Activity</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-gray-300 text-sm">New user registration</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <span className="text-gray-300 text-sm">Automation created</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <span className="text-gray-300 text-sm">Plan upgrade</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          <span className="text-gray-300 text-sm">Payment processed</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'requests' && <AutomationRequestsManager />}
-              {activeTab === 'webhooks' && <WebhookManager />}
-              {activeTab === 'webhook-test' && <WebhookTester />}
-              {activeTab === 'n8n-debug' && <N8NDebugger />}
-              {activeTab === 'admin-automations' && <AdminAutomationManager />}
-              {activeTab === 'examples' && <ExampleAutomationManager />}
-              {activeTab === 'blog' && <AdminBlogManager />}
-
-              {activeTab === 'users' && (
-                <UserManagement
-                  users={users}
-                  onUserUpdate={updateUser}
-                  onUserDelete={deleteUser}
-                  onUserSuspend={suspendUser}
-                  onUserActivate={activateUser}
-                />
-              )}
-
-              {activeTab === 'settings' && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-white">System Settings</h3>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-white/5 rounded-lg p-6 border border-white/10">
-                      <h4 className="text-lg font-semibold text-white mb-4">General Settings</h4>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            System Name
-                          </label>
-                          <input
-                            type="text"
-                            defaultValue="LLUVIA AI"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-2">
-                            Max Automations per User
-                          </label>
-                          <input
-                            type="number"
-                            defaultValue="200"
-                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white/5 rounded-lg p-6 border border-white/10">
-                      <h4 className="text-lg font-semibold text-white mb-4">Security Settings</h4>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Two-Factor Authentication</span>
-                          <button className="bg-green-500 w-12 h-6 rounded-full relative">
-                            <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Google OAuth</span>
-                          <button className="bg-green-500 w-12 h-6 rounded-full relative">
-                            <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">Email Verification</span>
-                          <button className="bg-green-500 w-12 h-6 rounded-full relative">
-                            <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-300">API Rate Limiting</span>
-                          <button className="bg-green-500 w-12 h-6 rounded-full relative">
-                            <div className="w-5 h-5 bg-white rounded-full absolute right-0.5 top-0.5"></div>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </motion.div>
+              <RefreshCw className={`w-5 h-5 text-white ${loading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
-      </div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center space-x-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400">{error}</span>
+          </motion.div>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            title="Toplam Kullanıcı"
+            value={stats.totalUsers}
+            icon={Users}
+            color="blue"
+            subtitle={`${stats.activeUsers} aktif`}
+          />
+          <StatCard
+            title="Aylık Gelir"
+            value={`$${stats.monthlyRevenue.toLocaleString()}`}
+            icon={DollarSign}
+            color="green"
+            trend={{ value: 12, isPositive: true }}
+          />
+          <StatCard
+            title="Toplam Otomasyon"
+            value={stats.totalAutomations}
+            icon={Zap}
+            color="purple"
+            subtitle={`${stats.activeAutomations} aktif`}
+          />
+          <StatCard
+            title="Sistem Uptime"
+            value={`${stats.systemUptime}%`}
+            icon={Activity}
+            color="indigo"
+          />
+        </div>
+
+        {/* User Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <StatCard
+            title="Plan Dağılımı"
+            value={`${stats.proUsers} Pro`}
+            icon={Crown}
+            color="orange"
+            subtitle={`${stats.freeUsers} Free, ${stats.customUsers} Custom`}
+          />
+          <StatCard
+            title="Kimlik Doğrulama"
+            value={`${stats.emailUsers} Email`}
+            icon={Mail}
+            color="blue"
+            subtitle={`${stats.googleUsers} Google, ${stats.githubUsers} GitHub`}
+          />
+          <StatCard
+            title="Güvenlik"
+            value={`${stats.verifiedUsers} Doğrulanmış`}
+            icon={Shield}
+            color="green"
+            subtitle={`${stats.twoFactorUsers} 2FA aktif`}
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white mb-6">Hızlı İşlemler</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <QuickActionCard
+              title="Kullanıcı Yönetimi"
+              description="Kullanıcıları görüntüle, düzenle ve yönet"
+              icon={Users}
+              color="blue"
+              onClick={() => onNavigate('users')}
+            />
+            <QuickActionCard
+              title="Otomasyon Yönetimi"
+              description="Otomasyon isteklerini ve durumlarını takip et"
+              icon={Zap}
+              color="purple"
+              onClick={() => onNavigate('automations')}
+            />
+            <QuickActionCard
+              title="Blog Yönetimi"
+              description="Blog yazılarını oluştur ve düzenle"
+              icon={BarChart3}
+              color="green"
+              onClick={() => onNavigate('blog')}
+            />
+            <QuickActionCard
+              title="Sistem Ayarları"
+              description="Platform ayarlarını ve konfigürasyonları yönet"
+              icon={Settings}
+              color="orange"
+              onClick={() => onNavigate('settings')}
+            />
+            <QuickActionCard
+              title="Webhook Yönetimi"
+              description="Webhook bağlantılarını test et ve yönet"
+              icon={Globe}
+              color="indigo"
+              onClick={() => onNavigate('webhooks')}
+            />
+            <QuickActionCard
+              title="Güvenlik Ayarları"
+              description="Güvenlik politikalarını ve erişim kontrollerini yönet"
+              icon={Lock}
+              color="red"
+              onClick={() => onNavigate('security')}
+            />
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+          <h2 className="text-2xl font-bold text-white mb-6">Son Aktiviteler</h2>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
+              <div className="p-2 bg-green-500 rounded-lg">
+                <UserCheck className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-medium">Yeni kullanıcı kaydı</p>
+                <p className="text-gray-400 text-sm">demo@lluvia.ai hesabı oluşturuldu</p>
+              </div>
+              <span className="text-gray-400 text-sm">2 dk önce</span>
+            </div>
+            <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
+              <div className="p-2 bg-blue-500 rounded-lg">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-medium">Yeni otomasyon oluşturuldu</p>
+                <p className="text-gray-400 text-sm">Gmail to Slack otomasyonu</p>
+              </div>
+              <span className="text-gray-400 text-sm">15 dk önce</span>
+            </div>
+            <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
+              <div className="p-2 bg-purple-500 rounded-lg">
+                <Crown className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-white font-medium">Plan yükseltmesi</p>
+                <p className="text-gray-400 text-sm">pro@lluvia.ai Free'dan Pro'ya geçti</p>
+              </div>
+              <span className="text-gray-400 text-sm">1 saat önce</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
