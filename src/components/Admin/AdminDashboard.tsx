@@ -7,7 +7,7 @@ import {
   DollarSign, 
   Activity, 
   Shield, 
-  Settings, 
+  Settings,
   BarChart3,
   RefreshCw,
   AlertCircle,
@@ -133,7 +133,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
       indigo: 'bg-indigo-500'
     };
 
-    return (
+  return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -142,21 +142,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
         <div className="flex items-center justify-between mb-4">
           <div className={`p-3 rounded-lg ${colorClasses[color as keyof typeof colorClasses]}`}>
             <Icon className="w-6 h-6 text-white" />
-          </div>
+            </div>
           {trend && (
             <div className={`flex items-center space-x-1 text-sm ${
               trend.isPositive ? 'text-green-400' : 'text-red-400'
             }`}>
               <TrendingUp className={`w-4 h-4 ${trend.isPositive ? '' : 'rotate-180'}`} />
               <span>{trend.value}%</span>
-            </div>
+          </div>
           )}
         </div>
         <div>
           <h3 className="text-2xl font-bold text-white mb-1">{value}</h3>
           <p className="text-gray-300 text-sm">{title}</p>
           {subtitle && <p className="text-gray-400 text-xs mt-1">{subtitle}</p>}
-        </div>
+      </div>
       </motion.div>
     );
   };
@@ -184,7 +184,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
     };
 
     return (
-      <motion.div
+            <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
@@ -201,23 +201,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-7xl mx-auto"
-      >
+                      >
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
+                          <div>
             <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
             <p className="text-gray-300">Sistem genelinde kullanıcı ve otomasyon yönetimi</p>
-          </div>
+                          </div>
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <p className="text-gray-400 text-sm">Son güncelleme</p>
               <p className="text-white text-sm">{lastUpdated.toLocaleTimeString('tr-TR')}</p>
-            </div>
+                        </div>
             <button
               onClick={fetchStats}
               disabled={loading}
@@ -225,9 +225,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
             >
               <RefreshCw className={`w-5 h-5 text-white ${loading ? 'animate-spin' : ''}`} />
             </button>
-          </div>
-        </div>
-
+                      </div>
+                    </div>
+                    
         {/* Error Message */}
         {error && (
           <motion.div
@@ -293,8 +293,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
             icon={Shield}
             color="green"
             subtitle={`${stats.twoFactorUsers} 2FA aktif`}
-          />
-        </div>
+                          />
+                        </div>
 
         {/* Quick Actions */}
         <div className="mb-8">
@@ -342,45 +342,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
               color="red"
               onClick={() => onNavigate('security')}
             />
-          </div>
-        </div>
-
+                      </div>
+                    </div>
+                    
         {/* Recent Activity */}
         <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
           <h2 className="text-2xl font-bold text-white mb-6">Son Aktiviteler</h2>
-          <div className="space-y-4">
+                      <div className="space-y-4">
             <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
               <div className="p-2 bg-green-500 rounded-lg">
                 <UserCheck className="w-4 h-4 text-white" />
-              </div>
+                        </div>
               <div className="flex-1">
                 <p className="text-white font-medium">Yeni kullanıcı kaydı</p>
                 <p className="text-gray-400 text-sm">demo@lluvia.ai hesabı oluşturuldu</p>
-              </div>
+                        </div>
               <span className="text-gray-400 text-sm">2 dk önce</span>
-            </div>
+                        </div>
             <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
               <div className="p-2 bg-blue-500 rounded-lg">
                 <Zap className="w-4 h-4 text-white" />
-              </div>
+                        </div>
               <div className="flex-1">
                 <p className="text-white font-medium">Yeni otomasyon oluşturuldu</p>
                 <p className="text-gray-400 text-sm">Gmail to Slack otomasyonu</p>
-              </div>
+                      </div>
               <span className="text-gray-400 text-sm">15 dk önce</span>
-            </div>
+                    </div>
             <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
               <div className="p-2 bg-purple-500 rounded-lg">
                 <Crown className="w-4 h-4 text-white" />
-              </div>
+                  </div>
               <div className="flex-1">
                 <p className="text-white font-medium">Plan yükseltmesi</p>
                 <p className="text-gray-400 text-sm">pro@lluvia.ai Free'dan Pro'ya geçti</p>
-              </div>
+                </div>
               <span className="text-gray-400 text-sm">1 saat önce</span>
-            </div>
           </div>
         </div>
+      </div>
       </motion.div>
     </div>
   );

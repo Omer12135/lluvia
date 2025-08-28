@@ -6,8 +6,7 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
-  },
-  build: {
+  },  build: {
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
@@ -20,8 +19,12 @@ export default defineConfig({
     }
   },
   define: {
-    'process.env': {}
+    'process.env': {},
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
   },
+  envDir: '.',
+  envPrefix: 'VITE_',
   server: {
     port: 3000,
     host: true

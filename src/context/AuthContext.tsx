@@ -37,7 +37,6 @@ interface AuthContextType {
   systemStats: SystemStats;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -229,27 +228,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Google login
-  const loginWithGoogle = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
 
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      console.error('Google login error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Register function
   const register = async (email: string, password: string, name: string) => {
@@ -428,7 +407,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     systemStats,
     loading,
     login,
-    loginWithGoogle,
     register,
     logout,
     resetPassword,

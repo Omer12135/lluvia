@@ -5,9 +5,12 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.s
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
 console.log('Supabase Configuration:');
-console.log('URL:', supabaseUrl);
-console.log('Key exists:', !!supabaseAnonKey);
-console.log('Key length:', supabaseAnonKey?.length);
+console.log('Raw URL from env:', import.meta.env.VITE_SUPABASE_URL);
+console.log('Raw Key from env:', import.meta.env.VITE_SUPABASE_ANON_KEY);
+console.log('Processed URL:', supabaseUrl);
+console.log('Processed Key exists:', !!supabaseAnonKey);
+console.log('Processed Key length:', supabaseAnonKey?.length);
+console.log('All env vars:', import.meta.env);
 
 // Supabase client oluştur
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

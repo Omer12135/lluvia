@@ -226,38 +226,38 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
+        <div>
             <h1 className="text-3xl font-bold text-white mb-2">Kullanıcı Yönetimi</h1>
             <p className="text-gray-300">Tüm kullanıcıları görüntüle, düzenle ve yönet</p>
-          </div>
+        </div>
           <div className="flex items-center space-x-4">
-            <button
+          <button
               onClick={exportUsers}
               className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
+          >
               <Download className="w-4 h-4" />
               <span>Dışa Aktar</span>
-            </button>
-            <button
+          </button>
+          <button
               onClick={fetchUsers}
               disabled={loading}
               className="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg transition-colors"
-            >
+          >
               <RefreshCw className={`w-5 h-5 text-white ${loading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+          </button>
         </div>
+      </div>
 
         {/* Error Message */}
         {error && (
-          <motion.div
+        <motion.div
             initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
             className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center space-x-3"
           >
             <AlertTriangle className="w-5 h-5 text-red-400" />
             <span className="text-red-400">{error}</span>
-          </motion.div>
+        </motion.div>
         )}
 
         {/* Filters */}
@@ -265,77 +265,77 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-white text-sm font-medium mb-2">Arama</label>
-              <div className="relative">
+          <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
+            <input
+              type="text"
                   placeholder="Kullanıcı ara..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            />
               </div>
-            </div>
-            
+          </div>
+
             <div>
               <label className="block text-white text-sm font-medium mb-2">Plan</label>
-              <select
-                value={filterPlan}
-                onChange={(e) => setFilterPlan(e.target.value)}
+          <select
+            value={filterPlan}
+            onChange={(e) => setFilterPlan(e.target.value)}
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+          >
                 <option value="all">Tüm Planlar</option>
-                <option value="free">Free</option>
-                <option value="pro">Pro</option>
-                <option value="custom">Custom</option>
-              </select>
+            <option value="free">Free</option>
+            <option value="pro">Pro</option>
+            <option value="custom">Custom</option>
+          </select>
             </div>
-            
+
             <div>
               <label className="block text-white text-sm font-medium mb-2">Durum</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Tüm Durumlar</option>
                 <option value="active">Aktif</option>
                 <option value="suspended">Askıya Alınmış</option>
                 <option value="pending">Beklemede</option>
-              </select>
+          </select>
             </div>
-            
+
             <div>
               <label className="block text-white text-sm font-medium mb-2">Sağlayıcı</label>
-              <select
-                value={filterProvider}
-                onChange={(e) => setFilterProvider(e.target.value)}
+          <select
+            value={filterProvider}
+            onChange={(e) => setFilterProvider(e.target.value)}
                 className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
+          >
                 <option value="all">Tüm Sağlayıcılar</option>
-                <option value="email">Email</option>
-                <option value="google">Google</option>
-                <option value="github">GitHub</option>
-              </select>
+            <option value="email">Email</option>
+            <option value="google">Google</option>
+            <option value="github">GitHub</option>
+          </select>
             </div>
-          </div>
         </div>
+      </div>
 
-        {/* Users Table */}
+      {/* Users Table */}
         <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/10">
-                <tr>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-white/10">
+              <tr>
                   <th className="px-6 py-4 text-left text-white font-semibold">Kullanıcı</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Plan</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Durum</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Otomasyonlar</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">Kayıt Tarihi</th>
                   <th className="px-6 py-4 text-left text-white font-semibold">İşlemler</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/10">
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
@@ -351,37 +351,37 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
                   </tr>
                 ) : (
                   filteredUsers.map((user) => (
-                    <motion.tr
+                <motion.tr
                       key={user.user_id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="hover:bg-white/5 transition-colors"
-                    >
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="hover:bg-white/5 transition-colors"
+                >
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold text-sm">
                               {user.name.charAt(0).toUpperCase()}
                             </span>
-                          </div>
-                          <div>
+                      </div>
+                      <div>
                             <p className="text-white font-medium">{user.name}</p>
                             <p className="text-gray-400 text-sm">{user.email}</p>
                             <div className="flex items-center space-x-2 mt-1">
                               {getProviderIcon(user.auth_provider)}
                               <span className="text-gray-400 text-xs">{user.auth_provider}</span>
-                            </div>
                           </div>
-                        </div>
-                      </td>
+                      </div>
+                    </div>
+                  </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           {getPlanIcon(user.plan)}
                           <span className="text-white capitalize">{user.plan}</span>
                         </div>
-                      </td>
+                  </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
                           {getStatusIcon(user.status)}
                           <span className={`text-sm capitalize ${
                             user.status === 'active' ? 'text-green-400' :
@@ -392,76 +392,76 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
                              user.status === 'suspended' ? 'Askıya Alınmış' :
                              'Beklemede'}
                           </span>
-                        </div>
-                      </td>
+                    </div>
+                  </td>
                       <td className="px-6 py-4">
                         <div className="text-white">
                           <p className="font-medium">{user.automations_used} / {user.automations_limit}</p>
                           <p className="text-gray-400 text-sm">
                             {user.automations_limit === -1 ? 'Sınırsız' : `${Math.round((user.automations_used / user.automations_limit) * 100)}% kullanım`}
                           </p>
-                        </div>
-                      </td>
+                    </div>
+                  </td>
                       <td className="px-6 py-4">
                         <div className="text-white">
                           <p className="text-sm">{new Date(user.created_at).toLocaleDateString('tr-TR')}</p>
                           <p className="text-gray-400 text-xs">{new Date(user.created_at).toLocaleTimeString('tr-TR')}</p>
-                        </div>
-                      </td>
+                    </div>
+                  </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => {
-                              setSelectedUser(user);
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user);
                               setEditingUser(user);
-                              setShowUserModal(true);
-                            }}
+                          setShowUserModal(true);
+                        }}
                             className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                             title="Düzenle"
-                          >
+                      >
                             <Edit className="w-4 h-4 text-white" />
-                          </button>
-                          
-                          {user.status === 'active' ? (
-                            <button
+                      </button>
+                      
+                      {user.status === 'active' ? (
+                        <button
                               onClick={() => handleUserSuspend(user.user_id)}
                               className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-colors"
                               title="Askıya Al"
                             >
                               <UserX className="w-4 h-4 text-white" />
-                            </button>
-                          ) : (
-                            <button
+                        </button>
+                      ) : (
+                        <button
                               onClick={() => handleUserActivate(user.user_id)}
                               className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                               title="Aktifleştir"
                             >
                               <UserCheck className="w-4 h-4 text-white" />
-                            </button>
-                          )}
-                          
-                          <button
+                        </button>
+                      )}
+                      
+                      <button
                             onClick={() => handleUserDelete(user.user_id)}
                             className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
                             title="Sil"
                           >
                             <Trash2 className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
         </div>
+      </div>
 
         {/* User Count */}
         <div className="mt-6 text-center text-gray-400">
           Toplam {filteredUsers.length} kullanıcı gösteriliyor
-        </div>
-      </motion.div>
+            </div>
+          </motion.div>
     </div>
   );
 };
