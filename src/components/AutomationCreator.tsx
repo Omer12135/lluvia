@@ -70,7 +70,7 @@ import {
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
-import { useAutomation } from '../context/AutomationContext';
+import { automationService } from '../lib/supabase';
 import { webhookService, AutomationWebhookData } from '../services/webhookService';
 
 // Icon mapping
@@ -129,661 +129,357 @@ const iconMap: Record<string, any> = {
   'Monitor': Monitor,
   'RefreshCw': RefreshCw,
   'Lock': Lock,
+  'Crown': Crown,
   'Image': ImageIcon,
   'Link': Link,
   'Layers': Layers,
   'Code': Code,
-  'Server': Server
+  'Server': Server,
+  'Sparkles': Sparkles,
+  'Heart': Heart,
+  'Star': Star
 };
 
-interface AutomationCreatorProps {}
-
-const AutomationCreator: React.FC<AutomationCreatorProps> = () => {
+const AutomationCreator: React.FC = () => {
   const { user } = useAuth();
-  const { addAutomation, canCreateAutomation, automationLimit, remainingAutomations, currentMonthUsage } = useAutomation();
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [selectedActions, setSelectedActions] = useState<Action[]>([]);
-  const [selectedPlatform, setSelectedPlatform] = useState<'n8n' | 'make' | null>(null);
-  const [triggerSearchTerm, setTriggerSearchTerm] = useState('');
-  const [actionSearchTerm, setActionSearchTerm] = useState('');
-  const [triggerCategory, setTriggerCategory] = useState<string>('all');
-  const [actionCategory, setActionCategory] = useState<string>('all');
-  const [showTriggers, setShowTriggers] = useState(false);
-  const [showActions, setShowActions] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState('n8n');
   const [isCreating, setIsCreating] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get unique categories
-  const triggerCategories = ['all', ...new Set(triggers.map(t => t.category))];
-  const actionCategories = ['all', ...new Set(actions.map(a => a.category))];
-
-  // Filter functions
-  const filteredTriggers = triggers.filter(trigger => {
-    const matchesSearch = trigger.name.toLowerCase().includes(triggerSearchTerm.toLowerCase()) ||
-                         trigger.description.toLowerCase().includes(triggerSearchTerm.toLowerCase());
-    const matchesCategory = triggerCategory === 'all' || trigger.category === triggerCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const filteredActions = actions.filter(action => {
-    const matchesSearch = action.name.toLowerCase().includes(actionSearchTerm.toLowerCase()) ||
-                         action.description.toLowerCase().includes(actionSearchTerm.toLowerCase());
-    const matchesCategory = actionCategory === 'all' || action.category === actionCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleTriggerSelect = (trigger: Trigger) => {
-    setSelectedTrigger(trigger);
-    setShowTriggers(false);
-    setTriggerSearchTerm('');
-  };
-
-  const handleActionToggle = (action: Action) => {
-    setSelectedActions(prev => {
-      const isSelected = prev.some(a => a.id === action.id);
-      if (isSelected) {
-        return prev.filter(a => a.id !== action.id);
-      } else {
-        return [...prev, action];
-      }
-    });
-  };
+  const platforms = [
+    { id: 'n8n', name: 'N8N', icon: Workflow, description: 'Open source workflow automation' },
+    { id: 'make', name: 'Make (Integromat)', icon: Zap, description: 'Visual automation platform' },
+    { id: 'zapier', name: 'Zapier', icon: Link, description: 'Connect your apps and automate workflows' },
+    { id: 'ifttt', name: 'IFTTT', icon: Sparkles, description: 'If This Then That automation' }
+  ];
 
   const handleCreate = async () => {
-    if (!automationName.trim()) {
-      alert('Please enter an automation name');
+    if (!user) {
+      setError('Otomasyon oluşturmak için giriş yapmalısınız');
       return;
     }
 
-    if (!automationDescription.trim()) {
-      alert('Please enter an automation description');
-      return;
-    }
-
-    if (!selectedTrigger) {
-      alert('Please select a trigger');
-      return;
-    }
-
-    if (!selectedPlatform) {
-      alert('Please select a platform (N8N or Make)');
-      return;
-    }
-
-          if (!canCreateAutomation) {
-        if (automationLimit === 1) {
-        alert('You have reached the Free Plan limit of 1 automation. Please upgrade to Pro Plan to create more automations.');
-      } else {
-        alert('You have reached your automation limit. Please upgrade your plan to create more automations.');
-      }
+    if (!automationName.trim() || !automationDescription.trim() || !selectedTrigger || selectedActions.length === 0) {
+      setError('Lütfen tüm alanları doldurun');
       return;
     }
 
     setIsCreating(true);
+    setError(null);
 
-    const automationData = {
-      name: automationName,
-      description: automationDescription,
-      trigger: selectedTrigger?.name || '',
-      actions: selectedActions.map(a => a.name),
-      platform: selectedPlatform,
-      userId: user?.id || '',
-      status: 'pending' as const
-    };
-
-    console.log('Creating automation:', automationData);
-    
     try {
-      const success = await addAutomation(automationData);
-      
-      if (success) {
-        // Webhook'a veri gönder
-        const webhookData: AutomationWebhookData = {
-          automationName: automationName,
-          automationDescription: automationDescription,
-          trigger: selectedTrigger?.name || '',
+      // Create automation in Supabase
+      const automationData = {
+        user_id: user.id,
+        automation_name: automationName.trim(),
+        automation_description: automationDescription.trim(),
+        webhook_payload: {
+          trigger: selectedTrigger.name,
           actions: selectedActions.map(a => a.name),
-          platform: selectedPlatform,
-          userId: user?.id || '',
-          userEmail: user?.email,
-          userName: user?.name,
-          userPlan: user?.plan,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-          automationId: Date.now().toString(),
-          timestamp: new Date().toISOString(),
-          source: 'automation-creator',
-          test: false
-        };
+          platform: selectedPlatform
+        },
+        status: 'pending' as const
+      };
 
-        try {
-          const webhookSuccess = await webhookService.sendAutomationData(webhookData);
-          if (webhookSuccess) {
-            console.log('✅ Webhook data sent successfully');
-          } else {
-            console.warn('⚠️ Failed to send webhook data');
-          }
-        } catch (webhookError) {
-          console.error('❌ Webhook error:', webhookError);
-        }
+      const createdAutomation = await automationService.createAutomation(automationData);
 
-        alert('🎉 Automation created successfully!');
-        
-        // Reset form
-        setAutomationName('');
-        setAutomationDescription('');
-        setSelectedTrigger(null);
-        setSelectedActions([]);
-        setSelectedPlatform(null);
-        setTriggerSearchTerm('');
-        setActionSearchTerm('');
-        setTriggerCategory('all');
-        setActionCategory('all');
-      } else {
-        alert('❌ Failed to create automation. Please check your plan limits.');
-      }
-    } catch (error) {
-      console.error('Error creating automation:', error);
-      alert(`❌ Failed to create automation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Send webhook data
+      const webhookData: AutomationWebhookData = {
+        automationName: automationName.trim(),
+        automationDescription: automationDescription.trim(),
+        trigger: selectedTrigger.name,
+        actions: selectedActions.map(a => a.name),
+        platform: selectedPlatform,
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.name,
+        userPlan: user.plan,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        automationId: createdAutomation.id,
+        timestamp: new Date().toISOString(),
+        source: 'automation-creator',
+        test: false
+      };
+
+      await webhookService.sendAutomationData(webhookData);
+
+      // Show success message
+      setShowSuccess(true);
+      
+      // Reset form
+      setAutomationName('');
+      setAutomationDescription('');
+      setSelectedTrigger(null);
+      setSelectedActions([]);
+      setSelectedPlatform('n8n');
+
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+
+    } catch (err) {
+      console.error('Error creating automation:', err);
+      setError('Otomasyon oluşturulurken hata oluştu. Lütfen tekrar deneyin.');
     } finally {
       setIsCreating(false);
     }
   };
 
-  const getIcon = (iconName: string) => {
-    const IconComponent = iconMap[iconName] || Settings;
-    return IconComponent;
+  const addAction = (action: Action) => {
+    if (!selectedActions.find(a => a.id === action.id)) {
+      setSelectedActions([...selectedActions, action]);
+    }
   };
 
+  const removeAction = (actionId: string) => {
+    setSelectedActions(selectedActions.filter(a => a.id !== actionId));
+  };
+
+  const reorderActions = (fromIndex: number, toIndex: number) => {
+    const newActions = [...selectedActions];
+    const [removed] = newActions.splice(fromIndex, 1);
+    newActions.splice(toIndex, 0, removed);
+    setSelectedActions(newActions);
+  };
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Lock className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <p className="text-gray-400">Otomasyon oluşturmak için giriş yapın</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-2 sm:p-6 overflow-y-auto">
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto"
+        className="max-w-6xl mx-auto"
       >
         {/* Header */}
-        <div className="text-center mb-4 sm:mb-8">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-purple-600 to-blue-600 p-2 sm:p-4 rounded-xl sm:rounded-2xl mb-3 sm:mb-4 shadow-2xl"
-          >
-            <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white animate-pulse" />
-            <h1 className="text-lg sm:text-3xl font-bold text-white">Create New Automation</h1>
-            <Sparkles className="w-5 h-5 sm:w-8 sm:h-8 text-white animate-pulse" />
-          </motion.div>
-          <p className="text-sm sm:text-xl text-gray-300">Build powerful automations in minutes</p>
-          
-          {/* Usage Info */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-4 flex items-center justify-center space-x-4 text-sm"
-          >
-            <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
-              <Zap className="w-4 h-4 text-yellow-500" />
-              <span className="text-white font-medium">{remainingAutomations}</span>
-              <span className="text-gray-300">remaining</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
-              <Clock className="w-4 h-4 text-blue-500" />
-              <span className="text-white font-medium">{currentMonthUsage}</span>
-              <span className="text-gray-300">/ {automationLimit} used</span>
-            </div>
-          </motion.div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Otomasyon Oluşturucu</h1>
+          <p className="text-gray-300">Yeni otomasyonlar oluşturun ve iş akışlarınızı otomatikleştirin</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-          {/* Left Column - Details */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-3 sm:space-y-6"
-          >
-            {/* Automation Details */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
-                <div className="p-2 sm:p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg sm:rounded-xl">
-                  <Heart className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h2 className="text-lg sm:text-2xl font-bold text-white">Automation Details</h2>
-              </div>
+        {/* Success Message */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center space-x-3"
+            >
+              <CheckCircle className="w-5 h-5 text-green-400" />
+              <span className="text-green-400">Otomasyon başarıyla oluşturuldu!</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              <div className="space-y-3 sm:space-y-4">
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center space-x-3"
+          >
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400">{error}</span>
+          </motion.div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Form */}
+          <div className="space-y-6">
+            {/* Basic Information */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Temel Bilgiler</h2>
+              
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-white font-medium mb-2 text-sm sm:text-base">
-                    Name <span className="text-pink-400">*</span>
-                  </label>
+                  <label className="block text-white text-sm font-medium mb-2">Otomasyon Adı</label>
                   <input
                     type="text"
                     value={automationName}
                     onChange={(e) => setAutomationName(e.target.value)}
-                    placeholder="e.g., Gmail to Slack Notifications"
-                    className="w-full px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-base sm:text-base"
-                    maxLength={100}
+                    placeholder="Örn: Gmail to Slack Notification"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-gray-400 text-xs sm:text-sm mt-1">{automationName.length}/100 characters</p>
                 </div>
-
-                                 <div>
-                   <label className="block text-white font-medium mb-2 text-sm sm:text-base">
-                     Description <span className="text-pink-400">*</span>
-                   </label>
-                   <textarea
-                     value={automationDescription}
-                     onChange={(e) => setAutomationDescription(e.target.value)}
-                     placeholder="Set up an automation that works with my other sub-workflow to send customers personalized emails related to their requests every month. This should run four times a month."
-                     rows={4}
-                     className="w-full px-4 py-3 sm:py-3 bg-white/10 border border-white/20 rounded-lg sm:rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all resize-none text-base sm:text-base"
-                   />
-                 </div>
+                
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2">Açıklama</label>
+                  <textarea
+                    value={automationDescription}
+                    onChange={(e) => setAutomationDescription(e.target.value)}
+                    placeholder="Otomasyonunuzun ne yaptığını açıklayın..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Selected Components Preview */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
-                <div className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl">
-                  <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                </div>
-                <h2 className="text-lg sm:text-2xl font-bold text-white">Selected Components</h2>
+            {/* Platform Selection */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Platform Seçimi</h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {platforms.map((platform) => {
+                  const Icon = platform.icon;
+                  return (
+                    <button
+                      key={platform.id}
+                      onClick={() => setSelectedPlatform(platform.id)}
+                      className={`p-4 rounded-lg border transition-all ${
+                        selectedPlatform === platform.id
+                          ? 'border-blue-500 bg-blue-500/20'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon className="w-6 h-6 text-blue-400" />
+                        <div className="text-left">
+                          <p className="text-white font-medium">{platform.name}</p>
+                          <p className="text-gray-400 text-xs">{platform.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-              <div className="space-y-3 sm:space-y-4">
-                {/* Selected Trigger */}
-                {selectedTrigger ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-3 sm:p-4 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg sm:rounded-xl"
-                  >
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                      <div className="p-1.5 sm:p-2 bg-blue-500 rounded-lg">
-                        {React.createElement(getIcon(selectedTrigger.icon), { className: "w-4 h-4 sm:w-5 sm:h-5 text-white" })}
-                      </div>
-                      <div>
-                        <p className="text-blue-300 text-xs sm:text-sm font-medium">TRIGGER</p>
-                        <p className="text-white font-semibold text-sm sm:text-base">{selectedTrigger.name}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-lg sm:rounded-xl text-center">
-                    <p className="text-gray-400 text-sm sm:text-base">No trigger selected</p>
-                  </div>
-                )}
+            {/* Create Button */}
+            <button
+              onClick={handleCreate}
+              disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger || selectedActions.length === 0}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              {isCreating ? (
+                <>
+                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  <span>Oluşturuluyor...</span>
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-5 h-5" />
+                  <span>Otomasyon Oluştur</span>
+                </>
+              )}
+            </button>
+          </div>
 
-                {/* Selected Actions */}
-                {selectedActions.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-green-300 text-xs sm:text-sm font-medium">ACTIONS ({selectedActions.length})</p>
-                    {selectedActions.map((action, index) => {
-                      const IconComponent = getIcon(action.icon);
-                      return (
-                        <motion.div
-                          key={action.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="p-3 sm:p-3 bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 rounded-lg flex items-center justify-between"
+          {/* Right Column - Trigger and Actions */}
+          <div className="space-y-6">
+            {/* Trigger Selection */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Tetikleyici Seçimi</h2>
+              
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {triggers.map((trigger) => {
+                  const Icon = iconMap[trigger.icon] || Zap;
+                  return (
+                    <button
+                      key={trigger.id}
+                      onClick={() => setSelectedTrigger(trigger)}
+                      className={`w-full p-4 rounded-lg border transition-all text-left ${
+                        selectedTrigger?.id === trigger.id
+                          ? 'border-green-500 bg-green-500/20'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon className="w-5 h-5 text-green-400" />
+                        <div>
+                          <p className="text-white font-medium">{trigger.name}</p>
+                          <p className="text-gray-400 text-sm">{trigger.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Actions Selection */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Aksiyon Seçimi</h2>
+              
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {actions.map((action) => {
+                  const Icon = iconMap[action.icon] || Zap;
+                  const isSelected = selectedActions.find(a => a.id === action.id);
+                  
+                  return (
+                    <button
+                      key={action.id}
+                      onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
+                      className={`w-full p-4 rounded-lg border transition-all text-left ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-500/20'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon className="w-5 h-5 text-blue-400" />
+                        <div>
+                          <p className="text-white font-medium">{action.name}</p>
+                          <p className="text-gray-400 text-sm">{action.description}</p>
+                        </div>
+                        {isSelected && (
+                          <CheckCircle className="w-5 h-5 text-blue-400 ml-auto" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected Actions Order */}
+            {selectedActions.length > 0 && (
+              <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+                <h3 className="text-lg font-semibold text-white mb-4">Seçilen Aksiyonlar</h3>
+                
+                <div className="space-y-2">
+                  {selectedActions.map((action, index) => {
+                    const Icon = iconMap[action.icon] || Zap;
+                    return (
+                      <div
+                        key={action.id}
+                        className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg"
+                      >
+                        <span className="text-blue-400 font-medium text-sm">{index + 1}</span>
+                        <Icon className="w-4 h-4 text-blue-400" />
+                        <span className="text-white text-sm">{action.name}</span>
+                        <button
+                          onClick={() => removeAction(action.id)}
+                          className="ml-auto p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
                         >
-                          <div className="flex items-center space-x-2 sm:space-x-3">
-                            <div className="p-1.5 sm:p-2 bg-green-500 rounded-lg">
-                              <IconComponent className="w-4 h-4 sm:w-4 sm:h-4 text-white" />
-                            </div>
-                            <span className="text-white font-medium text-sm sm:text-base">{action.name}</span>
-                          </div>
-                          <button
-                            onClick={() => handleActionToggle(action)}
-                            className="text-green-300 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/20"
-                          >
-                            <X className="w-4 h-4 sm:w-4 sm:h-4" />
-                          </button>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-3 sm:p-4 bg-gray-800/50 border border-gray-600 rounded-lg sm:rounded-xl text-center">
-                    <p className="text-gray-400 text-sm sm:text-base">No actions selected</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right Column - Triggers & Actions */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="space-y-3 sm:space-y-6"
-          >
-            {/* Triggers Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center justify-between mb-3 sm:mb-6">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg sm:rounded-xl">
-                    <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-bold text-white">Select Trigger</h2>
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
-                <button
-                  onClick={() => setShowTriggers(!showTriggers)}
-                  className="px-4 sm:px-4 py-2.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm sm:text-base"
-                >
-                  {showTriggers ? 'Hide' : 'Browse'}
-                </button>
               </div>
-
-              <AnimatePresence>
-                {showTriggers && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4"
-                  >
-                    {/* Search and Filter */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="text"
-                        placeholder="Search triggers..."
-                        value={triggerSearchTerm}
-                        onChange={(e) => setTriggerSearchTerm(e.target.value)}
-                        className="flex-1 px-4 py-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
-                      />
-                      <select
-                        value={triggerCategory}
-                        onChange={(e) => setTriggerCategory(e.target.value)}
-                        className="px-4 py-3 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
-                      >
-                        {triggerCategories.map(category => (
-                          <option key={category} value={category} className="bg-gray-800">
-                            {category === 'all' ? 'All Categories' : category}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Triggers Grid */}
-                    <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto">
-                      {filteredTriggers.map((trigger) => {
-                        const IconComponent = getIcon(trigger.icon);
-                        const isSelected = selectedTrigger?.id === trigger.id;
-                        return (
-                          <motion.div
-                            key={trigger.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleTriggerSelect(trigger)}
-                            className={`p-4 sm:p-3 rounded-lg border cursor-pointer transition-all ${
-                              isSelected
-                                ? 'bg-blue-600/30 border-blue-400'
-                                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400'
-                            }`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2.5 sm:p-2 rounded-lg ${isSelected ? 'bg-blue-500' : 'bg-gray-600'}`}>
-                                <IconComponent className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm sm:text-sm truncate">{trigger.name}</p>
-                                <p className="text-gray-400 text-xs truncate">{trigger.description}</p>
-                              </div>
-                              {isSelected && <CheckCircle className="w-5 h-5 text-blue-400" />}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Actions Section */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center justify-between mb-3 sm:mb-6">
-                <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg sm:rounded-xl">
-                    <Settings className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  <h2 className="text-lg sm:text-2xl font-bold text-white">Select Actions</h2>
-                </div>
-                <button
-                  onClick={() => setShowActions(!showActions)}
-                  className="px-4 sm:px-4 py-2.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm sm:text-base"
-                >
-                  {showActions ? 'Hide' : 'Browse'}
-                </button>
-              </div>
-
-              <AnimatePresence>
-                {showActions && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-3 sm:space-y-4"
-                  >
-                    {/* Search and Filter */}
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="text"
-                        placeholder="Search actions..."
-                        value={actionSearchTerm}
-                        onChange={(e) => setActionSearchTerm(e.target.value)}
-                        className="flex-1 px-4 py-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 text-base sm:text-sm"
-                      />
-                      <select
-                        value={actionCategory}
-                        onChange={(e) => setActionCategory(e.target.value)}
-                        className="px-4 py-3 sm:px-3 sm:py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 text-base sm:text-sm"
-                      >
-                        {actionCategories.map(category => (
-                          <option key={category} value={category} className="bg-gray-800">
-                            {category === 'all' ? 'All Categories' : category}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Actions Grid */}
-                    <div className="grid grid-cols-1 gap-3 sm:gap-3 max-h-64 overflow-y-auto">
-                      {filteredActions.map((action) => {
-                        const IconComponent = getIcon(action.icon);
-                        const isSelected = selectedActions.some(a => a.id === action.id);
-                        return (
-                          <motion.div
-                            key={action.id}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleActionToggle(action)}
-                            className={`p-4 sm:p-3 rounded-lg border cursor-pointer transition-all ${
-                              isSelected
-                                ? 'bg-green-600/30 border-green-400'
-                                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-green-400'
-                            }`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2.5 sm:p-2 rounded-lg ${isSelected ? 'bg-green-500' : 'bg-gray-600'}`}>
-                                <IconComponent className="w-5 h-5 sm:w-4 sm:h-4 text-white" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm truncate">{action.name}</p>
-                                <p className="text-gray-400 text-xs truncate">{action.description}</p>
-                              </div>
-                              {isSelected && <CheckCircle className="w-5 h-5 text-green-400" />}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-                             </AnimatePresence>
-             </div>
-
-             {/* Platform Selection Section */}
-             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-white/20 shadow-2xl">
-               <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-6">
-                 <div className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg sm:rounded-xl">
-                   <Workflow className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                 </div>
-                 <h2 className="text-lg sm:text-2xl font-bold text-white">Select Platform</h2>
-                 <span className="text-pink-400 text-xs sm:text-sm">*</span>
-               </div>
-
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                 {/* N8N Option */}
-                 <motion.div
-                   whileHover={{ scale: 1.02 }}
-                   whileTap={{ scale: 0.98 }}
-                   onClick={() => setSelectedPlatform('n8n')}
-                   className={`p-4 sm:p-5 rounded-xl border cursor-pointer transition-all ${
-                     selectedPlatform === 'n8n'
-                       ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 border-blue-400 ring-2 ring-blue-400/20'
-                       : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-blue-400'
-                   }`}
-                 >
-                   <div className="flex items-center space-x-3 mb-3">
-                     <div className={`p-2.5 sm:p-3 rounded-lg ${selectedPlatform === 'n8n' ? 'bg-blue-500' : 'bg-gray-600'}`}>
-                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                         <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                       </svg>
-                     </div>
-                     <div>
-                       <h3 className="text-white font-semibold text-sm sm:text-base">N8N</h3>
-                       <p className="text-gray-400 text-xs sm:text-sm">Open-source automation</p>
-                     </div>
-                     {selectedPlatform === 'n8n' && (
-                       <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400 ml-auto" />
-                     )}
-                   </div>
-                   <div className="space-y-2">
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                       <span className="text-gray-300 text-xs sm:text-sm">Free & Open Source</span>
-                     </div>
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                       <span className="text-gray-300 text-xs sm:text-sm">Self-hosted</span>
-                     </div>
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                       <span className="text-gray-300 text-xs sm:text-sm">Node.js based</span>
-                     </div>
-                   </div>
-                 </motion.div>
-
-                 {/* Make (Integromat) Option */}
-                 <motion.div
-                   whileHover={{ scale: 1.02 }}
-                   whileTap={{ scale: 0.98 }}
-                   onClick={() => setSelectedPlatform('make')}
-                   className={`p-4 sm:p-5 rounded-xl border cursor-pointer transition-all ${
-                     selectedPlatform === 'make'
-                       ? 'bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-400 ring-2 ring-orange-400/20'
-                       : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-orange-400'
-                   }`}
-                 >
-                   <div className="flex items-center space-x-3 mb-3">
-                     <div className={`p-2.5 sm:p-3 rounded-lg ${selectedPlatform === 'make' ? 'bg-orange-500' : 'bg-gray-600'}`}>
-                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                       </svg>
-                     </div>
-                     <div>
-                       <h3 className="text-white font-semibold text-sm sm:text-base">Make (Integromat)</h3>
-                       <p className="text-gray-400 text-xs sm:text-sm">Visual automation platform</p>
-                     </div>
-                     {selectedPlatform === 'make' && (
-                       <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400 ml-auto" />
-                     )}
-                   </div>
-                   <div className="space-y-2">
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                       <span className="text-gray-300 text-xs sm:text-sm">Cloud-based</span>
-                     </div>
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                       <span className="text-gray-300 text-xs sm:text-sm">Visual interface</span>
-                     </div>
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                       <span className="text-gray-300 text-xs sm:text-sm">Enterprise ready</span>
-                     </div>
-                   </div>
-                 </motion.div>
-               </div>
-
-               {!selectedPlatform && (
-                 <p className="text-gray-400 text-xs sm:text-sm mt-3 text-center">
-                   Please select a platform to continue
-                 </p>
-               )}
-             </div>
-           </motion.div>
-         </div>
-
-        {/* Create Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-6 sm:mt-8 text-center"
-        >
-                     <button
-             onClick={handleCreate}
-             disabled={!automationName.trim() || !automationDescription.trim() || !selectedTrigger || !selectedPlatform || isCreating || !canCreateAutomation}
-            className={`w-full sm:w-auto px-8 sm:px-12 py-4 sm:py-4 text-white text-lg sm:text-xl font-bold rounded-xl sm:rounded-2xl transition-all duration-300 shadow-2xl flex items-center justify-center space-x-3 mx-auto ${
-              !canCreateAutomation 
-                ? 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed opacity-50'
-                : 'bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 hover:shadow-purple-500/25 hover:scale-105'
-            }`}
-          >
-            {isCreating ? (
-              <>
-                <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
-                <span>Creating Automation...</span>
-                <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
-              </>
-            ) : !canCreateAutomation ? (
-              <>
-                <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span>Upgrade to Create More</span>
-                <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
-              </>
-            ) : (
-              <>
-                <Rocket className="w-5 h-5 sm:w-6 sm:h-6" />
-                <span>Create Automation</span>
-                <Star className="w-5 h-5 sm:w-6 sm:h-6" />
-              </>
             )}
-          </button>
-          {!canCreateAutomation && (
-            <p className="text-red-400 text-sm mt-3 sm:mt-2">
-                              {automationLimit === 1 
-                ? 'You have reached the Free Plan limit of 1 automation. Please upgrade to Pro Plan to create more automations.'
-                : 'You have reached your automation limit. Please upgrade your plan to create more automations.'
-              }
-            </p>
-          )}
-                     {(!automationName.trim() || !automationDescription.trim() || !selectedTrigger || !selectedPlatform) && canCreateAutomation && (
-             <p className="text-gray-400 text-sm mt-3 sm:mt-2">
-               {!automationName.trim() ? 'Enter automation name' : !automationDescription.trim() ? 'Enter automation description' : !selectedTrigger ? 'Select a trigger' : 'Select a platform'} to continue
-             </p>
-           )}
-        </motion.div>
+          </div>
+        </div>
       </motion.div>
     </div>
   );
