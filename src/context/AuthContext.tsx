@@ -143,7 +143,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           user_id: userId,
           email: user.email!,
           name: user.user_metadata?.name || user.email!.split('@')[0],
-          plan: 'free',
+      plan: 'free',
           automations_limit: 2,
           ai_messages_limit: 0
         })
@@ -173,7 +173,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setUsers(data || []);
       }
-    } catch (error) {
+      } catch (error) {
       console.error('Error in fetchAllUsers:', error);
     }
   };
@@ -296,7 +296,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`
       });
-
+      
       if (error) {
         throw error;
       }
@@ -401,20 +401,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [user]);
 
   const value: AuthContextType = {
-    user,
+      user,
     userProfile,
-    users,
-    systemStats,
-    loading,
-    login,
-    register,
-    logout,
-    resetPassword,
-    updateUser,
-    updateProfile,
-    deleteUser,
-    suspendUser,
-    activateUser,
+      users,
+      systemStats,
+      loading,
+      login,
+      register,
+      logout,
+      resetPassword,
+      updateUser,
+      updateProfile,
+      deleteUser,
+      suspendUser,
+      activateUser,
     refreshUserProfile
   };
 
