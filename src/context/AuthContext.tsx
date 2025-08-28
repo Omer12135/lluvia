@@ -120,15 +120,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        // If profile doesn't exist, create one
-        if (error.code === 'PGRST116') {
-          await createUserProfile(userId);
-        }
+        throw error; // Hata fırlat ki register fonksiyonunda yakalansın
       } else {
         setUserProfile(data);
+        return data;
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      throw error; // Hata fırlat ki register fonksiyonunda yakalansın
     }
   };
 
