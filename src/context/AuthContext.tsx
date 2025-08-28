@@ -133,16 +133,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Create user profile
   const createUserProfile = async (userId: string) => {
-    if (!user) return;
+    console.log('createUserProfile called with userId:', userId);
+    console.log('Current user state:', user);
+    
+    if (!user) {
+      console.error('User state is null, cannot create profile');
+      return;
+    }
 
     try {
+      console.log('Creating profile with data:', {
+        user_id: userId,
+        email: user.email,
+        name: user.user_metadata?.name || user.email!.split('@')[0],
+        plan: 'free',
+        automations_limit: 2,
+        ai_messages_limit: 0
+      });
+
       const { data, error } = await supabase
         .from('user_profiles')
         .insert({
           user_id: userId,
           email: user.email!,
           name: user.user_metadata?.name || user.email!.split('@')[0],
-      plan: 'free',
+          plan: 'free',
           automations_limit: 2,
           ai_messages_limit: 0
         })
@@ -152,6 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (error) {
         console.error('Error creating user profile:', error);
       } else {
+        console.log('Profile created successfully:', data);
         setUserProfile(data);
       }
     } catch (error) {
