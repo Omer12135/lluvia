@@ -258,8 +258,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (data.user) {
         console.log('User created successfully:', data.user);
         setUser(data.user);
-        // Profile will be created automatically by the trigger
-        await fetchUserProfile(data.user.id);
+        
+        // Try to fetch user profile (trigger should create it)
+        try {
+          await fetchUserProfile(data.user.id);
+        } catch (error) {
+          console.log('Profile not found, creating manually...');
+          // If profile doesn't exist, create it manually
+          await createUserProfile(data.user.id);
+        }
       } else {
         console.log('No user data returned');
       }
