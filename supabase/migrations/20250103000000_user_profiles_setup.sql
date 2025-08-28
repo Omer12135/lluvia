@@ -3,82 +3,99 @@
 
   This migration creates:
   1. user_profiles table with comprehensive user data
-  2. RLS policies for secure access
-  3. Helper functions for user management
-  4. Indexes for better performance
+  2. RLS policies for security
+  3. Functions for user management
+  4. Triggers for automatic profile creation
 */
 
 -- Create user_profiles table
 CREATE TABLE IF NOT EXISTS user_profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   email text NOT NULL,
   name text NOT NULL,
   plan text DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'custom')),
   automations_used integer DEFAULT 0,
-  automations_limit integer DEFAULT 1,
+  automations_limit integer DEFAULT 2,
   ai_messages_used integer DEFAULT 0,
   ai_messages_limit integer DEFAULT 0,
   current_month_automations_used integer DEFAULT 0,
   last_reset_date date DEFAULT CURRENT_DATE,
   monthly_automations_used integer DEFAULT 0,
-  phone text,
-  country text,
-  email_verified boolean DEFAULT false,
-  two_factor_enabled boolean DEFAULT false,
-  status text DEFAULT 'pending' CHECK (status IN ('active', 'suspended', 'pending')),
-  auth_provider text DEFAULT 'email' CHECK (auth_provider IN ('email', 'google', 'github')),
-  avatar_url text,
-  preferences jsonb DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE(user_id)
 );
 
--- Enable RLS
+-- Enable RLS on user_profiles table
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
--- Policies for user_profiles
--- Users can view their own profile
-CREATE POLICY "Users can view own profile"
-  ON user_profiles
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
+-- Policies for user_profiles (using IF NOT EXISTS to avoid conflicts)
+DO $$
+BEGIN
+  -- Users can view own profile
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_profiles' 
+    AND policyname = 'Users can view own profile'
+  ) THEN
+    CREATE POLICY "Users can view own profile"
+      ON user_profiles
+      FOR SELECT
+      TO authenticated
+      USING (auth.uid() = user_id);
+  END IF;
 
--- Users can update their own profile
-CREATE POLICY "Users can update own profile"
-  ON user_profiles
-  FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id);
+  -- Users can update own profile
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_profiles' 
+    AND policyname = 'Users can update own profile'
+  ) THEN
+    CREATE POLICY "Users can update own profile"
+      ON user_profiles
+      FOR UPDATE
+      TO authenticated
+      USING (auth.uid() = user_id);
+  END IF;
 
--- Users can insert their own profile
-CREATE POLICY "Users can insert own profile"
-  ON user_profiles
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  -- Users can insert own profile
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_profiles' 
+    AND policyname = 'Users can insert own profile'
+  ) THEN
+    CREATE POLICY "Users can insert own profile"
+      ON user_profiles
+      FOR INSERT
+      TO authenticated
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
--- Admin policies (for users with admin email domains)
-CREATE POLICY "Admin can manage all user profiles"
-  ON user_profiles
-  FOR ALL
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.email LIKE '%@admin.lluvia.ai' OR auth.users.email = 'admin@lluvia.ai')
-    )
-  );
+  -- Admin can view all user profiles
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'user_profiles' 
+    AND policyname = 'Admin can view all user profiles'
+  ) THEN
+    CREATE POLICY "Admin can view all user profiles"
+      ON user_profiles
+      FOR ALL
+      TO authenticated
+      USING (
+        EXISTS (
+          SELECT 1 FROM auth.users 
+          WHERE auth.users.id = auth.uid() 
+          AND (auth.users.email LIKE '%@admin.lluvia.ai' OR auth.users.email = 'admin@lluvia.ai')
+        )
+      );
+  END IF;
+END $$;
 
--- Create indexes for better performance
+-- Create indexes for user_profiles
+CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON user_profiles(email);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_plan ON user_profiles(plan);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_status ON user_profiles(status);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_auth_provider ON user_profiles(auth_provider);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_created_at ON user_profiles(created_at);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_updated_at ON user_profiles(updated_at);
 
 -- Create trigger for updated_at
 DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
@@ -87,27 +104,23 @@ CREATE TRIGGER update_user_profiles_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Function to create user profile on signup
+-- Function to handle new user signup (creates profile automatically)
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO user_profiles (user_id, email, name, auth_provider, status)
+  INSERT INTO user_profiles (user_id, email, name, plan, automations_limit)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
-    CASE 
-      WHEN NEW.raw_user_meta_data->>'provider' = 'google' THEN 'google'
-      WHEN NEW.raw_user_meta_data->>'provider' = 'github' THEN 'github'
-      ELSE 'email'
-    END,
-    'pending'
+    'free',
+    2
   );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create trigger for new user signup
+-- Create trigger for automatic profile creation
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -117,56 +130,37 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION get_user_statistics()
 RETURNS TABLE (
   total_users bigint,
-  active_users bigint,
-  suspended_users bigint,
-  pending_users bigint,
   free_users bigint,
   pro_users bigint,
-  custom_users bigint,
-  email_users bigint,
-  google_users bigint,
-  github_users bigint,
-  verified_users bigint,
-  two_factor_users bigint
+  total_automations bigint,
+  total_ai_messages bigint
 ) AS $$
 BEGIN
   RETURN QUERY
   SELECT 
     COUNT(*) as total_users,
-    COUNT(*) FILTER (WHERE status = 'active') as active_users,
-    COUNT(*) FILTER (WHERE status = 'suspended') as suspended_users,
-    COUNT(*) FILTER (WHERE status = 'pending') as pending_users,
     COUNT(*) FILTER (WHERE plan = 'free') as free_users,
     COUNT(*) FILTER (WHERE plan = 'pro') as pro_users,
-    COUNT(*) FILTER (WHERE plan = 'custom') as custom_users,
-    COUNT(*) FILTER (WHERE auth_provider = 'email') as email_users,
-    COUNT(*) FILTER (WHERE auth_provider = 'google') as google_users,
-    COUNT(*) FILTER (WHERE auth_provider = 'github') as github_users,
-    COUNT(*) FILTER (WHERE email_verified = true) as verified_users,
-    COUNT(*) FILTER (WHERE two_factor_enabled = true) as two_factor_users
+    SUM(automations_used) as total_automations,
+    SUM(ai_messages_used) as total_ai_messages
   FROM user_profiles;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to update user plan limits
-CREATE OR REPLACE FUNCTION update_user_plan_limits(user_uuid uuid, new_plan text)
+CREATE OR REPLACE FUNCTION update_user_plan_limits(
+  user_uuid uuid,
+  new_plan text,
+  new_automations_limit integer,
+  new_ai_messages_limit integer
+)
 RETURNS boolean AS $$
 BEGIN
   UPDATE user_profiles 
   SET 
     plan = new_plan,
-    automations_limit = CASE 
-      WHEN new_plan = 'free' THEN 1
-      WHEN new_plan = 'pro' THEN 50
-      WHEN new_plan = 'custom' THEN -1
-      ELSE automations_limit
-    END,
-    ai_messages_limit = CASE 
-      WHEN new_plan = 'free' THEN 0
-      WHEN new_plan = 'pro' THEN 500
-      WHEN new_plan = 'custom' THEN -1
-      ELSE ai_messages_limit
-    END,
+    automations_limit = new_automations_limit,
+    ai_messages_limit = new_ai_messages_limit,
     updated_at = now()
   WHERE user_id = user_uuid;
   
@@ -174,15 +168,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to reset monthly usage for free users
+-- Function to reset monthly usage for all users
 CREATE OR REPLACE FUNCTION reset_monthly_usage()
 RETURNS void AS $$
 BEGIN
   UPDATE user_profiles 
   SET 
     current_month_automations_used = 0,
-    last_reset_date = CURRENT_DATE
-  WHERE plan = 'free' 
-    AND (last_reset_date IS NULL OR DATE_TRUNC('month', last_reset_date) < DATE_TRUNC('month', CURRENT_DATE));
+    last_reset_date = CURRENT_DATE,
+    updated_at = now()
+  WHERE plan = 'free';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

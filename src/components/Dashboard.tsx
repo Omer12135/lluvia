@@ -31,7 +31,7 @@ import { webhookService } from '../services/webhookService';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, userProfile, logout } = useAuth();
   const { automations, remainingAutomations, currentMonthUsage, automationLimit } = useAutomation();
   const [activeTab, setActiveTab] = useState('create');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -59,6 +59,11 @@ const Dashboard: React.FC = () => {
   const userAutomations = automations.filter(a => a.userId === user.id);
   const completedAutomations = userAutomations.filter(a => a.status === 'completed').length;
   const runningAutomations = userAutomations.filter(a => a.status === 'running').length;
+
+  // Get user stats from profile
+  const userAutomationsUsed = userProfile?.automations_used || 0;
+  const userAutomationsLimit = userProfile?.automations_limit || 2;
+  const userPlan = userProfile?.plan || 'free';
 
   const tabs = [
     { id: 'create', label: 'Create', icon: <Plus className="w-4 h-4" />, description: 'Build automations' },
@@ -108,11 +113,13 @@ const Dashboard: React.FC = () => {
 
   // Get current plan name
   const getCurrentPlanName = () => {
-    if (!user) return 'Free Plan';
+    if (!userProfile) return 'Free Plan';
     
-    switch (user.plan) {
+    switch (userProfile.plan) {
       case 'pro':
         return 'Pro Plan';
+      case 'custom':
+        return 'Custom Plan';
       default:
         return 'Free Plan';
     }

@@ -1,30 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { airtableService } from '../services/airtableService';
+import { supabase } from '../lib/supabase';
+import { User } from '@supabase/supabase-js';
 
-export interface User {
+export interface UserProfile {
   id: string;
+  user_id: string;
   email: string;
   name: string;
   plan: 'free' | 'pro' | 'custom';
-  automationsUsed: number;
-  automationsLimit: number;
-  aiMessagesUsed: number;
-  aiMessagesLimit: number;
-  createdAt: string;
-  lastLogin: string;
-  isActive: boolean;
-  authProvider: 'email' | 'google' | 'github';
-  phone?: string;
-  country?: string;
-  emailVerified: boolean;
-  twoFactorEnabled: boolean;
-  status: 'active' | 'suspended' | 'pending';
-  avatar?: string;
-  preferences?: {
-    theme: 'light' | 'dark' | 'auto';
-    notifications: boolean;
-    language: string;
-  };
+  automations_used: number;
+  automations_limit: number;
+  ai_messages_used: number;
+  ai_messages_limit: number;
+  current_month_automations_used: number;
+  last_reset_date: string;
+  monthly_automations_used: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SystemStats {
@@ -32,31 +24,29 @@ export interface SystemStats {
   activeAutomations: number;
   monthlyRevenue: number;
   systemUptime: number;
-  googleUsers: number;
-  emailUsers: number;
-  verifiedUsers: number;
-  twoFactorUsers: number;
+  freeUsers: number;
+  proUsers: number;
+  totalAutomations: number;
+  totalAiMessages: number;
 }
 
 interface AuthContextType {
   user: User | null;
-  users: User[];
+  userProfile: UserProfile | null;
+  users: UserProfile[];
   systemStats: SystemStats;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  verifyResetCode: (email: string, code: string, newPassword: string) => Promise<void>;
-  updateUser: (userId: string, updates: Partial<User>) => void;
-  updateProfile: (updates: { username?: string; currentPassword?: string; newPassword?: string }) => Promise<void>;
-  deleteUser: (userId: string) => void;
-  suspendUser: (userId: string) => void;
-  activateUser: (userId: string) => void;
-  sendVerificationEmail: (email: string) => Promise<void>;
-  enableTwoFactor: (userId: string) => Promise<void>;
-  disableTwoFactor: (userId: string) => Promise<void>;
+  updateUser: (userId: string, updates: Partial<UserProfile>) => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
+  suspendUser: (userId: string) => Promise<void>;
+  activateUser: (userId: string) => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -71,244 +61,165 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [systemStats, setSystemStats] = useState<SystemStats>({
+    totalUsers: 0,
+    activeAutomations: 0,
+    monthlyRevenue: 0,
+    systemUptime: 99.9,
+    freeUsers: 0,
+    proUsers: 0,
+    totalAutomations: 0,
+    totalAiMessages: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Enhanced demo users with more detailed information
-  const demoUsers: User[] = [
-    {
-      id: '1',
-      email: 'demo@lluvia.ai',
-      name: 'Demo User',
-      plan: 'free',
-      automationsUsed: 1,
-      automationsLimit: 2,
-      aiMessagesUsed: 0,
-      aiMessagesLimit: 0,
-      createdAt: '2024-01-15T10:30:00Z',
-      lastLogin: '2024-01-20T14:45:00Z',
-      isActive: true,
-      authProvider: 'email',
-      phone: '+1 (555) 123-4567',
-      country: 'United States',
-      emailVerified: true,
-      twoFactorEnabled: false,
-      status: 'active',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'dark',
-        notifications: true,
-        language: 'en'
-      }
-    },
-    {
-      id: '2',
-      email: 'pro@lluvia.ai',
-      name: 'Pro User',
-      plan: 'pro',
-      automationsUsed: 25,
-      automationsLimit: 50,
-      aiMessagesUsed: 200,
-      aiMessagesLimit: 500,
-      createdAt: '2024-01-10T09:15:00Z',
-      lastLogin: '2024-01-21T16:20:00Z',
-      isActive: true,
-      authProvider: 'google',
-      phone: '+44 20 7946 0958',
-      country: 'United Kingdom',
-      emailVerified: true,
-      twoFactorEnabled: true,
-      status: 'active',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'auto',
-        notifications: true,
-        language: 'en'
-      }
-    },
-    {
-      id: '3',
-      email: 'pro@lluvia.ai',
-      name: 'Pro User',
-      plan: 'pro',
-      automationsUsed: 23,
-      automationsLimit: 50,
-      aiMessagesUsed: 234,
-      aiMessagesLimit: 1000,
-      createdAt: '2024-01-05T11:00:00Z',
-      lastLogin: '2024-01-22T08:30:00Z',
-      isActive: true,
-      authProvider: 'email',
-      phone: '+49 30 12345678',
-      country: 'Germany',
-      emailVerified: true,
-      twoFactorEnabled: true,
-      status: 'active',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'light',
-        notifications: false,
-        language: 'de'
-      }
-    },
-    {
-      id: '4',
-      email: 'john.doe@gmail.com',
-      name: 'John Doe',
-      plan: 'pro',
-      automationsUsed: 30,
-      automationsLimit: 50,
-      aiMessagesUsed: 300,
-      aiMessagesLimit: 500,
-      createdAt: '2024-01-18T13:45:00Z',
-      lastLogin: '2024-01-21T19:15:00Z',
-      isActive: true,
-      authProvider: 'google',
-      phone: '+1 (555) 987-6543',
-      country: 'Canada',
-      emailVerified: true,
-      twoFactorEnabled: false,
-      status: 'active',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'dark',
-        notifications: true,
-        language: 'en'
-      }
-    },
-    {
-      id: '5',
-      email: 'suspended@lluvia.ai',
-      name: 'Suspended User',
-      plan: 'free',
-      automationsUsed: 0,
-      automationsLimit: 2,
-      aiMessagesUsed: 0,
-      aiMessagesLimit: 0,
-      createdAt: '2024-01-12T15:20:00Z',
-      lastLogin: '2024-01-19T10:30:00Z',
-      isActive: false,
-      authProvider: 'email',
-      phone: '+33 1 42 86 87 88',
-      country: 'France',
-      emailVerified: false,
-      twoFactorEnabled: false,
-      status: 'suspended',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'dark',
-        notifications: true,
-        language: 'fr'
-      }
-    },
-    {
-      id: '6',
-      email: 'pending@lluvia.ai',
-      name: 'Pending User',
-      plan: 'free',
-      automationsUsed: 0,
-      automationsLimit: 2,
-      aiMessagesUsed: 0,
-      aiMessagesLimit: 0,
-      createdAt: '2024-01-22T20:10:00Z',
-      lastLogin: '2024-01-22T20:10:00Z',
-      isActive: false,
-      authProvider: 'email',
-      phone: '+81 3-1234-5678',
-      country: 'Japan',
-      emailVerified: false,
-      twoFactorEnabled: false,
-      status: 'pending',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'auto',
-        notifications: true,
-        language: 'ja'
-      }
-    },
-    {
-      id: '7',
-      email: 'enterprise@lluvia.ai',
-      name: 'Enterprise User',
-      plan: 'custom',
-      automationsUsed: 150,
-      automationsLimit: -1, // Unlimited
-      aiMessagesUsed: 2500,
-      aiMessagesLimit: -1, // Unlimited
-      createdAt: '2024-01-05T08:00:00Z',
-      lastLogin: '2024-01-22T18:30:00Z',
-      isActive: true,
-      authProvider: 'email',
-      phone: '+1 (555) 999-8888',
-      country: 'United States',
-      emailVerified: true,
-      twoFactorEnabled: true,
-      status: 'active',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      preferences: {
-        theme: 'dark',
-        notifications: true,
-        language: 'en'
-      }
-    }
-  ];
-
-  // Calculate system stats based on current users
-  const calculateSystemStats = (currentUsers: User[]): SystemStats => {
-    return {
-      totalUsers: currentUsers.length,
-      activeAutomations: currentUsers.reduce((sum, u) => sum + u.automationsUsed, 0),
-      monthlyRevenue: currentUsers.filter(u => u.plan === 'pro').length * 39 + currentUsers.filter(u => u.plan === 'custom').length * 497,
-      systemUptime: 99.9,
-      googleUsers: currentUsers.filter(u => u.authProvider === 'google').length,
-      emailUsers: currentUsers.filter(u => u.authProvider === 'email').length,
-      verifiedUsers: currentUsers.filter(u => u.emailVerified).length,
-      twoFactorUsers: currentUsers.filter(u => u.twoFactorEnabled).length
-    };
-  };
-
-  const [systemStats, setSystemStats] = useState<SystemStats>(calculateSystemStats(demoUsers));
-
+  // Initialize auth state
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('lluvia_user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('lluvia_user');
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
       }
-    }
-    
-    // Initialize with demo users
-    setUsers(demoUsers);
+      
+      setLoading(false);
+    };
+
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setUserProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Update system stats whenever users change
-  useEffect(() => {
-    setSystemStats(calculateSystemStats(users));
-  }, [users]);
+  // Fetch user profile from Supabase
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        // If profile doesn't exist, create one
+        if (error.code === 'PGRST116') {
+          await createUserProfile(userId);
+        }
+      } else {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
+  // Create user profile
+  const createUserProfile = async (userId: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: userId,
+          email: user.email!,
+          name: user.user_metadata?.name || user.email!.split('@')[0],
+          plan: 'free',
+          automations_limit: 2,
+          ai_messages_limit: 0
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating user profile:', error);
+      } else {
+        setUserProfile(data);
+      }
+    } catch (error) {
+      console.error('Error in createUserProfile:', error);
+    }
+  };
+
+  // Fetch all users (admin only)
+  const fetchAllUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching users:', error);
+      } else {
+        setUsers(data || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchAllUsers:', error);
+    }
+  };
+
+  // Fetch system stats
+  const fetchSystemStats = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_user_statistics');
+      
+      if (error) {
+        console.error('Error fetching system stats:', error);
+      } else if (data && data.length > 0) {
+        const stats = data[0];
+        setSystemStats({
+          totalUsers: Number(stats.total_users) || 0,
+          activeAutomations: 0, // Will be calculated from automation_requests
+          monthlyRevenue: 0, // Will be calculated from subscriptions
+          systemUptime: 99.9,
+          freeUsers: Number(stats.free_users) || 0,
+          proUsers: Number(stats.pro_users) || 0,
+          totalAutomations: Number(stats.total_automations) || 0,
+          totalAiMessages: Number(stats.total_ai_messages) || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchSystemStats:', error);
+    }
+  };
+
+  // Login function
   const login = async (email: string, password: string) => {
     setLoading(true);
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const foundUser = users.find(u => u.email === email);
-      if (foundUser && foundUser.authProvider === 'email') {
-        // Update last login
-        const updatedUser = { ...foundUser, lastLogin: new Date().toISOString() };
-        setUser(updatedUser);
-        localStorage.setItem('lluvia_user', JSON.stringify(updatedUser));
-        
-        // Update user in the list
-        setUsers(prev => prev.map(u => u.id === foundUser.id ? updatedUser : u));
-      } else {
-        throw new Error('Invalid credentials');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        await fetchUserProfile(data.user.id);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -318,24 +229,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Google login
   const loginWithGoogle = async () => {
     setLoading(true);
-    
     try {
-      // Simulate Google OAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // In real implementation, this would handle Google OAuth flow
-      const googleUser = users.find(u => u.authProvider === 'google');
-      if (googleUser) {
-        const updatedUser = { ...googleUser, lastLogin: new Date().toISOString() };
-        setUser(updatedUser);
-        localStorage.setItem('lluvia_user', JSON.stringify(updatedUser));
-        
-        // Update user in the list
-        setUsers(prev => prev.map(u => u.id === googleUser.id ? updatedUser : u));
-      } else {
-        throw new Error('Google authentication failed');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        throw error;
       }
     } catch (error) {
       console.error('Google login error:', error);
@@ -345,247 +251,187 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Register function
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
-    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user already exists
-      const existingUser = users.find(u => u.email === email);
-      if (existingUser) {
-        throw new Error('User already exists');
-      }
-      
-      // Create new user
-      const newUser: User = {
-        id: (users.length + 1).toString(),
+      const { data, error } = await supabase.auth.signUp({
         email,
-        name,
-        plan: 'free',
-        automationsUsed: 0,
-        automationsLimit: 2,
-        aiMessagesUsed: 0,
-        aiMessagesLimit: 0,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-        isActive: true,
-        authProvider: 'email',
-        emailVerified: false,
-        twoFactorEnabled: false,
-        status: 'pending',
-        preferences: {
-          theme: 'dark',
-          notifications: true,
-          language: 'en'
+        password,
+        options: {
+          data: {
+            name: name
+          }
         }
-      };
-      
-      // Add new user to the list
-      setUsers(prev => [...prev, newUser]);
-      
-      // Set as current user
-      setUser(newUser);
-      localStorage.setItem('lluvia_user', JSON.stringify(newUser));
-      
-      // Add user to Airtable
-      try {
-        await airtableService.addUser({
-          email: newUser.email,
-          username: newUser.name,
-          plan: newUser.plan,
-          registrationDate: newUser.createdAt,
-          status: newUser.status
-        });
-        console.log('User added to Airtable successfully');
-      } catch (airtableError) {
-        console.warn('Failed to add user to Airtable:', airtableError);
-        // Don't throw error for Airtable failure, as user registration should still succeed
+      });
+
+      if (error) {
+        throw error;
       }
-      
-      console.log('New user registered:', newUser);
+
+      if (data.user) {
+        setUser(data.user);
+        // Profile will be created automatically by the trigger
+        await fetchUserProfile(data.user.id);
+      }
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Register error:', error);
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('lluvia_user');
+  // Logout function
+  const logout = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      setUser(null);
+      setUserProfile(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Reset password
   const resetPassword = async (email: string) => {
     setLoading(true);
-    
     try {
-      // Simulate sending reset email
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const user = users.find(u => u.email === email);
-      if (!user) {
-        throw new Error('User not found');
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) {
+        throw error;
       }
-      
-      // In real implementation, send reset code to email
-      console.log(`Reset code sent to ${email}`);
     } catch (error) {
-      console.error('Password reset error:', error);
+      console.error('Reset password error:', error);
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const verifyResetCode = async (email: string, code: string, newPassword: string) => {
-    setLoading(true);
-    
+  // Update user profile
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!userProfile) return;
+
     try {
-      // Simulate code verification
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const user = users.find(u => u.email === email);
-      if (!user) {
-        throw new Error('User not found');
-      }
-      
-      // In real implementation, verify code and update password
-      console.log(`Password updated for ${email}`);
-    } catch (error) {
-      console.error('Code verification error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('user_id', userProfile.user_id)
+        .select()
+        .single();
 
-  const updateUser = (userId: string, updates: Partial<User>) => {
-    setUsers(prev => prev.map(user => 
-      user.id === userId ? { ...user, ...updates } : user
-    ));
-    
-    // Update current user if it's the same user
-    if (user?.id === userId) {
-      setUser(prev => prev ? { ...prev, ...updates } : null);
-      localStorage.setItem('lluvia_user', JSON.stringify({ ...user, ...updates }));
-    }
-  };
-
-  const updateProfile = async (updates: { username?: string; currentPassword?: string; newPassword?: string }) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    setLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update username if provided
-      if (updates.username) {
-        updateUser(user.id, { name: updates.username });
+      if (error) {
+        throw error;
       }
-      
-      // Update password if provided
-      if (updates.currentPassword && updates.newPassword) {
-        // In a real app, you would verify the current password with the backend
-        // For demo purposes, we'll just update it
-        console.log('Password updated successfully');
-      }
-      
-      console.log('Profile updated successfully');
+
+      setUserProfile(data);
     } catch (error) {
       console.error('Update profile error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const deleteUser = (userId: string) => {
-    setUsers(prev => prev.filter(user => user.id !== userId));
-    
-    // Logout if current user is deleted
-    if (user?.id === userId) {
-      logout();
-    }
-  };
-
-  const suspendUser = (userId: string) => {
-    updateUser(userId, { status: 'suspended', isActive: false });
-  };
-
-  const activateUser = (userId: string) => {
-    updateUser(userId, { status: 'active', isActive: true });
-  };
-
-  const sendVerificationEmail = async (email: string) => {
-    setLoading(true);
-    
+  // Update user (admin function)
+  const updateUser = async (userId: string, updates: Partial<UserProfile>) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`Verification email sent to ${email}`);
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Update local state
+      setUsers(prev => prev.map(u => u.user_id === userId ? data : u));
+      if (userProfile?.user_id === userId) {
+        setUserProfile(data);
+      }
     } catch (error) {
-      console.error('Verification email error:', error);
+      console.error('Update user error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const enableTwoFactor = async (userId: string) => {
-    setLoading(true);
-    
+  // Delete user (admin function)
+  const deleteUser = async (userId: string) => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      updateUser(userId, { twoFactorEnabled: true });
+      const { error } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) {
+        throw error;
+      }
+
+      setUsers(prev => prev.filter(u => u.user_id !== userId));
     } catch (error) {
-      console.error('Enable 2FA error:', error);
+      console.error('Delete user error:', error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const disableTwoFactor = async (userId: string) => {
-    setLoading(true);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      updateUser(userId, { twoFactorEnabled: false });
-    } catch (error) {
-      console.error('Disable 2FA error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+  // Suspend user (admin function)
+  const suspendUser = async (userId: string) => {
+    await updateUser(userId, { plan: 'free' as const });
+  };
+
+  // Activate user (admin function)
+  const activateUser = async (userId: string) => {
+    await updateUser(userId, { plan: 'pro' as const });
+  };
+
+  // Refresh user profile
+  const refreshUserProfile = async () => {
+    if (user) {
+      await fetchUserProfile(user.id);
     }
+  };
+
+  // Load admin data when user is admin
+  useEffect(() => {
+    if (user && (user.email?.includes('@admin.lluvia.ai') || user.email === 'admin@lluvia.ai')) {
+      fetchAllUsers();
+      fetchSystemStats();
+    }
+  }, [user]);
+
+  const value: AuthContextType = {
+    user,
+    userProfile,
+    users,
+    systemStats,
+    loading,
+    login,
+    loginWithGoogle,
+    register,
+    logout,
+    resetPassword,
+    updateUser,
+    updateProfile,
+    deleteUser,
+    suspendUser,
+    activateUser,
+    refreshUserProfile
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      users,
-      systemStats,
-      loading,
-      login,
-      loginWithGoogle,
-      register,
-      logout,
-      resetPassword,
-      verifyResetCode,
-      updateUser,
-      updateProfile,
-      deleteUser,
-      suspendUser,
-      activateUser,
-      sendVerificationEmail,
-      enableTwoFactor,
-      disableTwoFactor
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
