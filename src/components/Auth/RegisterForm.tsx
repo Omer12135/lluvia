@@ -46,7 +46,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin, onClose })
       await register(formData.email, formData.password, formData.name);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      console.error('Registration form error:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === 'object' && err !== null && 'message' in err) {
+        setError(String(err.message));
+      } else {
+        setError('Registration failed. Please check your connection and try again.');
+      }
     }
   };
 

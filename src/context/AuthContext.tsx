@@ -255,6 +255,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
+      console.log('Starting registration for:', email);
+      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -265,14 +269,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       });
 
+      console.log('Registration response:', { data, error });
+
       if (error) {
+        console.error('Supabase registration error:', error);
         throw error;
       }
 
       if (data.user) {
+        console.log('User created successfully:', data.user);
         setUser(data.user);
         // Profile will be created automatically by the trigger
         await fetchUserProfile(data.user.id);
+      } else {
+        console.log('No user data returned');
       }
     } catch (error) {
       console.error('Register error:', error);
