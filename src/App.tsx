@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminLogin from './components/Admin/AdminLogin';
 import BlogPage from './components/BlogPage';
+import SupabaseTest from './components/SupabaseTest';
 
 import { AutomationProvider } from './context/AutomationContext';
 import { BlogProvider } from './context/BlogContext';
@@ -32,6 +33,7 @@ function App() {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/blog" element={<BlogPage />} />
+              <Route path="/test" element={<SupabaseTest />} />
             </Routes>
             </BlogProvider>
 
