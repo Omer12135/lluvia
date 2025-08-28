@@ -2,11 +2,73 @@
   # Add automation usage tracking system
 
   This migration adds:
-  1. Monthly usage tracking for automations
-  2. Reset functionality for Free plan (monthly reset)
-  3. Pro plan tracking (monthly limit with rollover)
-  4. Usage history table
+  1. automation_requests table for storing automation requests
+  2. Monthly usage tracking for automations
+  3. Reset functionality for Free plan (monthly reset)
+  4. Pro plan tracking (monthly limit with rollover)
+  5. Usage history table
 */
+
+-- Create automation_requests table
+CREATE TABLE IF NOT EXISTS automation_requests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  automation_name text NOT NULL,
+  automation_description text NOT NULL,
+  webhook_payload jsonb,
+  webhook_response jsonb,
+  status text DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'completed', 'failed')),
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  n8n_execution_id text
+);
+
+-- Enable RLS on automation_requests table
+ALTER TABLE automation_requests ENABLE ROW LEVEL SECURITY;
+
+-- Policies for automation_requests
+CREATE POLICY "Users can view own automation requests"
+  ON automation_requests
+  FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own automation requests"
+  ON automation_requests
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own automation requests"
+  ON automation_requests
+  FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- Admin policies
+CREATE POLICY "Admin can view all automation requests"
+  ON automation_requests
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM auth.users 
+      WHERE auth.users.id = auth.uid() 
+      AND (auth.users.email LIKE '%@admin.lluvia.ai' OR auth.users.email = 'admin@lluvia.ai')
+    )
+  );
+
+-- Create indexes for automation_requests
+CREATE INDEX IF NOT EXISTS idx_automation_requests_user_id ON automation_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_automation_requests_status ON automation_requests(status);
+CREATE INDEX IF NOT EXISTS idx_automation_requests_created_at ON automation_requests(created_at);
+
+-- Create trigger for updated_at on automation_requests
+DROP TRIGGER IF EXISTS update_automation_requests_updated_at ON automation_requests;
+CREATE TRIGGER update_automation_requests_updated_at
+    BEFORE UPDATE ON automation_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
 -- Add monthly usage tracking columns to user_profiles
 ALTER TABLE user_profiles 

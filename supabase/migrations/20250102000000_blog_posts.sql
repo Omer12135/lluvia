@@ -188,32 +188,3 @@ CREATE TRIGGER update_published_at_trigger
     FOR EACH ROW
     EXECUTE FUNCTION update_published_at();
 
--- Insert some sample blog posts for testing
-INSERT INTO blog_posts (title, content, excerpt, author_id, author_name, category, tags, status, read_time, meta_title, meta_description) VALUES
-(
-  'Getting Started with Automation',
-  '<h1>Getting Started with Automation</h1><p>Automation is the key to improving productivity and efficiency in modern workflows...</p>',
-  'Learn the basics of workflow automation and how to get started with your first automated process.',
-  (SELECT id FROM auth.users LIMIT 1),
-  'Admin User',
-  'Otomasyon',
-  ARRAY['automation', 'workflow', 'productivity'],
-  'published',
-  8,
-  'Getting Started with Automation - Complete Guide',
-  'Learn the basics of workflow automation and how to get started with your first automated process. Discover tools, best practices, and real-world examples.'
-),
-(
-  'Advanced API Integration Techniques',
-  '<h1>Advanced API Integration Techniques</h1><p>Master the art of connecting different services and applications through APIs...</p>',
-  'Explore advanced techniques for integrating APIs and building robust connections between services.',
-  (SELECT id FROM auth.users LIMIT 1),
-  'Admin User',
-  'API Entegrasyonu',
-  ARRAY['api', 'integration', 'webhooks'],
-  'published',
-  12,
-  'Advanced API Integration Techniques - Expert Guide',
-  'Explore advanced techniques for integrating APIs and building robust connections between services. Learn about authentication, error handling, and best practices.'
-);
-
