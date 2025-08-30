@@ -1,128 +1,120 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, CheckCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, CheckCircle, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const EmailConfirmationPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   console.log('EmailConfirmationPage rendered!');
 
-  // Check if user is already confirmed
+  // Check URL parameters for email confirmation
   useEffect(() => {
     console.log('EmailConfirmationPage useEffect running...');
-    const checkEmailConfirmation = async () => {
-      try {
-        console.log('Checking email confirmation...');
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error) {
-          console.error('Error getting user:', error);
-          return;
-        }
+    
+    // Check if we have confirmation parameters in URL
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
+    
+    console.log('URL params - token:', token, 'type:', type);
+    
+    if (token && type === 'signup') {
+      console.log('Found confirmation token, attempting to confirm...');
+      handleEmailConfirmation(token);
+    } else {
+      // No token, show manual confirmation option
+      setMessage('Please click the button below to check your email confirmation status.');
+    }
+  }, [searchParams]);
 
-        console.log('Current user:', user);
-
-        if (user?.email_confirmed_at) {
-          console.log('Email already confirmed, redirecting to dashboard');
-          setConfirmed(true);
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 2000);
-        }
-      } catch (error) {
-        console.error('Error checking email confirmation:', error);
-      }
-    };
-
-    checkEmailConfirmation();
-  }, [navigate]);
-
-  const handleConfirmEmail = async () => {
+  const handleEmailConfirmation = async (token?: string) => {
     setLoading(true);
     setError('');
+    setMessage('');
 
     try {
-      console.log('Manually confirming email...');
+      console.log('Handling email confirmation...');
       
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 seconds timeout
-      });
-
-      // Get current user with timeout
-      const userPromise = supabase.auth.getUser();
-      const { data: { user }, error: userError } = await Promise.race([userPromise, timeoutPromise]) as any;
-      
-      if (userError) {
-        throw userError;
-      }
-
-      if (!user) {
-        throw new Error('No user found');
-      }
-
-      console.log('Current user:', user);
-      console.log('Email confirmed at:', user.email_confirmed_at);
-
-      if (user.email_confirmed_at) {
-        console.log('Email is confirmed!');
-        setConfirmed(true);
+      if (token) {
+        // We have a token, try to confirm email
+        console.log('Confirming email with token...');
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'signup'
+        });
         
-        // Redirect to dashboard after 2 seconds
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-        return;
-      }
-
-      // Try to refresh the session
-      console.log('Trying to refresh session...');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        throw sessionError;
-      }
-
-      console.log('Session refreshed:', session);
-
-      if (session?.user?.email_confirmed_at) {
-        console.log('Email confirmed after session refresh!');
-        setConfirmed(true);
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      } else {
-        // Try to get fresh user data
-        console.log('Trying to get fresh user data...');
-        const { data: { user: freshUser }, error: freshError } = await supabase.auth.getUser();
-        
-        if (freshError) {
-          throw freshError;
+        if (error) {
+          throw error;
         }
-
-        console.log('Fresh user data:', freshUser);
-
-        if (freshUser?.email_confirmed_at) {
-          console.log('Email confirmed with fresh user data!');
+        
+        if (data.user?.email_confirmed_at) {
+          console.log('Email confirmed successfully with token!');
           setConfirmed(true);
           setTimeout(() => {
             navigate('/dashboard');
           }, 2000);
-        } else {
-          setError('Email not yet confirmed. Please check your email and click the confirmation link again, or try refreshing the page.');
+          return;
         }
       }
+      
+      // Try to get current user (if session exists)
+      console.log('Trying to get current user...');
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (!userError && user) {
+          console.log('Current user found:', user);
+          console.log('Email confirmed at:', user.email_confirmed_at);
+          
+          if (user.email_confirmed_at) {
+            console.log('Email is confirmed!');
+            setConfirmed(true);
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 2000);
+            return;
+          }
+        }
+      } catch (sessionError) {
+        console.log('No active session found, this is normal for email confirmation');
+      }
+      
+      // Try to refresh the session
+      console.log('Trying to refresh session...');
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!sessionError && session?.user?.email_confirmed_at) {
+          console.log('Email confirmed after session refresh!');
+          setConfirmed(true);
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
+          return;
+        }
+      } catch (refreshError) {
+        console.log('Session refresh failed:', refreshError);
+      }
+      
+      // If we reach here, email is not confirmed
+      setMessage('Email confirmation status checked. If your email is confirmed, you can now sign in. If not, please check your email and click the confirmation link again.');
+      
     } catch (error) {
       console.error('Error confirming email:', error);
-      if (error instanceof Error && error.message === 'Request timeout') {
-        setError('Request timed out. Please try again or refresh the page.');
+      if (error instanceof Error) {
+        if (error.message.includes('token')) {
+          setError('Invalid or expired confirmation link. Please check your email for a fresh confirmation link.');
+        } else {
+          setError(error.message);
+        }
       } else {
-        setError(error instanceof Error ? error.message : 'An error occurred while confirming email.');
+        setError('An error occurred while confirming email.');
       }
     } finally {
       setLoading(false);
@@ -166,53 +158,56 @@ const EmailConfirmationPage: React.FC = () => {
           <Mail className="w-8 h-8 text-white" />
         </div>
         
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Confirm Your Email</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Email Confirmation</h1>
         <p className="text-gray-600 mb-6">
-          You've clicked the email confirmation link. Click the button below to complete the confirmation process.
+          {message || 'Checking your email confirmation status...'}
         </p>
         
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600 text-sm">{error}</p>
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
           </div>
         )}
         
         <button
-          onClick={handleConfirmEmail}
+          onClick={() => handleEmailConfirmation()}
           disabled={loading}
           className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Confirming...</span>
+              <span>Checking...</span>
             </>
           ) : (
             <>
               <CheckCircle className="w-5 h-5" />
-              <span>Confirm Email</span>
+              <span>Check Email Status</span>
             </>
           )}
         </button>
         
         <div className="mt-6 text-sm text-gray-500">
-          <p>After confirmation, you'll be automatically redirected to your dashboard.</p>
+          <p>After confirmation, you can sign in to access your dashboard.</p>
         </div>
         
         <div className="mt-4 space-y-2">
           <button
-            onClick={() => window.location.reload()}
-            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
+            onClick={() => navigate('/login')}
+            className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
           >
-            🔄 Refresh Page
+            <span>Go to Login</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
           
           <button
             onClick={() => navigate('/')}
-            className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
+            className="text-gray-600 hover:text-gray-700 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
           >
             <span>Back to Home</span>
-            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </motion.div>
