@@ -10,16 +10,22 @@ const EmailConfirmationPage: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  console.log('EmailConfirmationPage rendered!');
+
   // Check if user is already confirmed
   useEffect(() => {
+    console.log('EmailConfirmationPage useEffect running...');
     const checkEmailConfirmation = async () => {
       try {
+        console.log('Checking email confirmation...');
         const { data: { user }, error } = await supabase.auth.getUser();
         
         if (error) {
           console.error('Error getting user:', error);
           return;
         }
+
+        console.log('Current user:', user);
 
         if (user?.email_confirmed_at) {
           console.log('Email already confirmed, redirecting to dashboard');
@@ -43,8 +49,14 @@ const EmailConfirmationPage: React.FC = () => {
     try {
       console.log('Manually confirming email...');
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 seconds timeout
+      });
+
+      // Get current user with timeout
+      const userPromise = supabase.auth.getUser();
+      const { data: { user }, error: userError } = await Promise.race([userPromise, timeoutPromise]) as any;
       
       if (userError) {
         throw userError;
@@ -65,27 +77,53 @@ const EmailConfirmationPage: React.FC = () => {
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
+        return;
+      }
+
+      // Try to refresh the session
+      console.log('Trying to refresh session...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      console.log('Session refreshed:', session);
+
+      if (session?.user?.email_confirmed_at) {
+        console.log('Email confirmed after session refresh!');
+        setConfirmed(true);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
       } else {
-        // Try to refresh the session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Try to get fresh user data
+        console.log('Trying to get fresh user data...');
+        const { data: { user: freshUser }, error: freshError } = await supabase.auth.getUser();
         
-        if (sessionError) {
-          throw sessionError;
+        if (freshError) {
+          throw freshError;
         }
 
-        if (session?.user?.email_confirmed_at) {
-          console.log('Email confirmed after session refresh!');
+        console.log('Fresh user data:', freshUser);
+
+        if (freshUser?.email_confirmed_at) {
+          console.log('Email confirmed with fresh user data!');
           setConfirmed(true);
           setTimeout(() => {
             navigate('/dashboard');
           }, 2000);
         } else {
-          setError('Email not yet confirmed. Please check your email and click the confirmation link again.');
+          setError('Email not yet confirmed. Please check your email and click the confirmation link again, or try refreshing the page.');
         }
       }
     } catch (error) {
       console.error('Error confirming email:', error);
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      if (error instanceof Error && error.message === 'Request timeout') {
+        setError('Request timed out. Please try again or refresh the page.');
+      } else {
+        setError(error instanceof Error ? error.message : 'An error occurred while confirming email.');
+      }
     } finally {
       setLoading(false);
     }
@@ -161,7 +199,14 @@ const EmailConfirmationPage: React.FC = () => {
           <p>After confirmation, you'll be automatically redirected to your dashboard.</p>
         </div>
         
-        <div className="mt-4">
+        <div className="mt-4 space-y-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
+          >
+            🔄 Refresh Page
+          </button>
+          
           <button
             onClick={() => navigate('/')}
             className="text-purple-600 hover:text-purple-700 text-sm font-medium flex items-center justify-center space-x-1 mx-auto"
