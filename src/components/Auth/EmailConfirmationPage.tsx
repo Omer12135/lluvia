@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -9,15 +9,36 @@ const EmailConfirmationPage: React.FC = () => {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [hasChecked, setHasChecked] = useState(false);
+  const hasInitialized = useRef(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   console.log('EmailConfirmationPage rendered!');
 
-  // Memoize the handleEmailConfirmation function
-  const handleEmailConfirmation = useCallback(async (token?: string) => {
-    if (loading) return; // Prevent multiple calls
+  // Initialize only once
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    
+    console.log('EmailConfirmationPage initializing...');
+    
+    // Check if we have confirmation parameters in URL
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
+    
+    console.log('URL params - token:', token, 'type:', type);
+    
+    if (token && type === 'signup') {
+      console.log('Found confirmation token, attempting to confirm...');
+      handleEmailConfirmation(token);
+    } else {
+      // No token, show manual confirmation option
+      setMessage('Please click the button below to check your email confirmation status.');
+    }
+  }, []); // Empty dependency array - only run once
+
+  const handleEmailConfirmation = async (token?: string) => {
+    if (loading) return;
     
     setLoading(true);
     setError('');
@@ -61,7 +82,7 @@ const EmailConfirmationPage: React.FC = () => {
             console.log('Email is confirmed!');
             setConfirmed(true);
             setTimeout(() => {
-              navigate('/dashboard');
+              navigate('/login');
             }, 2000);
             return;
           }
@@ -79,7 +100,7 @@ const EmailConfirmationPage: React.FC = () => {
           console.log('Email confirmed after session refresh!');
           setConfirmed(true);
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/login');
           }, 2000);
           return;
         }
@@ -104,30 +125,7 @@ const EmailConfirmationPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [loading, navigate]);
-
-  // Check URL parameters for email confirmation - only once
-  useEffect(() => {
-    if (hasChecked) return; // Prevent multiple checks
-    
-    console.log('EmailConfirmationPage useEffect running...');
-    
-    // Check if we have confirmation parameters in URL
-    const token = searchParams.get('token');
-    const type = searchParams.get('type');
-    
-    console.log('URL params - token:', token, 'type:', type);
-    
-    if (token && type === 'signup') {
-      console.log('Found confirmation token, attempting to confirm...');
-      handleEmailConfirmation(token);
-    } else {
-      // No token, show manual confirmation option
-      setMessage('Please click the button below to check your email confirmation status.');
-    }
-    
-    setHasChecked(true); // Mark as checked
-  }, [searchParams, hasChecked, handleEmailConfirmation]);
+  };
 
   if (confirmed) {
     return (
@@ -143,7 +141,7 @@ const EmailConfirmationPage: React.FC = () => {
           
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Email Confirmed!</h1>
           <p className="text-gray-600 mb-6">
-            Your email has been successfully confirmed. You're now being redirected to the dashboard.
+            Your email has been successfully confirmed. You're now being redirected to the login page.
           </p>
           
           <div className="flex items-center justify-center space-x-2 text-green-500">
