@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -9,31 +9,16 @@ const EmailConfirmationPage: React.FC = () => {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [hasChecked, setHasChecked] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   console.log('EmailConfirmationPage rendered!');
 
-  // Check URL parameters for email confirmation
-  useEffect(() => {
-    console.log('EmailConfirmationPage useEffect running...');
+  // Memoize the handleEmailConfirmation function
+  const handleEmailConfirmation = useCallback(async (token?: string) => {
+    if (loading) return; // Prevent multiple calls
     
-    // Check if we have confirmation parameters in URL
-    const token = searchParams.get('token');
-    const type = searchParams.get('type');
-    
-    console.log('URL params - token:', token, 'type:', type);
-    
-    if (token && type === 'signup') {
-      console.log('Found confirmation token, attempting to confirm...');
-      handleEmailConfirmation(token);
-    } else {
-      // No token, show manual confirmation option
-      setMessage('Please click the button below to check your email confirmation status.');
-    }
-  }, [searchParams]);
-
-  const handleEmailConfirmation = async (token?: string) => {
     setLoading(true);
     setError('');
     setMessage('');
@@ -119,7 +104,30 @@ const EmailConfirmationPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, navigate]);
+
+  // Check URL parameters for email confirmation - only once
+  useEffect(() => {
+    if (hasChecked) return; // Prevent multiple checks
+    
+    console.log('EmailConfirmationPage useEffect running...');
+    
+    // Check if we have confirmation parameters in URL
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
+    
+    console.log('URL params - token:', token, 'type:', type);
+    
+    if (token && type === 'signup') {
+      console.log('Found confirmation token, attempting to confirm...');
+      handleEmailConfirmation(token);
+    } else {
+      // No token, show manual confirmation option
+      setMessage('Please click the button below to check your email confirmation status.');
+    }
+    
+    setHasChecked(true); // Mark as checked
+  }, [searchParams, hasChecked, handleEmailConfirmation]);
 
   if (confirmed) {
     return (
