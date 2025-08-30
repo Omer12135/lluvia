@@ -294,6 +294,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (error) {
+        // Handle specific email confirmation error
+        if (error.message.includes('Email not confirmed')) {
+          throw new Error('Please confirm your email address before signing in. Check your inbox for a confirmation link.');
+        }
         throw error;
       }
 

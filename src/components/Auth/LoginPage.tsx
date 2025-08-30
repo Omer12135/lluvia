@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft, Workflow } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft, ArrowRight, Workflow } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -100,6 +100,18 @@ const LoginPage: React.FC = () => {
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                 <p className="text-red-400 text-sm">{error}</p>
+                {error.includes('confirm your email') && (
+                  <div className="mt-2 pt-2 border-t border-red-500/20">
+                    <p className="text-red-300 text-xs mb-2">Need to confirm your email?</p>
+                    <Link
+                      to="/confirm-email"
+                      className="inline-flex items-center space-x-1 text-purple-400 hover:text-purple-300 text-xs font-medium"
+                    >
+                      <span>Go to Email Confirmation</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
 
