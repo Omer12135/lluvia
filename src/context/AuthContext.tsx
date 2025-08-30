@@ -36,10 +36,12 @@ interface AuthContextType {
   users: UserProfile[];
   systemStats: SystemStats;
   loading: boolean;
+  emailConfirmed: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  resendConfirmationEmail: (email: string) => Promise<void>;
   updateUser: (userId: string, updates: Partial<UserProfile>) => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
@@ -73,6 +75,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     totalAiMessages: 0
   });
   const [loading, setLoading] = useState(true);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
 
   // Initialize auth state
   useEffect(() => {
@@ -83,6 +86,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       if (session?.user) {
         await fetchUserProfile(session.user.id);
+        setEmailConfirmed(session.user.email_confirmed_at !== null);
       }
       
       setLoading(false);
@@ -94,12 +98,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        // Handle email confirmation
+        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+          console.log('Email confirmed!');
+          setEmailConfirmed(true);
+          if (session?.user) {
+            await fetchUserProfile(session.user.id);
+          }
+        }
+        
         setUser(session?.user ?? null);
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
+          setEmailConfirmed(session.user.email_confirmed_at !== null);
         } else {
           setUserProfile(null);
+          setEmailConfirmed(false);
         }
         
         setLoading(false);
@@ -108,6 +124,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Poll for email confirmation status when user is signed in but email not confirmed
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (user && !emailConfirmed) {
+      console.log('Starting email confirmation polling...');
+      intervalId = setInterval(async () => {
+        try {
+          console.log('Polling for email confirmation...');
+          
+          // Get current user from Supabase
+          const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+          
+          if (error) {
+            console.error('Error getting user:', error);
+            return;
+          }
+          
+          console.log('Current user from Supabase:', currentUser);
+          console.log('Email confirmed at:', currentUser?.email_confirmed_at);
+          
+          if (currentUser?.email_confirmed_at) {
+            console.log('Email confirmed via polling!');
+            setEmailConfirmed(true);
+            setUser(currentUser);
+            await fetchUserProfile(currentUser.id);
+            clearInterval(intervalId);
+          }
+        } catch (error) {
+          console.error('Error polling email confirmation:', error);
+        }
+      }, 2000); // Check every 2 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [user, emailConfirmed]);
 
   // Fetch user profile from Supabase
   const fetchUserProfile = async (userId: string) => {
@@ -339,6 +396,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Resend confirmation email
+  const resendConfirmationEmail = async (email: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Resend confirmation email error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update user profile
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!userProfile) return;
@@ -437,10 +514,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       users,
       systemStats,
       loading,
+      emailConfirmed,
       login,
       register,
       logout,
       resetPassword,
+      resendConfirmationEmail,
       updateUser,
       updateProfile,
       deleteUser,

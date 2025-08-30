@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import PasswordResetForm from './PasswordResetForm';
+import { useAuth } from '../../context/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,6 +14,17 @@ interface AuthModalProps {
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [mode, setMode] = useState<'login' | 'register' | 'reset'>(initialMode);
+  const { emailConfirmed } = useAuth();
+
+  // Auto-close modal when email is confirmed
+  useEffect(() => {
+    if (emailConfirmed && isOpen) {
+      console.log('Email confirmed, auto-closing modal');
+      onClose();
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
+    }
+  }, [emailConfirmed, isOpen, onClose]);
 
   if (!isOpen) return null;
 
