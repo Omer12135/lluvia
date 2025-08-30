@@ -1,30 +1,56 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';import { motion } from 'framer-motion';
 import { Mail, CheckCircle, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-const EmailConfirmationPage: React.FC = React.memo(() => {
+const EmailConfirmationPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [hasInitialized, setHasInitialized] = useState(false);
+  
+  // Use refs to prevent re-renders
+  const hasInitialized = useRef(false);
+  const isProcessing = useRef(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   console.log('EmailConfirmationPage rendered!');
 
-  // Memoize URL parameters
-  const urlParams = useMemo(() => ({
-    token: searchParams.get('token'),
-    type: searchParams.get('type')
-  }), [searchParams]);
-
-  // Memoize the confirmation handler
-  const handleEmailConfirmation = useCallback(async (token?: string) => {
-    if (loading) return;
+  // Initialize only once - STRICT control with refs
+  useEffect(() => {
+    if (hasInitialized.current || isProcessing.current) {
+      console.log('Already initialized or processing, skipping...');
+      return;
+    }
     
+    console.log('EmailConfirmationPage initializing...');
+    hasInitialized.current = true;
+    isProcessing.current = true;
+    
+    // Check if we have confirmation parameters in URL
+    const token = searchParams.get('token');
+    const type = searchParams.get('type');
+    
+    console.log('URL params - token:', token, 'type:', type);
+    
+    if (token && type === 'signup') {
+      console.log('Found confirmation token, attempting to confirm...');
+      handleEmailConfirmation(token);
+    } else {
+      // No token, show manual confirmation option
+      setMessage('Please click the button below to confirm your email address.');
+      isProcessing.current = false;
+    }
+  }, []); // Empty dependency array - only run once
+
+  const handleEmailConfirmation = async (token?: string) => {
+    if (loading || isProcessing.current) {
+      console.log('Already processing, skipping...');
+      return;
+    }
+    
+    isProcessing.current = true;
     setLoading(true);
     setError('');
     setMessage('');
@@ -94,7 +120,7 @@ const EmailConfirmationPage: React.FC = React.memo(() => {
       }
       
       // If we reach here, email is not confirmed
-      setMessage('Email confirmation status checked. If your email is confirmed, you can now sign in. If not, please check your email and click the confirmation link again.');
+      setMessage('Email confirmation completed. If your email is confirmed, you can now sign in. If not, please check your email and click the confirmation link again.');
       
     } catch (error) {
       console.error('Error confirming email:', error);
@@ -109,57 +135,37 @@ const EmailConfirmationPage: React.FC = React.memo(() => {
       }
     } finally {
       setLoading(false);
+      isProcessing.current = false;
     }
-  }, [loading, navigate]);
+  };
 
-  // Initialize only once - STRICT control
-  useEffect(() => {
-    if (hasInitialized) {
-      console.log('Already initialized, skipping...');
-      return;
-    }
-    
-    console.log('EmailConfirmationPage initializing...');
-    setHasInitialized(true);
-    
-    console.log('URL params - token:', urlParams.token, 'type:', urlParams.type);
-    
-    if (urlParams.token && urlParams.type === 'signup') {
-      console.log('Found confirmation token, attempting to confirm...');
-      handleEmailConfirmation(urlParams.token);
-    } else {
-      // No token, show manual confirmation option
-      setMessage('Please click the button below to check your email confirmation status.');
-    }
-  }, [hasInitialized, urlParams.token, urlParams.type, handleEmailConfirmation]);
+  if (confirmed) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl"
+        >
+          <div className="mx-auto w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-6">
+            <CheckCircle className="w-8 h-8 text-white" />
+          </div>
+          
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Email Confirmed!</h1>
+          <p className="text-gray-600 mb-6">
+            Your email has been successfully confirmed. You're now being redirected to the login page.
+          </p>
+          
+          <div className="flex items-center justify-center space-x-2 text-green-500">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            <span>Redirecting...</span>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
-  // Memoize the success content
-  const successContent = useMemo(() => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl"
-      >
-        <div className="mx-auto w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-6">
-          <CheckCircle className="w-8 h-8 text-white" />
-        </div>
-        
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Email Confirmed!</h1>
-        <p className="text-gray-600 mb-6">
-          Your email has been successfully confirmed. You're now being redirected to the login page.
-        </p>
-        
-        <div className="flex items-center justify-center space-x-2 text-green-500">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Redirecting...</span>
-        </div>
-      </motion.div>
-    </div>
-  ), []);
-
-  // Memoize the main content
-  const mainContent = useMemo(() => (
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -172,12 +178,12 @@ const EmailConfirmationPage: React.FC = React.memo(() => {
         
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Email Confirmation</h1>
         <p className="text-gray-600 mb-6">
-          {message || 'Checking your email confirmation status...'}
+          {message || 'Click the button below to confirm your email address.'}
         </p>
         
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-center space-x-2">
               <AlertCircle className="w-5 h-5 text-red-500" />
               <p className="text-red-600 text-sm">{error}</p>
             </div>
@@ -197,13 +203,13 @@ const EmailConfirmationPage: React.FC = React.memo(() => {
           ) : (
             <>
               <CheckCircle className="w-5 h-5" />
-              <span>Check Email Status</span>
+              <span>Confirm Email</span>
             </>
           )}
         </button>
         
         <div className="mt-6 text-sm text-gray-500">
-          <p>After confirmation, you can sign in to access your dashboard.</p>
+          <p>After confirming your email, you can sign in to access your dashboard.</p>
         </div>
         
         <div className="mt-4 space-y-2">
@@ -224,16 +230,7 @@ const EmailConfirmationPage: React.FC = React.memo(() => {
         </div>
       </motion.div>
     </div>
-  ), [message, error, loading, handleEmailConfirmation, navigate]);
-
-  // Early return for confirmed state
-  if (confirmed) {
-    return successContent;
-  }
-
-  return mainContent;
-});
-
-EmailConfirmationPage.displayName = 'EmailConfirmationPage';
+  );
+};
 
 export default EmailConfirmationPage;
