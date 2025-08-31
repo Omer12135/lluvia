@@ -36,7 +36,7 @@ const supabase = createClient(
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -48,10 +48,11 @@ const LandingPage: React.FC = () => {
       console.log('Auth callback detected with code:', code);
       
       // Email confirmation sonrası otomatik dashboard'a yönlendir
+      // User state'in sync olması için daha uzun delay
       setTimeout(() => {
         console.log('Redirecting to dashboard after email confirmation...');
         navigate('/dashboard');
-      }, 1000);
+      }, 3000);
     }
   }, [searchParams, navigate]);
 
@@ -200,7 +201,7 @@ const LandingPage: React.FC = () => {
       'pro plan': 'pro'
     };
     
-    return user.plan === planMap[productName.toLowerCase()];
+    return userProfile?.plan === planMap[productName.toLowerCase()];
   };
 
   return (
