@@ -64,14 +64,29 @@ const LandingPage: React.FC = () => {
     }
   }, [searchParams, navigate, forceSessionSync]);
 
-  // Tab kontrolü - Eğer bu sekme auth callback ile açıldıysa ana sekmeyi kapat
+  // Tab kontrolü - Eğer bu sekme auth callback ile açıldıysa ana sekmeye bilgi gönder
   useEffect(() => {
     const code = searchParams.get('code');
     if (code && window.opener) {
-      console.log('Auth callback in new tab detected, closing this tab...');
-      // Ana sekmeye focus yap ve bu sekmeyi kapat
-      window.opener.focus();
-      window.close();
+      console.log('Auth callback in new tab detected, sending auth data to main tab...');
+      
+      // Ana sekmeye auth callback bilgisini gönder
+      try {
+        window.opener.postMessage({
+          type: 'AUTH_CALLBACK',
+          code: code,
+          timestamp: Date.now()
+        }, '*');
+        
+        console.log('Auth data sent to main tab, closing this tab...');
+        
+        // Ana sekmeye focus yap ve bu sekmeyi kapat
+        window.opener.focus();
+        window.close();
+      } catch (error) {
+        console.error('Failed to send auth data to main tab:', error);
+        window.close();
+      }
     }
   }, [searchParams]);
 

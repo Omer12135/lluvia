@@ -76,6 +76,29 @@ const Dashboard: React.FC = () => {
     }
   }, [searchParams, user, forceSessionSync]);
 
+  // Message listener - Yeni sekmeden gelen auth callback bilgisini yakala
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data.type === 'AUTH_CALLBACK' && !user) {
+        console.log('Dashboard: Received auth callback from new tab:', event.data);
+        
+        try {
+          console.log('Dashboard: Starting force session sync from message...');
+          await forceSessionSync();
+          console.log('Dashboard: Force session sync completed from message');
+        } catch (error) {
+          console.error('Dashboard: Force session sync failed from message:', error);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [user, forceSessionSync]);
+
   // Loading state - User state sync olana kadar bekle
   if (!user) {
     console.log('Dashboard: User not found, waiting for auth state sync...');
