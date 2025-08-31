@@ -645,7 +645,7 @@ const Dashboard: React.FC = () => {
               <div>
                 <p className="text-gray-400 text-xs lg:text-sm font-medium">Plan</p>
                 <p className="text-lg lg:text-2xl font-bold text-white">{getCurrentPlanName()}</p>
-                <p className="text-xs text-gray-400">{userProfile?.email || 'Loading...'}</p>
+               
               </div>
               <Crown className={`w-4 h-4 lg:w-8 lg:h-8 ${
                 getCurrentPlanName().includes('Pro') ? 'text-blue-500' : 'text-gray-400'
