@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   Workflow, 
@@ -31,7 +31,8 @@ import { webhookService } from '../services/webhookService';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, userProfile, logout } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { user, userProfile, logout, forceSessionSync } = useAuth();
   const { automations, remainingAutomations, currentMonthUsage, automationLimit } = useAutomation();
   const [activeTab, setActiveTab] = useState('create');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -54,6 +55,26 @@ const Dashboard: React.FC = () => {
       window.removeEventListener('changeTab', handleTabChange as EventListener);
     };
   }, []);
+
+  // Auth callback handling - Ana sekmede email confirmation sonrası
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code && !user) {
+      console.log('Dashboard: Auth callback detected, starting force session sync...');
+      
+      const handleAuthCallback = async () => {
+        try {
+          console.log('Dashboard: Starting force session sync...');
+          await forceSessionSync();
+          console.log('Dashboard: Force session sync completed');
+        } catch (error) {
+          console.error('Dashboard: Force session sync failed:', error);
+        }
+      };
+
+      handleAuthCallback();
+    }
+  }, [searchParams, user, forceSessionSync]);
 
   // Loading state - User state sync olana kadar bekle
   if (!user) {
