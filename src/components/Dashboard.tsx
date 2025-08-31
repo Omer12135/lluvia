@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { 
   Workflow, 
   Plus, 
@@ -138,6 +139,43 @@ const Dashboard: React.FC = () => {
     return () => {
       clearInterval(interval);
     };
+  }, [user, forceSessionSync]);
+
+  // Auth state change listener - Auth state değiştiğinde user state'i sync et
+  useEffect(() => {
+    if (!user) {
+      console.log('Dashboard: No user found, checking for auth state changes...');
+      
+      const checkAuthState = async () => {
+        try {
+          console.log('Dashboard: Checking current auth state...');
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session?.user) {
+            console.log('Dashboard: Found session with user:', session.user.email);
+            console.log('Dashboard: Starting force session sync from auth state...');
+            
+            try {
+              await forceSessionSync();
+              console.log('Dashboard: Force session sync completed from auth state');
+            } catch (error) {
+              console.error('Dashboard: Force session sync failed from auth state:', error);
+            }
+          } else {
+            console.log('Dashboard: No active session found');
+          }
+        } catch (error) {
+          console.error('Dashboard: Error checking auth state:', error);
+        }
+      };
+
+      // Her 2 saniyede kontrol et
+      const interval = setInterval(checkAuthState, 2000);
+      
+      return () => {
+        clearInterval(interval);
+      };
+    }
   }, [user, forceSessionSync]);
 
   // Loading state - User state sync olana kadar bekle
