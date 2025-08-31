@@ -36,7 +36,7 @@ const supabase = createClient(
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, forceSessionSync } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -49,7 +49,15 @@ const LandingPage: React.FC = () => {
       
       // Email confirmation sonrası otomatik dashboard'a yönlendir
       // User state'in sync olması için daha uzun delay
-      setTimeout(() => {
+      setTimeout(async () => {
+        console.log('Starting force session sync before redirect...');
+        try {
+          await forceSessionSync();
+          console.log('Force session sync completed, redirecting to dashboard...');
+        } catch (error) {
+          console.error('Force session sync failed:', error);
+        }
+        
         console.log('Redirecting to dashboard after email confirmation...');
         navigate('/dashboard');
       }, 3000);
