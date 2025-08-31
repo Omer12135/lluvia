@@ -139,6 +139,28 @@ const LandingPage: React.FC = () => {
     } else if (code && !window.opener) {
       console.log('Auth callback detected but no window.opener found!');
       console.log('This might be the main tab or window.opener is null');
+      
+      // LocalStorage'a kaydet
+      try {
+        const authData = {
+          type: 'AUTH_CALLBACK',
+          code: code,
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem('auth_callback', JSON.stringify(authData));
+        console.log('Auth data saved to LocalStorage (no window.opener):', authData);
+        
+        // Ana sekmeye redirect yap
+        console.log('Redirecting to main tab (no window.opener)...');
+        window.location.href = 'https://quantumora.co/dashboard';
+      } catch (error) {
+        console.error('Failed to save to LocalStorage (no window.opener):', error);
+        
+        // Son çare olarak ana sekmeye redirect
+        console.log('Final fallback: redirecting to main tab...');
+        window.location.href = 'https://quantumora.co/dashboard';
+      }
     }
   }, [searchParams]);
 
