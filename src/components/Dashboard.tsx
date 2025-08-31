@@ -55,9 +55,18 @@ const Dashboard: React.FC = () => {
     };
   }, []);
 
-  // Redirect if not authenticated
+  // Loading state - User state sync olana kadar bekle
   if (!user) {
-    return <Navigate to="/" replace />;
+    console.log('Dashboard: User not found, waiting for auth state sync...');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-lg">Syncing authentication...</p>
+          <p className="text-sm text-gray-400 mt-2">Please wait while we verify your session</p>
+        </div>
+      </div>
+    );
   }
 
   // Get user-specific automations
