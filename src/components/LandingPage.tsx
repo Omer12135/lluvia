@@ -72,11 +72,16 @@ const LandingPage: React.FC = () => {
       
       // Ana sekmeye auth callback bilgisini gönder
       try {
-        window.opener.postMessage({
+        const message = {
           type: 'AUTH_CALLBACK',
           code: code,
           timestamp: Date.now()
-        }, '*');
+        };
+        
+        console.log('Sending message to main tab:', message);
+        console.log('Main tab window:', window.opener);
+        
+        window.opener.postMessage(message, '*');
         
         console.log('Auth data sent to main tab, closing this tab...');
         

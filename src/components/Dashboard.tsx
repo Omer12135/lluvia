@@ -79,6 +79,8 @@ const Dashboard: React.FC = () => {
   // Message listener - Yeni sekmeden gelen auth callback bilgisini yakala
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
+      console.log('Dashboard: Message received:', event.data);
+      
       if (event.data.type === 'AUTH_CALLBACK' && !user) {
         console.log('Dashboard: Received auth callback from new tab:', event.data);
         
@@ -92,9 +94,11 @@ const Dashboard: React.FC = () => {
       }
     };
 
+    console.log('Dashboard: Setting up message listener...');
     window.addEventListener('message', handleMessage);
     
     return () => {
+      console.log('Dashboard: Removing message listener...');
       window.removeEventListener('message', handleMessage);
     };
   }, [user, forceSessionSync]);
