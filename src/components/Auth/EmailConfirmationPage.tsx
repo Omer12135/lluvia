@@ -158,7 +158,7 @@ const EmailConfirmationPage: React.FC = () => {
           }
           
           setTimeout(() => {
-            navigate('/login');
+            navigate('/dashboard');
           }, 2000);
           return;
         }
@@ -258,7 +258,7 @@ const EmailConfirmationPage: React.FC = () => {
             }
             
             setTimeout(() => {
-              navigate('/login');
+              navigate('/dashboard');
             }, 2000);
             return;
           }
@@ -357,7 +357,7 @@ const EmailConfirmationPage: React.FC = () => {
           }
           
           setTimeout(() => {
-            navigate('/login');
+            navigate('/dashboard');
           }, 2000);
           return;
         }
