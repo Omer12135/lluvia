@@ -33,9 +33,11 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<AdminDashboard onNavigate={() => {}} />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/test" element={<SupabaseTest />} />
+              {/* Auth callback route - Email confirmation sonrası */}
+              <Route path="/auth/callback" element={<LandingPage />} />
             </Routes>
             </BlogProvider>
 
