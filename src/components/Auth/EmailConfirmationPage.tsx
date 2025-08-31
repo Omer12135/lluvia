@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Mail, CheckCircle, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const EmailConfirmationPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -14,6 +16,7 @@ const EmailConfirmationPage: React.FC = () => {
   const isProcessing = useRef(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { forceSessionSync } = useAuth();
 
   console.log('EmailConfirmationPage rendered!');
 
@@ -73,6 +76,46 @@ const EmailConfirmationPage: React.FC = () => {
         if (data.user?.email_confirmed_at) {
           console.log('Email confirmed successfully with token!');
           setConfirmed(true);
+          
+          // Email confirmation sonrası otomatik database sync
+          console.log('Starting automatic database sync...');
+          
+          // 1. Session sync
+          await forceSessionSync();
+          
+          // 2. Database changes otomatik algıla
+          try {
+            console.log('Checking database for user profile...');
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('user_id', data.user.id)
+              .single();
+            
+            if (profileError) {
+              console.log('Profile not found, creating...');
+              // Profile yoksa oluştur
+              await supabase
+                .from('user_profiles')
+                .insert({
+                  user_id: data.user.id,
+                  email: data.user.email,
+                  name: data.user.email?.split('@')[0] || 'User',
+                  plan: 'free',
+                  automations_limit: 2,
+                  ai_messages_limit: 0
+                });
+            } else {
+              console.log('Profile found:', profileData);
+            }
+          } catch (dbError) {
+            console.error('Database sync error:', dbError);
+          }
+          
+          // 3. Auth state otomatik güncelle
+          console.log('Updating auth state...');
+          await supabase.auth.refreshSession();
+          
           setTimeout(() => {
             navigate('/login');
           }, 2000);
@@ -92,6 +135,46 @@ const EmailConfirmationPage: React.FC = () => {
           if (user.email_confirmed_at) {
             console.log('Email is confirmed!');
             setConfirmed(true);
+            
+            // Email confirmation sonrası otomatik database sync
+            console.log('Starting automatic database sync for manual confirmation...');
+            
+            // 1. Session sync
+            await forceSessionSync();
+            
+            // 2. Database changes otomatik algıla
+            try {
+              console.log('Checking database for user profile in manual confirmation...');
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+              
+              if (profileError) {
+                console.log('Profile not found in manual confirmation, creating...');
+                // Profile yoksa oluştur
+                await supabase
+                  .from('user_profiles')
+                  .insert({
+                    user_id: user.id,
+                    email: user.email,
+                    name: user.email?.split('@')[0] || 'User',
+                    plan: 'free',
+                    automations_limit: 2,
+                    ai_messages_limit: 0
+                  });
+              } else {
+                console.log('Profile found in manual confirmation:', profileData);
+              }
+            } catch (dbError) {
+              console.error('Database sync error in manual confirmation:', dbError);
+            }
+            
+            // 3. Auth state otomatik güncelle
+            console.log('Updating auth state for manual confirmation...');
+            await supabase.auth.refreshSession();
+            
             setTimeout(() => {
               navigate('/login');
             }, 2000);
@@ -110,6 +193,46 @@ const EmailConfirmationPage: React.FC = () => {
         if (!sessionError && session?.user?.email_confirmed_at) {
           console.log('Email confirmed after session refresh!');
           setConfirmed(true);
+          
+          // Email confirmation sonrası otomatik database sync
+          console.log('Starting automatic database sync after session refresh...');
+          
+          // 1. Session sync
+          await forceSessionSync();
+          
+          // 2. Database changes otomatik algıla
+          try {
+            console.log('Checking database for user profile after session refresh...');
+            const { data: profileData, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (profileError) {
+              console.log('Profile not found after session refresh, creating...');
+              // Profile yoksa oluştur
+              await supabase
+                .from('user_profiles')
+                .insert({
+                  user_id: session.user.id,
+                  email: session.user.email,
+                  name: session.user.email?.split('@')[0] || 'User',
+                  plan: 'free',
+                  automations_limit: 2,
+                  ai_messages_limit: 0
+                });
+            } else {
+              console.log('Profile found after session refresh:', profileData);
+            }
+          } catch (dbError) {
+            console.error('Database sync error after session refresh:', dbError);
+          }
+          
+          // 3. Auth state otomatik güncelle
+          console.log('Updating auth state after session refresh...');
+          await supabase.auth.refreshSession();
+          
           setTimeout(() => {
             navigate('/login');
           }, 2000);

@@ -37,6 +37,11 @@ const Dashboard: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTestingWebhook, setIsTestingWebhook] = useState(false);
 
+  // ✅ Console log ekle - Debug için
+  console.log('Dashboard rendered, user:', user);
+  console.log('Dashboard rendered, userProfile:', userProfile);
+  console.log('Dashboard rendered, automations:', automations);
+
   // Listen for tab change events from child components
   useEffect(() => {
     const handleTabChange = (event: CustomEvent) => {

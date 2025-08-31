@@ -13,7 +13,19 @@ console.log('Processed Key length:', supabaseAnonKey?.length);
 console.log('All env vars:', import.meta.env);
 
 // Supabase client oluştur
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Auth persistence ayarları
+    persistSession: true,
+    storageKey: 'lluvia-auth',
+    storage: window.localStorage,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    // Yeni eklemeler:
+    flowType: 'pkce',
+    debug: true
+  }
+});
 
 // Database types
 export interface Database {
@@ -552,5 +564,55 @@ export const blogService = {
     }
 
     return true;
+  }
+};
+
+// Session sync fonksiyonu - Email confirmation sonrası auth state'i güncellemek için
+export const syncAuthSession = async () => {
+  try {
+    console.log('Syncing auth session...');
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Session sync error:', error);
+      return null;
+    }
+    
+    if (session) {
+      console.log('Session synced successfully:', session.user.email);
+      // Auth state change event'i tetikle
+      await supabase.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state change event triggered:', event);
+      });
+    }
+    
+    return session;
+  } catch (error) {
+    console.error('Session sync failed:', error);
+    return null;
+  }
+};
+
+// Email confirmation sonrası auth state'i güncellemek için
+export const refreshAuthState = async () => {
+  try {
+    console.log('Refreshing auth state...');
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error('Auth state refresh error:', error);
+      return null;
+    }
+    
+    if (user) {
+      console.log('Auth state refreshed successfully:', user.email);
+      // Session'ı yenile
+      await supabase.auth.refreshSession();
+    }
+    
+    return user;
+  } catch (error) {
+    console.error('Auth state refresh failed:', error);
+    return null;
   }
 };

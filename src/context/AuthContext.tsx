@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, syncAuthSession, refreshAuthState } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 export interface UserProfile {
@@ -48,6 +48,7 @@ interface AuthContextType {
   suspendUser: (userId: string) => Promise<void>;
   activateUser: (userId: string) => Promise<void>;
   refreshUserProfile: () => Promise<void>;
+  forceSessionSync: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -105,10 +106,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setEmailConfirmed(true);
           if (session?.user) {
             await fetchUserProfile(session.user.id);
+            // Email confirmation sonrası session sync
+            await syncAuthSession();
+            await refreshAuthState();
           }
         }
         
         setUser(session?.user ?? null);
+        
+        // ✅ Console log ekle - Debug için
+        console.log('AuthContext: User state updated:', session?.user);
+        console.log('AuthContext: UserProfile will be fetched for:', session?.user?.id);
+        console.log('AuthContext: Current user state after setUser:', session?.user);
+        console.log('AuthContext: Session data:', session);
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
@@ -151,6 +161,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setEmailConfirmed(true);
             setUser(currentUser);
             await fetchUserProfile(currentUser.id);
+            // Email confirmation sonrası session sync
+            await syncAuthSession();
+            await refreshAuthState();
             clearInterval(intervalId);
           }
         } catch (error) {
@@ -504,6 +517,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Force session sync - Email confirmation sonrası kullan
+  const forceSessionSync = async () => {
+    try {
+      console.log('Force session sync called...');
+      await syncAuthSession();
+      await refreshAuthState();
+      
+      // Re-fetch user data
+      if (user) {
+        await fetchUserProfile(user.id);
+      }
+      
+      console.log('Force session sync completed');
+    } catch (error) {
+      console.error('Force session sync failed:', error);
+    }
+  };
+
   // Load admin data when user is admin
   useEffect(() => {
     if (user && (user.email?.includes('@admin.lluvia.ai') || user.email === 'admin@lluvia.ai')) {
@@ -529,7 +560,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       deleteUser,
       suspendUser,
       activateUser,
-    refreshUserProfile
+    refreshUserProfile,
+    forceSessionSync
   };
 
   return (
