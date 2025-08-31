@@ -150,12 +150,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
         
-        setUser(session?.user ?? null);
-        
         // ✅ Console log ekle - Debug için
-        console.log('AuthContext: User state updated:', session?.user);
-        console.log('AuthContext: UserProfile will be fetched for:', session?.user?.id);
-        console.log('AuthContext: Current user state after setUser:', session?.user);
+        console.log('AuthContext: User state update pending, checking DB first...');
         console.log('AuthContext: Session data:', session);
         
         if (session?.user) {
@@ -180,9 +176,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               return;
             }
             
-            // User DB'de var, profile'ı fetch et
+            console.log('AuthContext: User validated in DB, setting user state...');
+            
+            // User DB'de var, şimdi state'i set et
+            setUser(session.user);
             await fetchUserProfile(session.user.id);
             setEmailConfirmed(session.user.email_confirmed_at !== null);
+            
+            console.log('AuthContext: User state successfully set:', session.user.email);
           } catch (dbError) {
             console.error('AuthContext: Database check failed:', dbError);
             
@@ -193,6 +194,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setEmailConfirmed(false);
           }
         } else {
+          console.log('AuthContext: No session user, clearing states...');
+          setUser(null);
           setUserProfile(null);
           setEmailConfirmed(false);
         }
