@@ -611,35 +611,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Logout function
   const logout = async () => {
     console.log('🚨 Logout function called!');
-    setLoading(true);
     
     try {
       console.log('🔄 Starting logout process...');
       console.log('👤 Current user before logout:', user?.email);
       
-      // Clear local storage first
-      console.log('🗑️ Clearing local storage...');
-      localStorage.removeItem('auth_callback');
-      localStorage.removeItem('lluvia-auth');
-      
-      // Sign out from Supabase
-      console.log('🔐 Signing out from Supabase...');
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('❌ Supabase signOut error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Supabase signOut successful');
-      
-      // Clear all states
-      console.log('🧹 Clearing all states...');
+      // Clear all states immediately
+      console.log('🧹 Clearing all states immediately...');
       setUser(null);
       setUserProfile(null);
       setEmailConfirmed(false);
       
-      // Force redirect to home page
+      // Clear local storage
+      console.log('🗑️ Clearing local storage...');
+      localStorage.removeItem('auth_callback');
+      localStorage.removeItem('lluvia-auth');
+      
+      // Sign out from Supabase (non-blocking)
+      console.log('🔐 Signing out from Supabase...');
+      supabase.auth.signOut().then(({ error }) => {
+        if (error) {
+          console.error('❌ Supabase signOut error:', error);
+        } else {
+          console.log('✅ Supabase signOut successful');
+        }
+      }).catch((error) => {
+        console.error('❌ Supabase signOut exception:', error);
+      });
+      
+      // Force redirect to home page immediately
       console.log('🏠 Redirecting to home page...');
       window.location.href = '/';
       
@@ -648,21 +648,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('💥 Logout error:', error);
       
-      // Even if there's an error, clear states and redirect
-      console.log('🔄 Error occurred, clearing states anyway...');
-      setUser(null);
-      setUserProfile(null);
-      setEmailConfirmed(false);
-      localStorage.removeItem('auth_callback');
-      localStorage.removeItem('lluvia-auth');
-      
-      // Force redirect to home page
+      // Force redirect even if there's an error
       console.log('🏠 Force redirecting to home page...');
       window.location.href = '/';
-      
-      throw error;
-    } finally {
-      setLoading(false);
     }
   };
 

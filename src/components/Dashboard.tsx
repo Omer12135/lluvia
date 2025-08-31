@@ -460,17 +460,19 @@ const Dashboard: React.FC = () => {
                       <Zap className="w-3 h-3" />
                     )}
                   </button>
-                                  <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Logout button clicked in mobile menu');
-                    logout();
-                  }}
-                  className="text-gray-400 hover:text-white transition-colors text-xs"
-                >
-                  Logout
-                </button>
+                                                    <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Logout button clicked in mobile menu');
+                      if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+                        logout();
+                      }
+                    }}
+                    className="text-gray-400 hover:text-white transition-colors text-xs"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -549,7 +551,9 @@ const Dashboard: React.FC = () => {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Logout button clicked in desktop header');
-                    logout();
+                    if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+                      logout();
+                    }
                   }}
                   className="text-gray-400 hover:text-white transition-colors text-sm"
                 >
