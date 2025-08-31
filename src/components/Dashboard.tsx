@@ -153,13 +153,41 @@ const Dashboard: React.FC = () => {
           
           if (session?.user) {
             console.log('Dashboard: Found session with user:', session.user.email);
-            console.log('Dashboard: Starting force session sync from auth state...');
             
+            // User'ın DB'de gerçekten var olup olmadığını kontrol et
             try {
+              const { data: userProfile, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              if (profileError || !userProfile) {
+                console.log('Dashboard: User not found in DB, clearing invalid session...');
+                
+                // Invalid session'ı temizle
+                await supabase.auth.signOut();
+                
+                // LocalStorage'dan da temizle
+                localStorage.removeItem('auth_callback');
+                localStorage.removeItem('lluvia-auth');
+                
+                console.log('Dashboard: Invalid session cleared, redirecting to login...');
+                navigate('/');
+                return;
+              }
+              
+              console.log('Dashboard: User found in DB, starting force session sync...');
               await forceSessionSync();
               console.log('Dashboard: Force session sync completed from auth state');
-            } catch (error) {
-              console.error('Dashboard: Force session sync failed from auth state:', error);
+            } catch (dbError) {
+              console.error('Dashboard: Database check failed:', dbError);
+              
+              // DB error durumunda da session'ı temizle
+              await supabase.auth.signOut();
+              localStorage.removeItem('auth_callback');
+              localStorage.removeItem('lluvia-auth');
+              navigate('/');
             }
           } else {
             console.log('Dashboard: No active session found');
@@ -176,7 +204,7 @@ const Dashboard: React.FC = () => {
         clearInterval(interval);
       };
     }
-  }, [user, forceSessionSync]);
+  }, [user, forceSessionSync, navigate]);
 
   // Loading state - User state sync olana kadar bekle
   if (!user) {

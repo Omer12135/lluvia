@@ -121,8 +121,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('AuthContext: Session data:', session);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
-          setEmailConfirmed(session.user.email_confirmed_at !== null);
+          // User'ın DB'de gerçekten var olup olmadığını kontrol et
+          try {
+            const { data: userProfile, error: profileError } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            
+            if (profileError || !userProfile) {
+              console.log('AuthContext: User not found in DB, clearing invalid session...');
+              
+              // Invalid session'ı temizle
+              await supabase.auth.signOut();
+              
+              // State'leri temizle
+              setUser(null);
+              setUserProfile(null);
+              setEmailConfirmed(false);
+              return;
+            }
+            
+            // User DB'de var, profile'ı fetch et
+            await fetchUserProfile(session.user.id);
+            setEmailConfirmed(session.user.email_confirmed_at !== null);
+          } catch (dbError) {
+            console.error('AuthContext: Database check failed:', dbError);
+            
+            // DB error durumunda da session'ı temizle
+            await supabase.auth.signOut();
+            setUser(null);
+            setUserProfile(null);
+            setEmailConfirmed(false);
+          }
         } else {
           setUserProfile(null);
           setEmailConfirmed(false);
