@@ -210,12 +210,12 @@ const Dashboard: React.FC = () => {
   if (!user) {
     console.log('Dashboard: User not found, waiting for auth state sync...');
     
-    // 10 saniye sonra timeout - Eğer user state sync olmazsa login'e yönlendir
+    // 30 saniye sonra timeout - Eğer user state sync olmazsa login'e yönlendir
     useEffect(() => {
       const timeout = setTimeout(() => {
         console.log('Dashboard: Loading timeout reached, redirecting to login...');
         navigate('/');
-      }, 10000); // 10 saniye
+      }, 30000); // 30 saniye
       
       return () => clearTimeout(timeout);
     }, [navigate]);
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-lg">Syncing authentication...</p>
           <p className="text-sm text-gray-400 mt-2">Please wait while we verify your session</p>
-          <p className="text-xs text-gray-500 mt-4">Redirecting to login in 10 seconds if sync fails...</p>
+          <p className="text-xs text-gray-500 mt-4">Redirecting to login in 30 seconds if sync fails...</p>
         </div>
       </div>
     );

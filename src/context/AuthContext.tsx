@@ -156,6 +156,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setEmailConfirmed(true);
           }
           
+          // Önce user state'i güncelle (hemen)
+          console.log('AuthContext: Setting user state immediately:', session.user.email);
+          setUser(session.user);
+          
           // User'ın DB'de gerçekten var olup olmadığını kontrol et
           try {
             console.log('AuthContext: 🚨 STARTING DB QUERY...');
