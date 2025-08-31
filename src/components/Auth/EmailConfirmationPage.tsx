@@ -114,7 +114,48 @@ const EmailConfirmationPage: React.FC = () => {
           
           // 3. Auth state otomatik güncelle
           console.log('Updating auth state...');
-          await supabase.auth.refreshSession();
+          
+          // Güçlü session sync
+          try {
+            console.log('Performing strong session sync...');
+            
+            // 1. Session refresh
+            await supabase.auth.refreshSession();
+            
+            // 2. Force auth state update
+            await supabase.auth.getUser();
+            
+            // 3. Trigger auth state change event
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              console.log('Session updated successfully:', session.user.email);
+              
+              // 4. Force user profile fetch
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              if (profileError) {
+                console.log('Profile fetch error, creating...');
+                await supabase
+                  .from('user_profiles')
+                  .insert({
+                    user_id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.email?.split('@')[0] || 'User',
+                    plan: 'free',
+                    automations_limit: 2,
+                    ai_messages_limit: 0
+                  });
+              } else {
+                console.log('Profile fetched successfully:', profileData);
+              }
+            }
+          } catch (syncError) {
+            console.error('Strong session sync error:', syncError);
+          }
           
           setTimeout(() => {
             navigate('/login');
@@ -173,7 +214,48 @@ const EmailConfirmationPage: React.FC = () => {
             
             // 3. Auth state otomatik güncelle
             console.log('Updating auth state for manual confirmation...');
-            await supabase.auth.refreshSession();
+            
+            // Güçlü session sync for manual confirmation
+            try {
+              console.log('Performing strong session sync for manual confirmation...');
+              
+              // 1. Session refresh
+              await supabase.auth.refreshSession();
+              
+              // 2. Force auth state update
+              await supabase.auth.getUser();
+              
+              // 3. Trigger auth state change event
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session) {
+                console.log('Session updated successfully for manual confirmation:', session.user.email);
+                
+                // 4. Force user profile fetch
+                const { data: profileData, error: profileError } = await supabase
+                  .from('user_profiles')
+                  .select('*')
+                  .eq('user_id', session.user.id)
+                  .single();
+                
+                if (profileError) {
+                  console.log('Profile fetch error for manual confirmation, creating...');
+                  await supabase
+                    .from('user_profiles')
+                    .insert({
+                      user_id: session.user.id,
+                      email: session.user.email,
+                      name: session.user.email?.split('@')[0] || 'User',
+                      plan: 'free',
+                      automations_limit: 2,
+                      ai_messages_limit: 0
+                    });
+                } else {
+                  console.log('Profile fetched successfully for manual confirmation:', profileData);
+                }
+              }
+            } catch (syncError) {
+              console.error('Strong session sync error for manual confirmation:', syncError);
+            }
             
             setTimeout(() => {
               navigate('/login');
@@ -231,7 +313,48 @@ const EmailConfirmationPage: React.FC = () => {
           
           // 3. Auth state otomatik güncelle
           console.log('Updating auth state after session refresh...');
-          await supabase.auth.refreshSession();
+          
+          // Güçlü session sync after session refresh
+          try {
+            console.log('Performing strong session sync after session refresh...');
+            
+            // 1. Session refresh
+            await supabase.auth.refreshSession();
+            
+            // 2. Force auth state update
+            await supabase.auth.getUser();
+            
+            // 3. Trigger auth state change event
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              console.log('Session updated successfully after refresh:', session.user.email);
+              
+              // 4. Force user profile fetch
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              if (profileError) {
+                console.log('Profile fetch error after refresh, creating...');
+                await supabase
+                  .from('user_profiles')
+                  .insert({
+                    user_id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.email?.split('@')[0] || 'User',
+                    plan: 'free',
+                    automations_limit: 2,
+                    ai_messages_limit: 0
+                  });
+              } else {
+                console.log('Profile fetched successfully after refresh:', profileData);
+              }
+            }
+          } catch (syncError) {
+            console.error('Strong session sync error after refresh:', syncError);
+          }
           
           setTimeout(() => {
             navigate('/login');
