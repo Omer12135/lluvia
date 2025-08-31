@@ -322,6 +322,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ai_messages_limit: 0
       });
 
+      // First check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (existingProfile) {
+        console.log('Profile already exists:', existingProfile);
+        setUserProfile(existingProfile);
+        return;
+      }
+
+      if (checkError && !checkError.message.includes('No rows found')) {
+        console.error('Error checking existing profile:', checkError);
+      }
+
       const { data, error } = await supabase
         .from('user_profiles')
         .insert({
@@ -339,10 +356,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('Error creating user profile:', error);
         console.error('Error details:', {
           message: error.message,
-          details: error.details,
-          hint: error.hint,
           code: error.code
         });
+        
+        // Try to provide more specific error information
+        if (error.message.includes('duplicate key')) {
+          console.log('Profile already exists, trying to fetch it...');
+          await fetchUserProfile(userId);
+        }
       } else {
         console.log('Profile created successfully:', data);
         setUserProfile(data);
@@ -434,6 +455,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
       console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
       
+      // First, try to create user profile table if it doesn't exist
+      try {
+        console.log('Checking if user_profiles table exists...');
+        const { error: tableCheckError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .limit(1);
+        
+        if (tableCheckError) {
+          console.error('user_profiles table error:', tableCheckError);
+          console.log('Table might not exist or have RLS issues');
+        } else {
+          console.log('user_profiles table is accessible');
+        }
+      } catch (tableError) {
+        console.error('Error checking user_profiles table:', tableError);
+      }
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -448,12 +487,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Supabase registration error:', error);
+        
+        // Check if it's a database error and provide more details
+        if (error.message.includes('Database error')) {
+          console.error('Database error details:', {
+            message: error.message,
+            code: error.code
+          });
+          
+          // Try to provide a more user-friendly error message
+          if (error.message.includes('saving new user')) {
+            throw new Error('Kullanıcı kayıt işlemi sırasında veritabanı hatası oluştu. Lütfen daha sonra tekrar deneyin veya destek ekibiyle iletişime geçin.');
+          }
+        }
+        
         throw error;
       }
 
       if (data.user) {
         console.log('User created successfully:', data.user);
         setUser(data.user);
+        
+        // Wait a bit for the trigger to work
+        console.log('Waiting for profile creation trigger...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Try to fetch user profile (trigger should create it)
         try {
@@ -462,6 +519,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.log('Profile not found, creating manually...');
           // If profile doesn't exist, create it manually
           await createUserProfile(data.user.id, data.user);
+        }
+        
+        // Debug: Check if profile was created
+        console.log('After profile creation attempt, checking again...');
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', data.user.id)
+            .single();
+          
+          if (profileData) {
+            console.log('Profile found after creation:', profileData);
+            setUserProfile(profileData);
+          } else {
+            console.log('Profile still not found after creation attempt');
+          }
+        } catch (debugError) {
+          console.error('Debug profile check failed:', debugError);
         }
       } else {
         console.log('No user data returned');
