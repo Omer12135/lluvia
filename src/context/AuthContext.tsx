@@ -158,13 +158,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           // User'ın DB'de gerçekten var olup olmadığını kontrol et
           try {
+            console.log('AuthContext: 🚨 STARTING DB QUERY...');
+            console.log('AuthContext: Querying user_profiles table for user_id:', session.user.id);
+            
             const { data: userProfile, error: profileError } = await supabase
               .from('user_profiles')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
             
+            console.log('AuthContext: 🚨 DB QUERY COMPLETED!');
+            console.log('AuthContext: Query result - data:', userProfile);
+            console.log('AuthContext: Query result - error:', profileError);
+            
             if (profileError || !userProfile) {
+              console.log('AuthContext: 🚨 USER NOT FOUND IN DB!');
+              console.log('AuthContext: Profile error:', profileError);
+              console.log('AuthContext: User profile data:', userProfile);
               console.log('AuthContext: User not found in DB, clearing invalid session...');
               
               // Invalid session'ı temizle
@@ -177,6 +187,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               return;
             }
             
+            console.log('AuthContext: 🚨 USER FOUND IN DB!');
             console.log('AuthContext: User validated in DB, setting user state...');
             
             // User DB'de var, şimdi state'i set et
@@ -192,6 +203,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             console.log('AuthContext: User state successfully set:', session.user.email);
           } catch (dbError) {
+            console.error('AuthContext: 🚨 DATABASE CHECK FAILED WITH ERROR!');
             console.error('AuthContext: Database check failed:', dbError);
             
             // DB error durumunda da session'ı temizle
