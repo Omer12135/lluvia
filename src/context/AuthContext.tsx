@@ -514,7 +514,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // Wait a bit for the trigger to work
         console.log('Waiting for profile creation trigger...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Try to fetch user profile (trigger should create it)
         try {
@@ -542,6 +542,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         } catch (debugError) {
           console.error('Debug profile check failed:', debugError);
+        }
+        
+        // Force session refresh after successful registration
+        console.log('Force refreshing session after registration...');
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (session?.user) {
+            console.log('Session refreshed successfully:', session.user.email);
+            setUser(session.user);
+            
+            // Force redirect to dashboard
+            console.log('Redirecting to dashboard...');
+            window.location.href = '/dashboard';
+          } else {
+            console.log('Session refresh failed:', sessionError);
+          }
+        } catch (sessionRefreshError) {
+          console.error('Session refresh error:', sessionRefreshError);
         }
       } else {
         console.log('No user data returned');
