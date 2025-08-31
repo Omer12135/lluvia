@@ -67,6 +67,10 @@ const LandingPage: React.FC = () => {
   // Tab kontrolü - Eğer bu sekme auth callback ile açıldıysa ana sekmeye bilgi gönder
   useEffect(() => {
     const code = searchParams.get('code');
+    console.log('LandingPage: Code detected:', code);
+    console.log('LandingPage: Window opener:', window.opener);
+    console.log('LandingPage: Window opener type:', typeof window.opener);
+    
     if (code && window.opener) {
       console.log('Auth callback in new tab detected, sending auth data to main tab...');
       
@@ -92,6 +96,9 @@ const LandingPage: React.FC = () => {
         console.error('Failed to send auth data to main tab:', error);
         window.close();
       }
+    } else if (code && !window.opener) {
+      console.log('Auth callback detected but no window.opener found!');
+      console.log('This might be the main tab or window.opener is null');
     }
   }, [searchParams]);
 
