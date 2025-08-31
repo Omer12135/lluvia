@@ -141,18 +141,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('AuthContext: Session user:', session?.user?.email);
         console.log('Auth state changed:', event, session?.user?.email);
         
-        // Handle email confirmation
-        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
-          console.log('Email confirmed!');
-          setEmailConfirmed(true);
-          if (session?.user) {
-            await fetchUserProfile(session.user.id);
-            // Email confirmation sonrası session sync
-            await syncAuthSession();
-            await refreshAuthState();
-          }
-        }
-        
         // ✅ Console log ekle - Debug için
         console.log('AuthContext: 🚨 ENTERING MAIN LOGIC!');
         console.log('AuthContext: User state update pending, checking DB first...');
@@ -161,6 +149,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (session?.user) {
           console.log('AuthContext: 🚨 USER EXISTS, STARTING DB VALIDATION!');
+          
+          // Handle email confirmation first
+          if (event === 'SIGNED_IN' && session.user.email_confirmed_at) {
+            console.log('AuthContext: Email confirmed! Setting email confirmed state...');
+            setEmailConfirmed(true);
+          }
+          
           // User'ın DB'de gerçekten var olup olmadığını kontrol et
           try {
             const { data: userProfile, error: profileError } = await supabase
@@ -187,7 +182,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             // User DB'de var, şimdi state'i set et
             setUser(session.user);
             await fetchUserProfile(session.user.id);
-            setEmailConfirmed(session.user.email_confirmed_at !== null);
+            
+            // Email confirmation sonrası session sync
+            if (event === 'SIGNED_IN' && session.user.email_confirmed_at) {
+              console.log('AuthContext: Performing session sync after email confirmation...');
+              await syncAuthSession();
+              await refreshAuthState();
+            }
             
             console.log('AuthContext: User state successfully set:', session.user.email);
           } catch (dbError) {
