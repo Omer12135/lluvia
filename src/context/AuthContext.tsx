@@ -552,6 +552,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.log('Session refreshed successfully:', session.user.email);
             setUser(session.user);
             
+            // Fetch user profile immediately
+            console.log('Fetching user profile after registration...');
+            try {
+              const { data: profileData, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
+              
+              if (profileData) {
+                console.log('User profile fetched after registration:', profileData);
+                setUserProfile(profileData);
+              } else {
+                console.log('No profile found after registration');
+              }
+            } catch (profileFetchError) {
+              console.error('Error fetching profile after registration:', profileFetchError);
+            }
+            
             // Force redirect to dashboard
             console.log('Redirecting to dashboard...');
             window.location.href = '/dashboard';
@@ -574,16 +593,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Logout function
   const logout = async () => {
+    console.log('🚨 Logout function called!');
     setLoading(true);
+    
     try {
+      console.log('🔄 Starting logout process...');
+      console.log('👤 Current user before logout:', user?.email);
+      
+      // Clear local storage first
+      console.log('🗑️ Clearing local storage...');
+      localStorage.removeItem('auth_callback');
+      localStorage.removeItem('lluvia-auth');
+      
+      // Sign out from Supabase
+      console.log('🔐 Signing out from Supabase...');
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
+        console.error('❌ Supabase signOut error:', error);
         throw error;
       }
+      
+      console.log('✅ Supabase signOut successful');
+      
+      // Clear all states
+      console.log('🧹 Clearing all states...');
       setUser(null);
       setUserProfile(null);
+      setEmailConfirmed(false);
+      
+      // Force redirect to home page
+      console.log('🏠 Redirecting to home page...');
+      window.location.href = '/';
+      
+      console.log('🎉 Logout completed successfully!');
+      
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('💥 Logout error:', error);
+      
+      // Even if there's an error, clear states and redirect
+      console.log('🔄 Error occurred, clearing states anyway...');
+      setUser(null);
+      setUserProfile(null);
+      setEmailConfirmed(false);
+      localStorage.removeItem('auth_callback');
+      localStorage.removeItem('lluvia-auth');
+      
+      // Force redirect to home page
+      console.log('🏠 Force redirecting to home page...');
+      window.location.href = '/';
+      
       throw error;
     } finally {
       setLoading(false);

@@ -141,6 +141,21 @@ const Dashboard: React.FC = () => {
     };
   }, [user, forceSessionSync]);
 
+  // Debug: Log user profile data
+  useEffect(() => {
+    if (user && userProfile) {
+      console.log('Dashboard: User profile loaded successfully:', {
+        email: userProfile.email,
+        name: userProfile.name,
+        plan: userProfile.plan,
+        automations_limit: userProfile.automations_limit,
+        ai_messages_limit: userProfile.ai_messages_limit
+      });
+    } else if (user && !userProfile) {
+      console.log('Dashboard: User exists but no profile loaded');
+    }
+  }, [user, userProfile]);
+
   // Auth state change listener - Auth state değiştiğinde user state'i sync et
   useEffect(() => {
     if (!user) {
