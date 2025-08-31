@@ -62,7 +62,18 @@ const LandingPage: React.FC = () => {
         navigate('/dashboard');
       }, 3000);
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, forceSessionSync]);
+
+  // Tab kontrolü - Eğer bu sekme auth callback ile açıldıysa ana sekmeyi kapat
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code && window.opener) {
+      console.log('Auth callback in new tab detected, closing this tab...');
+      // Ana sekmeye focus yap ve bu sekmeyi kapat
+      window.opener.focus();
+      window.close();
+    }
+  }, [searchParams]);
 
   const handleGetStarted = () => {
     if (user) {
