@@ -182,6 +182,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.log('AuthContext: Query result - data:', userProfile);
             console.log('AuthContext: Query result - error:', profileError);
             
+            if (profileError) {
+              console.error('AuthContext: Profile query error:', profileError);
+              console.error('AuthContext: Error details:', {
+                message: profileError.message,
+                code: profileError.code,
+                details: profileError.details
+              });
+            }
+            
+            if (userProfile) {
+              console.log('AuthContext: User profile found, setting state...');
+              setUserProfile(userProfile);
+              console.log('AuthContext: User profile state set successfully');
+            } else {
+              console.log('AuthContext: No user profile found in query result');
+            }
+            
             if (profileError || !userProfile) {
               console.log('AuthContext: 🚨 USER NOT FOUND IN DB!');
               console.log('AuthContext: Profile error:', profileError);

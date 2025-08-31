@@ -141,7 +141,7 @@ const Dashboard: React.FC = () => {
     };
   }, [user, forceSessionSync]);
 
-  // Debug: Log user profile data
+  // Debug: Log user profile data and force fetch if missing
   useEffect(() => {
     if (user && userProfile) {
       console.log('Dashboard: User profile loaded successfully:', {
@@ -152,7 +152,32 @@ const Dashboard: React.FC = () => {
         ai_messages_limit: userProfile.ai_messages_limit
       });
     } else if (user && !userProfile) {
-      console.log('Dashboard: User exists but no profile loaded');
+      console.log('Dashboard: User exists but no profile loaded, forcing fetch...');
+      
+      // Force fetch user profile
+      const forceFetchProfile = async () => {
+        try {
+          console.log('Dashboard: Force fetching user profile for user:', user.id);
+          const { data: profileData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profileError) {
+            console.error('Dashboard: Force fetch profile error:', profileError);
+          } else if (profileData) {
+            console.log('Dashboard: Force fetch profile successful:', profileData);
+            // Force page reload to get updated data
+            window.location.reload();
+          }
+        } catch (error) {
+          console.error('Dashboard: Force fetch profile exception:', error);
+        }
+      };
+      
+      // Wait a bit then force fetch
+      setTimeout(forceFetchProfile, 2000);
     }
   }, [user, userProfile]);
 
@@ -435,12 +460,17 @@ const Dashboard: React.FC = () => {
                       <Zap className="w-3 h-3" />
                     )}
                   </button>
-                  <button
-                    onClick={logout}
-                    className="text-gray-400 hover:text-white transition-colors text-xs"
-                  >
-                    Logout
-                  </button>
+                                  <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout button clicked in mobile menu');
+                    logout();
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors text-xs"
+                >
+                  Logout
+                </button>
                 </div>
               </div>
             </motion.div>
@@ -515,7 +545,12 @@ const Dashboard: React.FC = () => {
                   <User className="w-4 h-4 text-white" />
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout button clicked in desktop header');
+                    logout();
+                  }}
                   className="text-gray-400 hover:text-white transition-colors text-sm"
                 >
                   Logout
