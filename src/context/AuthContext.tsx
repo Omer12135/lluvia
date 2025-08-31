@@ -154,10 +154,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
         
         // ✅ Console log ekle - Debug için
+        console.log('AuthContext: 🚨 ENTERING MAIN LOGIC!');
         console.log('AuthContext: User state update pending, checking DB first...');
         console.log('AuthContext: Session data:', session);
+        console.log('AuthContext: Session user exists?', !!session?.user);
         
         if (session?.user) {
+          console.log('AuthContext: 🚨 USER EXISTS, STARTING DB VALIDATION!');
           // User'ın DB'de gerçekten var olup olmadığını kontrol et
           try {
             const { data: userProfile, error: profileError } = await supabase
