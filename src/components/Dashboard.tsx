@@ -220,6 +220,51 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // Immediate session validation - User var ama DB'de var mı kontrol et
+  useEffect(() => {
+    const validateSession = async () => {
+      if (user) {
+        console.log('Dashboard: Immediate session validation for user:', user.email);
+        
+        try {
+          const { data: userProfile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profileError || !userProfile) {
+            console.log('Dashboard: User not found in DB during immediate validation, clearing session...');
+            
+            // Invalid session'ı temizle
+            await supabase.auth.signOut();
+            
+            // LocalStorage'dan da temizle
+            localStorage.removeItem('auth_callback');
+            localStorage.removeItem('lluvia-auth');
+            
+            console.log('Dashboard: Session cleared, redirecting to login...');
+            navigate('/');
+            return;
+          }
+          
+          console.log('Dashboard: User validated in DB:', userProfile.email);
+        } catch (error) {
+          console.error('Dashboard: Immediate validation failed:', error);
+          
+          // Error durumunda da session'ı temizle
+          await supabase.auth.signOut();
+          localStorage.removeItem('auth_callback');
+          localStorage.removeItem('lluvia-auth');
+          navigate('/');
+        }
+      }
+    };
+
+    // Hemen çalıştır
+    validateSession();
+  }, [user, navigate]);
+
   // Get user-specific automations
   const userAutomations = automations.filter(a => a.userId === user.id);
   const completedAutomations = userAutomations.filter(a => a.status === 'completed').length;

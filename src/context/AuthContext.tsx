@@ -83,11 +83,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
       
       if (session?.user) {
-        await fetchUserProfile(session.user.id);
-        setEmailConfirmed(session.user.email_confirmed_at !== null);
+        console.log('AuthContext: Initial session found, validating user in DB...');
+        
+        // User'ın DB'de gerçekten var olup olmadığını kontrol et
+        try {
+          const { data: userProfile, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          if (profileError || !userProfile) {
+            console.log('AuthContext: User not found in DB during initialization, clearing invalid session...');
+            
+            // Invalid session'ı temizle
+            await supabase.auth.signOut();
+            
+            // State'leri temizle
+            setUser(null);
+            setUserProfile(null);
+            setEmailConfirmed(false);
+            setLoading(false);
+            return;
+          }
+          
+          console.log('AuthContext: User validated in DB during initialization:', userProfile.email);
+          setUser(session.user);
+          await fetchUserProfile(session.user.id);
+          setEmailConfirmed(session.user.email_confirmed_at !== null);
+        } catch (dbError) {
+          console.error('AuthContext: Database check failed during initialization:', dbError);
+          
+          // DB error durumunda da session'ı temizle
+          await supabase.auth.signOut();
+          setUser(null);
+          setUserProfile(null);
+          setEmailConfirmed(false);
+          setLoading(false);
+          return;
+        }
+      } else {
+        setUser(null);
       }
       
       setLoading(false);
