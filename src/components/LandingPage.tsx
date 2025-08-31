@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Workflow, 
   Zap, 
@@ -35,10 +35,25 @@ const supabase = createClient(
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Auth callback - Email confirmation sonrası code parameter'ı yakala
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      console.log('Auth callback detected with code:', code);
+      
+      // Email confirmation sonrası otomatik dashboard'a yönlendir
+      setTimeout(() => {
+        console.log('Redirecting to dashboard after email confirmation...');
+        navigate('/dashboard');
+      }, 1000);
+    }
+  }, [searchParams, navigate]);
 
   const handleGetStarted = () => {
     if (user) {
