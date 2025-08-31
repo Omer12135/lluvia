@@ -160,12 +160,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           try {
             console.log('AuthContext: 🚨 STARTING DB QUERY...');
             console.log('AuthContext: Querying user_profiles table for user_id:', session.user.id);
+            console.log('AuthContext: Supabase client:', supabase);
+            console.log('AuthContext: Table name: user_profiles');
             
-            const { data: userProfile, error: profileError } = await supabase
+            const query = supabase
               .from('user_profiles')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
+            
+            console.log('AuthContext: Query object created:', query);
+            console.log('AuthContext: Executing query...');
+            
+            const { data: userProfile, error: profileError } = await query;
             
             console.log('AuthContext: 🚨 DB QUERY COMPLETED!');
             console.log('AuthContext: Query result - data:', userProfile);
