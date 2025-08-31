@@ -76,24 +76,57 @@ const LandingPage: React.FC = () => {
       
       // Ana sekmeye auth callback bilgisini gönder
       try {
-        const message = {
-          type: 'AUTH_CALLBACK',
-          code: code,
-          timestamp: Date.now()
-        };
-        
-        console.log('Sending message to main tab:', message);
-        console.log('Main tab window:', window.opener);
-        
-        window.opener.postMessage(message, '*');
-        
-        console.log('Auth data sent to main tab, closing this tab...');
-        
-        // Ana sekmeye focus yap ve bu sekmeyi kapat
-        window.opener.focus();
-        window.close();
+        // Önce PostMessage dene
+        if (window.opener) {
+          const message = {
+            type: 'AUTH_CALLBACK',
+            code: code,
+            timestamp: Date.now()
+          };
+          
+          console.log('Sending message to main tab via PostMessage:', message);
+          console.log('Main tab window:', window.opener);
+          
+          window.opener.postMessage(message, '*');
+          
+          console.log('Auth data sent to main tab via PostMessage, closing this tab...');
+          
+          // Ana sekmeye focus yap ve bu sekmeyi kapat
+          window.opener.focus();
+          window.close();
+        } else {
+          // PostMessage çalışmıyorsa LocalStorage kullan
+          console.log('PostMessage not available, using LocalStorage...');
+          
+          const authData = {
+            type: 'AUTH_CALLBACK',
+            code: code,
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('auth_callback', JSON.stringify(authData));
+          console.log('Auth data saved to LocalStorage:', authData);
+          
+          // Bu sekmeyi kapat
+          window.close();
+        }
       } catch (error) {
         console.error('Failed to send auth data to main tab:', error);
+        
+        // Hata durumunda LocalStorage kullan
+        try {
+          const authData = {
+            type: 'AUTH_CALLBACK',
+            code: code,
+            timestamp: Date.now()
+          };
+          
+          localStorage.setItem('auth_callback', JSON.stringify(authData));
+          console.log('Auth data saved to LocalStorage after error:', authData);
+        } catch (localStorageError) {
+          console.error('Failed to save to LocalStorage:', localStorageError);
+        }
+        
         window.close();
       }
     } else if (code && !window.opener) {

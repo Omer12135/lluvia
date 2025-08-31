@@ -103,6 +103,43 @@ const Dashboard: React.FC = () => {
     };
   }, [user, forceSessionSync]);
 
+  // LocalStorage listener - PostMessage çalışmazsa LocalStorage'dan oku
+  useEffect(() => {
+    const checkLocalStorage = async () => {
+      try {
+        const authData = localStorage.getItem('auth_callback');
+        if (authData && !user) {
+          const parsedData = JSON.parse(authData);
+          console.log('Dashboard: Found auth callback in LocalStorage:', parsedData);
+          
+          if (parsedData.type === 'AUTH_CALLBACK') {
+            console.log('Dashboard: Starting force session sync from LocalStorage...');
+            
+            try {
+              await forceSessionSync();
+              console.log('Dashboard: Force session sync completed from LocalStorage');
+              
+              // LocalStorage'dan temizle
+              localStorage.removeItem('auth_callback');
+              console.log('Dashboard: Auth callback data removed from LocalStorage');
+            } catch (error) {
+              console.error('Dashboard: Force session sync failed from LocalStorage:', error);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Dashboard: Error reading from LocalStorage:', error);
+      }
+    };
+
+    // Her 1 saniyede kontrol et
+    const interval = setInterval(checkLocalStorage, 1000);
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, [user, forceSessionSync]);
+
   // Loading state - User state sync olana kadar bekle
   if (!user) {
     console.log('Dashboard: User not found, waiting for auth state sync...');
