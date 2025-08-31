@@ -347,6 +347,73 @@ const Dashboard: React.FC = () => {
     return "80h/monthly";
   };
 
+  // Get user's automation usage and limits
+  const getUserAutomationStats = () => {
+    if (!userProfile) {
+      return {
+        used: 0,
+        limit: 1,
+        remaining: 1,
+        percentage: 0
+      };
+    }
+
+    const used = userProfile.automations_used || 0;
+    const limit = userProfile.automations_limit || 1;
+    const remaining = Math.max(0, limit - used);
+    const percentage = Math.round((used / limit) * 100);
+
+    return { used, limit, remaining, percentage };
+  };
+
+  // Get user's AI message usage and limits
+  const getUserAiMessageStats = () => {
+    if (!userProfile) {
+      return {
+        used: 0,
+        limit: 0,
+        remaining: 0,
+        percentage: 0
+      };
+    }
+
+    const used = userProfile.ai_messages_used || 0;
+    const limit = userProfile.ai_messages_limit || 0;
+    const remaining = Math.max(0, limit - used);
+    const percentage = limit > 0 ? Math.round((used / limit) * 100) : 0;
+
+    return { used, limit, remaining, percentage };
+  };
+
+  // Get plan-specific features
+  const getPlanFeatures = () => {
+    if (!userProfile) return [];
+
+    switch (userProfile.plan) {
+      case 'pro':
+        return [
+          'Unlimited Automations',
+          'Advanced AI Features',
+          'Priority Support',
+          'Custom Integrations'
+        ];
+      case 'custom':
+        return [
+          'Custom Limits',
+          'Dedicated Support',
+          'White-label Options',
+          'API Access'
+        ];
+      default: // free
+        return [
+          '1 Automation',
+          'Basic AI Features',
+          'Community Support',
+          'Standard Integrations'
+        ];
+    }
+  };
+
   // Webhook test fonksiyonu
   const handleTestWebhook = async () => {
     setIsTestingWebhook(true);
@@ -576,10 +643,13 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Total</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">{getTotalAutomations()}</p>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">Plan</p>
+                <p className="text-lg lg:text-2xl font-bold text-white">{getCurrentPlanName()}</p>
+                <p className="text-xs text-gray-400">{userProfile?.email || 'Loading...'}</p>
               </div>
-              <BarChart3 className="w-4 h-4 lg:w-8 lg:h-8 text-purple-500 mt-1 lg:mt-0" />
+              <Crown className={`w-4 h-4 lg:w-8 lg:h-8 ${
+                getCurrentPlanName().includes('Pro') ? 'text-blue-500' : 'text-gray-400'
+              } mt-1 lg:mt-0`} />
             </div>
           </motion.div>
 
@@ -591,8 +661,13 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Remaining</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">{remainingAutomations}</p>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">Automations</p>
+                <p className="text-lg lg:text-3xl font-bold text-white">
+                  {getUserAutomationStats().used}/{getUserAutomationStats().limit}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {getUserAutomationStats().remaining} remaining
+                </p>
               </div>
               <Zap className="w-4 h-4 lg:w-8 lg:h-8 text-yellow-500 mt-1 lg:mt-0" />
             </div>
@@ -606,10 +681,15 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Used This Month</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">{currentMonthUsage}/{automationLimit}</p>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">AI Messages</p>
+                <p className="text-lg lg:text-3xl font-bold text-white">
+                  {getUserAiMessageStats().used}/{getUserAiMessageStats().limit || '∞'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {getUserAiMessageStats().limit > 0 ? `${getUserAiMessageStats().remaining} remaining` : 'Unlimited'}
+                </p>
               </div>
-              <Clock className="w-4 h-4 lg:w-8 lg:h-8 text-blue-500 mt-1 lg:mt-0" />
+              <Bot className="w-4 h-4 lg:w-8 lg:h-8 text-blue-500 mt-1 lg:mt-0" />
             </div>
           </motion.div>
 
@@ -621,10 +701,15 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Success</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">{getSuccessRate()}</p>
+                <p className="text-gray-400 text-xs lg:text-sm font-medium">Usage</p>
+                <p className="text-lg lg:text-3xl font-bold text-white">
+                  {getUserAutomationStats().percentage}%
+                </p>
+                <p className="text-xs text-gray-400">
+                  {getUserAutomationStats().used} of {getUserAutomationStats().limit} used
+                </p>
               </div>
-              <CheckCircle className="w-4 h-4 lg:w-8 lg:h-8 text-green-500 mt-1 lg:mt-0" />
+              <BarChart3 className="w-4 h-4 lg:w-8 lg:h-8 text-green-500 mt-1 lg:mt-0" />
             </div>
           </motion.div>
         </div>
