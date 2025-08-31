@@ -169,8 +169,8 @@ const Dashboard: React.FC = () => {
         }
       };
 
-      // Her 2 saniyede kontrol et
-      const interval = setInterval(checkAuthState, 2000);
+      // Her 5 saniyede kontrol et (daha az sıklıkta)
+      const interval = setInterval(checkAuthState, 5000);
       
       return () => {
         clearInterval(interval);

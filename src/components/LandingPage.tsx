@@ -107,8 +107,9 @@ const LandingPage: React.FC = () => {
           localStorage.setItem('auth_callback', JSON.stringify(authData));
           console.log('Auth data saved to LocalStorage:', authData);
           
-          // Bu sekmeyi kapat
-          window.close();
+          // Ana sekmeye redirect yap
+          console.log('Redirecting to main tab...');
+          window.location.href = 'https://quantumora.co/dashboard';
         }
       } catch (error) {
         console.error('Failed to send auth data to main tab:', error);
@@ -123,11 +124,17 @@ const LandingPage: React.FC = () => {
           
           localStorage.setItem('auth_callback', JSON.stringify(authData));
           console.log('Auth data saved to LocalStorage after error:', authData);
+          
+          // Ana sekmeye redirect yap
+          console.log('Redirecting to main tab after error...');
+          window.location.href = 'https://quantumora.co/dashboard';
         } catch (localStorageError) {
           console.error('Failed to save to LocalStorage:', localStorageError);
+          
+          // Son çare olarak ana sekmeye redirect
+          console.log('Final fallback: redirecting to main tab...');
+          window.location.href = 'https://quantumora.co/dashboard';
         }
-        
-        window.close();
       }
     } else if (code && !window.opener) {
       console.log('Auth callback detected but no window.opener found!');
