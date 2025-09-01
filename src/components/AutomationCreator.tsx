@@ -68,7 +68,9 @@ import {
   Heart,
   Star,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Cpu,
+  Palette
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
@@ -148,7 +150,8 @@ const AutomationCreator: React.FC = () => {
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [selectedActions, setSelectedActions] = useState<Action[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('Tümü');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedPlatform, setSelectedPlatform] = useState('n8n');
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -158,7 +161,27 @@ const AutomationCreator: React.FC = () => {
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
 
   // Get unique categories for actions
-  const actionCategories = ['Tümü', ...Array.from(new Set(actions.map(action => action.category))).sort()];
+  const actionCategories = ['All', ...Array.from(new Set(actions.map(action => action.category))).sort()];
+
+  // Platform options
+  const platforms = [
+    {
+      id: 'n8n',
+      name: 'N8N',
+      description: 'Open source workflow automation',
+      icon: Cpu,
+      color: 'from-blue-500 to-cyan-500',
+      features: ['Self-hosted', 'Free & Open Source', 'Visual Editor', '200+ Integrations']
+    },
+    {
+      id: 'make',
+      name: 'Make (Integromat)',
+      description: 'Visual automation platform',
+      icon: Palette,
+      color: 'from-purple-500 to-pink-500',
+      features: ['Cloud-based', 'Visual Scenarios', 'Advanced Routing', '1000+ Apps']
+    }
+  ];
 
   const handleCreate = async () => {
     if (!user) return;
@@ -175,7 +198,7 @@ const AutomationCreator: React.FC = () => {
         webhook_payload: {
           trigger: selectedTrigger?.name || 'Unknown',
           actions: selectedActions.map(a => a.name),
-          platform: 'n8n'
+          platform: selectedPlatform
         },
         status: 'pending' as const
       };
@@ -188,7 +211,7 @@ const AutomationCreator: React.FC = () => {
         automationDescription: automationDescription,
         trigger: selectedTrigger?.name || 'Unknown',
         actions: selectedActions.map(a => a.name),
-        platform: 'n8n',
+        platform: selectedPlatform,
         userId: user.id,
         userEmail: user.email,
         userName: userProfile?.name || user.email || 'Unknown',
@@ -211,7 +234,8 @@ const AutomationCreator: React.FC = () => {
       setAutomationDescription('');
       setSelectedTrigger(null);
       setSelectedActions([]);
-      setSelectedCategory('Tümü');
+      setSelectedCategory('All');
+      setSelectedPlatform('n8n');
       setIsTriggerDropdownOpen(false);
       setIsActionsDropdownOpen(false);
 
@@ -222,7 +246,7 @@ const AutomationCreator: React.FC = () => {
 
     } catch (err) {
       console.error('Error creating automation:', err);
-      setError('Otomasyon oluşturulurken hata oluştu. Lütfen tekrar deneyin.');
+      setError('Error creating automation. Please try again.');
     } finally {
       setIsCreating(false);
     }
@@ -239,7 +263,7 @@ const AutomationCreator: React.FC = () => {
   };
 
   const getActionsByCategory = (category: string) => {
-    if (category === 'Tümü') {
+    if (category === 'All') {
       return actions;
     }
     return actions.filter(action => action.category === category);
@@ -250,7 +274,7 @@ const AutomationCreator: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Lock className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <p className="text-gray-400">Otomasyon oluşturmak için giriş yapın</p>
+          <p className="text-gray-400">Please login to create automations</p>
         </div>
       </div>
     );
@@ -266,8 +290,8 @@ const AutomationCreator: React.FC = () => {
       >
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Otomasyon Oluşturucu</h1>
-          <p className="text-gray-300">Yeni otomasyonlar oluşturun ve iş akışlarınızı otomatikleştirin</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Automation Creator</h1>
+          <p className="text-gray-300">Create new automations and streamline your workflows</p>
         </div>
 
         {/* Success Message */}
@@ -280,7 +304,7 @@ const AutomationCreator: React.FC = () => {
               className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center space-x-3"
             >
               <CheckCircle className="w-5 h-5 text-green-400" />
-              <span className="text-green-400">Otomasyon başarıyla oluşturuldu!</span>
+              <span className="text-green-400">Automation created successfully!</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -302,30 +326,96 @@ const AutomationCreator: React.FC = () => {
           <div className="space-y-6">
             {/* Basic Information */}
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Temel Bilgiler</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">Basic Information</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-white text-sm font-medium mb-2">Otomasyon Adı</label>
+                  <label className="block text-white text-sm font-medium mb-2">Automation Name</label>
                   <input
                     type="text"
                     value={automationName}
                     onChange={(e) => setAutomationName(e.target.value)}
-                    placeholder="Örn: Gmail to Slack Notification"
+                    placeholder="e.g., Gmail to Slack Notification"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-white text-sm font-medium mb-2">Açıklama</label>
+                  <label className="block text-white text-sm font-medium mb-2">Description</label>
                   <textarea
                     value={automationDescription}
                     onChange={(e) => setAutomationDescription(e.target.value)}
-                    placeholder="Otomasyonunuzun ne yaptığını açıklayın..."
+                    placeholder="Describe what your automation does..."
                     rows={3}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Platform Selection */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Platform Choose</h2>
+              <p className="text-gray-400 text-sm mb-4">Select your preferred automation platform</p>
+              
+              <div className="space-y-4">
+                {platforms.map((platform) => {
+                  const Icon = platform.icon;
+                  const isSelected = selectedPlatform === platform.id;
+                  
+                  return (
+                    <motion.button
+                      key={platform.id}
+                      onClick={() => setSelectedPlatform(platform.id)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full p-6 rounded-xl border transition-all text-left group ${
+                        isSelected
+                          ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
+                          : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className={`p-3 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                          <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className={`text-lg font-semibold ${isSelected ? 'text-white' : 'text-white group-hover:text-white'}`}>
+                              {platform.name}
+                            </h3>
+                            {isSelected && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="flex-shrink-0"
+                              >
+                                <CheckCircle className="w-5 h-5 text-white" />
+                              </motion.div>
+                            )}
+                          </div>
+                          <p className={`text-sm mb-3 ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-gray-300'}`}>
+                            {platform.description}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {platform.features.map((feature, index) => (
+                              <span
+                                key={index}
+                                className={`inline-block px-2 py-1 text-xs rounded-full ${
+                                  isSelected 
+                                    ? 'bg-white/20 text-white' 
+                                    : 'bg-white/10 text-gray-400 group-hover:bg-white/20 group-hover:text-gray-300'
+                                }`}
+                              >
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
 
@@ -338,12 +428,12 @@ const AutomationCreator: React.FC = () => {
               {isCreating ? (
                 <>
                   <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Oluşturuluyor...</span>
+                  <span>Creating...</span>
                 </>
               ) : (
                 <>
                   <Rocket className="w-5 h-5" />
-                  <span>Otomasyon Oluştur</span>
+                  <span>Create Automation</span>
                 </>
               )}
             </button>
@@ -362,9 +452,9 @@ const AutomationCreator: React.FC = () => {
                     <Zap className="w-5 h-5 text-green-400" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-xl font-semibold text-white">Tetikleyici Seçimi</h2>
+                    <h2 className="text-xl font-semibold text-white">Trigger Selection</h2>
                     <p className="text-gray-400 text-sm">
-                      {selectedTrigger ? selectedTrigger.name : 'Tetikleyici seçin'}
+                      {selectedTrigger ? selectedTrigger.name : 'Select a trigger'}
                     </p>
                   </div>
                 </div>
@@ -427,11 +517,11 @@ const AutomationCreator: React.FC = () => {
                     <Workflow className="w-5 h-5 text-blue-400" />
                   </div>
                   <div className="text-left">
-                    <h2 className="text-xl font-semibold text-white">Aksiyon Seçimi</h2>
+                    <h2 className="text-xl font-semibold text-white">Actions Selection</h2>
                     <p className="text-gray-400 text-sm">
                       {selectedActions.length > 0 
-                        ? `${selectedActions.length} aksiyon seçildi` 
-                        : 'Aksiyon seçin'
+                        ? `${selectedActions.length} actions selected` 
+                        : 'Select actions'
                       }
                     </p>
                   </div>
@@ -524,7 +614,7 @@ const AutomationCreator: React.FC = () => {
                       {getActionsByCategory(selectedCategory).length === 0 && (
                         <div className="text-center py-8">
                           <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                          <p className="text-gray-400">Bu kategoride aksiyon bulunamadı</p>
+                          <p className="text-gray-400">No actions found in this category</p>
                         </div>
                       )}
                     </div>
@@ -536,7 +626,7 @@ const AutomationCreator: React.FC = () => {
             {/* Selected Actions Order */}
             {selectedActions.length > 0 && (
               <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
-                <h3 className="text-lg font-semibold text-white mb-4">Seçilen Aksiyonlar</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">Selected Actions</h3>
                 
                 <div className="space-y-2">
                   {selectedActions.map((action, index) => {
