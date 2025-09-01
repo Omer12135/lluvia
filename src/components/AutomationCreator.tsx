@@ -335,7 +335,7 @@ const AutomationCreator: React.FC = () => {
         )}
 
         {/* Main Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Left Column - Basic Information */}
           <div className="lg:col-span-1 space-y-6">
@@ -360,13 +360,13 @@ const AutomationCreator: React.FC = () => {
               />
             </motion.div>
 
-            {/* Description */}
+            {/* Description - Fixed height to match Platform Choose */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
-              style={{ height: 'calc(100vh - 400px)' }}
+              style={{ height: '320px' }}
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                 <Book className="w-5 h-5 text-orange-400" />
@@ -642,19 +642,20 @@ const AutomationCreator: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Platform Choose */}
+            {/* Platform Choose - Fixed height to match Description */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
               className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+              style={{ height: '320px' }}
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                 <Cpu className="w-5 h-5 text-blue-400" />
                 <span>Platform Choose</span>
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
                 {platforms.map((platform) => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatform === platform.id;
