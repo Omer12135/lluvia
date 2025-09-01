@@ -164,7 +164,7 @@ export const actions: Action[] = [
   { id: 'e-goi', name: 'E-goi', description: 'Multichannel marketing platform', category: 'Marketing', icon: 'Mail' },
   { id: 'iterable', name: 'Iterable', description: 'Cross-channel marketing platform', category: 'Marketing', icon: 'Users' },
   { id: 'klaviyo', name: 'Klaviyo', description: 'Email marketing and SMS', category: 'Marketing', icon: 'Mail' },
-
+  
   // CRM & Sales
   { id: 'affinity', name: 'Affinity', description: 'Relationship intelligence CRM', category: 'CRM', icon: 'Database' },
   { id: 'agile-crm', name: 'Agile CRM', description: 'All-in-one CRM platform', category: 'CRM', icon: 'Database' },
@@ -249,7 +249,7 @@ export const actions: Action[] = [
   { id: 'lingvanex', name: 'LingvaNex', description: 'Translation and localization', category: 'AI', icon: 'Languages' },
   { id: 'google-translate', name: 'Google Translate', description: 'Machine translation service', category: 'AI', icon: 'Languages' },
   { id: 'mindee', name: 'Mindee', description: 'Document parsing AI', category: 'AI', icon: 'FileText' },
-
+  
   // E-commerce & Payments
   { id: 'shopify', name: 'Shopify', description: 'E-commerce platform', category: 'E-commerce', icon: 'ShoppingCart' },
   { id: 'woocommerce', name: 'WooCommerce', description: 'WordPress e-commerce plugin', category: 'E-commerce', icon: 'ShoppingCart' },
@@ -293,7 +293,7 @@ export const actions: Action[] = [
   { id: 'tiktok', name: 'TikTok', description: 'Short-form video platform', category: 'Social Media', icon: 'Video' },
   { id: 'pinterest', name: 'Pinterest', description: 'Visual discovery platform', category: 'Social Media', icon: 'Image' },
   { id: 'snapchat', name: 'Snapchat', description: 'Multimedia messaging app', category: 'Social Media', icon: 'Smartphone' },
-
+  
   // Support & Help Desk
   { id: 'zendesk', name: 'Zendesk', description: 'Customer service platform', category: 'Support', icon: 'HelpCircle' },
   { id: 'intercom', name: 'Intercom', description: 'Customer messaging platform', category: 'Support', icon: 'MessageSquare' },

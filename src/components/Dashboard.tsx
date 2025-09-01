@@ -4,7 +4,7 @@ import {
   BarChart3, 
   Settings, 
   User, 
-  Plus,
+  Plus, 
   Zap,
   Workflow
 } from 'lucide-react';
@@ -42,17 +42,17 @@ const Dashboard: React.FC = () => {
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
       <div className="bg-white/10 backdrop-blur-xl border-b border-white/20 p-4">
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg">
               <Zap className="w-6 h-6 text-white" />
-            </div>
+                </div>
             <h1 className="text-2xl font-bold text-white">LLUVIA AI</h1>
-          </div>
-          <div className="flex items-center space-x-4">
+      </div>
+            <div className="flex items-center space-x-4">
             <button className="p-2 text-gray-400 hover:text-white transition-colors">
               <Settings className="w-5 h-5" />
-            </button>
+              </button>
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full"></div>
           </div>
         </div>
@@ -94,8 +94,8 @@ const Dashboard: React.FC = () => {
               
               return (
                 <motion.button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className={`flex items-center space-x-2 p-3 rounded-lg transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
@@ -109,22 +109,22 @@ const Dashboard: React.FC = () => {
                 </motion.button>
               );
             })}
+                </div>
+                </div>
           </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        <motion.div
-          key={activeTab}
+            <motion.div
+              key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
+              transition={{ duration: 0.3 }}
           className="h-full"
         >
           {renderContent()}
-        </motion.div>
+            </motion.div>
       </div>
     </div>
   );
