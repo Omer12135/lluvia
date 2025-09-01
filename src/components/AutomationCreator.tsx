@@ -374,7 +374,7 @@ const AutomationCreator: React.FC = () => {
               <textarea
                 value={automationDescription}
                 onChange={(e) => setAutomationDescription(e.target.value)}
-                placeholder="Describe what your automation does... (max 2000 words)"
+                placeholder="Example: Automatically send Slack notifications when new emails arrive in Gmail (max 2000 words)"
                 maxLength={2000}
                 className="w-full h-32 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
               />
@@ -707,7 +707,7 @@ const AutomationCreator: React.FC = () => {
         >
           <button
             onClick={handleCreate}
-            disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger || selectedActions.length === 0}
+            disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger}
             className="bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 hover:from-pink-600 hover:via-purple-600 hover:to-yellow-600 disabled:from-gray-600 disabled:via-gray-600 disabled:to-gray-600 text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-2xl hover:shadow-pink-500/25 mx-auto"
           >
             {isCreating ? (
