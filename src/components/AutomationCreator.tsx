@@ -66,7 +66,9 @@ import {
   Server,
   Sparkles,
   Heart,
-  Star
+  Star,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
@@ -141,65 +143,56 @@ const iconMap: Record<string, any> = {
 };
 
 const AutomationCreator: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [selectedActions, setSelectedActions] = useState<Action[]>([]);
-  const [selectedPlatform, setSelectedPlatform] = useState('n8n');
+  const [selectedCategory, setSelectedCategory] = useState('Tümü');
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState('Tümü');
+  const [error, setError] = useState('');
+  
+  // Dropdown states
+  const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState(false);
+  const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
 
-  const platforms = [
-    { id: 'n8n', name: 'N8N', icon: Workflow, description: 'Open source workflow automation' },
-    { id: 'make', name: 'Make (Integromat)', icon: Zap, description: 'Visual automation platform' },
-    { id: 'zapier', name: 'Zapier', icon: Link, description: 'Connect your apps and automate workflows' },
-    { id: 'ifttt', name: 'IFTTT', icon: Sparkles, description: 'If This Then That automation' }
-  ];
+  // Get unique categories for actions
+  const actionCategories = ['Tümü', ...Array.from(new Set(actions.map(action => action.category))).sort()];
 
   const handleCreate = async () => {
-    if (!user) {
-      setError('Otomasyon oluşturmak için giriş yapmalısınız');
-      return;
-    }
-
-    if (!automationName.trim() || !automationDescription.trim() || !selectedTrigger || selectedActions.length === 0) {
-      setError('Lütfen tüm alanları doldurun');
-      return;
-    }
+    if (!user) return;
 
     setIsCreating(true);
-    setError(null);
+    setError('');
 
     try {
-      // Create automation in Supabase
-      const automationData = {
+      // Create automation
+      const automation = {
         user_id: user.id,
-        automation_name: automationName.trim(),
-        automation_description: automationDescription.trim(),
+        automation_name: automationName,
+        automation_description: automationDescription,
         webhook_payload: {
-          trigger: selectedTrigger.name,
+          trigger: selectedTrigger?.name || 'Unknown',
           actions: selectedActions.map(a => a.name),
-          platform: selectedPlatform
+          platform: 'n8n'
         },
         status: 'pending' as const
       };
 
-      const createdAutomation = await automationService.createAutomation(automationData);
+      const createdAutomation = await automationService.createAutomation(automation);
 
       // Send webhook data
       const webhookData: AutomationWebhookData = {
-        automationName: automationName.trim(),
-        automationDescription: automationDescription.trim(),
-        trigger: selectedTrigger.name,
+        automationName: automationName,
+        automationDescription: automationDescription,
+        trigger: selectedTrigger?.name || 'Unknown',
         actions: selectedActions.map(a => a.name),
-        platform: selectedPlatform,
+        platform: 'n8n',
         userId: user.id,
         userEmail: user.email,
-        userName: user.name,
-        userPlan: user.plan,
+        userName: userProfile?.name || user.email || 'Unknown',
+        userPlan: userProfile?.plan || 'free',
         status: 'pending',
         createdAt: new Date().toISOString(),
         automationId: createdAutomation.id,
@@ -218,8 +211,9 @@ const AutomationCreator: React.FC = () => {
       setAutomationDescription('');
       setSelectedTrigger(null);
       setSelectedActions([]);
-      setSelectedPlatform('n8n');
       setSelectedCategory('Tümü');
+      setIsTriggerDropdownOpen(false);
+      setIsActionsDropdownOpen(false);
 
       // Hide success message after 3 seconds
       setTimeout(() => {
@@ -242,13 +236,6 @@ const AutomationCreator: React.FC = () => {
 
   const removeAction = (actionId: string) => {
     setSelectedActions(selectedActions.filter(a => a.id !== actionId));
-  };
-
-  const reorderActions = (fromIndex: number, toIndex: number) => {
-    const newActions = [...selectedActions];
-    const [removed] = newActions.splice(fromIndex, 1);
-    newActions.splice(toIndex, 0, removed);
-    setSelectedActions(newActions);
   };
 
   const getActionsByCategory = (category: string) => {
@@ -342,36 +329,6 @@ const AutomationCreator: React.FC = () => {
               </div>
             </div>
 
-            {/* Platform Selection */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Platform Seçimi</h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {platforms.map((platform) => {
-                  const Icon = platform.icon;
-                  return (
-                    <button
-                      key={platform.id}
-                      onClick={() => setSelectedPlatform(platform.id)}
-                      className={`p-4 rounded-lg border transition-all ${
-                        selectedPlatform === platform.id
-                          ? 'border-blue-500 bg-blue-500/20'
-                          : 'border-white/20 bg-white/5 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Icon className="w-6 h-6 text-blue-400" />
-                        <div className="text-left">
-                          <p className="text-white font-medium">{platform.name}</p>
-                          <p className="text-gray-400 text-xs">{platform.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Create Button */}
             <button
               onClick={handleCreate}
@@ -394,146 +351,186 @@ const AutomationCreator: React.FC = () => {
 
           {/* Right Column - Trigger and Actions */}
           <div className="space-y-6">
-            {/* Trigger Selection */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Tetikleyici Seçimi</h2>
+            {/* Trigger Selection - Dropdown */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl overflow-hidden">
+              <button
+                onClick={() => setIsTriggerDropdownOpen(!isTriggerDropdownOpen)}
+                className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-all"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <Zap className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-xl font-semibold text-white">Tetikleyici Seçimi</h2>
+                    <p className="text-gray-400 text-sm">
+                      {selectedTrigger ? selectedTrigger.name : 'Tetikleyici seçin'}
+                    </p>
+                  </div>
+                </div>
+                {isTriggerDropdownOpen ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
               
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {triggers.map((trigger) => {
-                  const Icon = iconMap[trigger.icon] || Zap;
-                  return (
-                    <button
-                      key={trigger.id}
-                      onClick={() => setSelectedTrigger(trigger)}
-                      className={`w-full p-4 rounded-lg border transition-all text-left ${
-                        selectedTrigger?.id === trigger.id
-                          ? 'border-green-500 bg-green-500/20'
-                          : 'border-white/20 bg-white/5 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Icon className="w-5 h-5 text-green-400" />
-                        <div>
-                          <p className="text-white font-medium">{trigger.name}</p>
-                          <p className="text-gray-400 text-sm">{trigger.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              <AnimatePresence>
+                {isTriggerDropdownOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="border-t border-white/10"
+                  >
+                    <div className="p-6 space-y-3 max-h-64 overflow-y-auto">
+                      {triggers.map((trigger) => {
+                        const Icon = iconMap[trigger.icon] || Zap;
+                        return (
+                          <button
+                            key={trigger.id}
+                            onClick={() => {
+                              setSelectedTrigger(trigger);
+                              setIsTriggerDropdownOpen(false);
+                            }}
+                            className={`w-full p-4 rounded-lg border transition-all text-left ${
+                              selectedTrigger?.id === trigger.id
+                                ? 'border-green-500 bg-green-500/20'
+                                : 'border-white/20 bg-white/5 hover:bg-white/10'
+                            }`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <Icon className="w-5 h-5 text-green-400" />
+                              <div>
+                                <p className="text-white font-medium">{trigger.name}</p>
+                                <p className="text-gray-400 text-sm">{trigger.description}</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Actions Selection */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Aksiyon Seçimi</h2>
+            {/* Actions Selection - Dropdown */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl overflow-hidden">
+              <button
+                onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
+                className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-all"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <Workflow className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-xl font-semibold text-white">Aksiyon Seçimi</h2>
+                    <p className="text-gray-400 text-sm">
+                      {selectedActions.length > 0 
+                        ? `${selectedActions.length} aksiyon seçildi` 
+                        : 'Aksiyon seçin'
+                      }
+                    </p>
+                  </div>
+                </div>
+                {isActionsDropdownOpen ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </button>
               
-              {/* Platform Selection */}
-              <div className="mb-6">
-                <label className="block text-white text-sm font-medium mb-3">Platform Seçimi (Zorunlu)</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { id: 'n8n', name: 'N8N', icon: Workflow, description: 'Open source workflow automation', color: 'from-blue-500 to-cyan-500' },
-                    { id: 'make', name: 'Make (Integromat)', icon: Zap, description: 'Visual automation platform', color: 'from-purple-500 to-pink-500' }
-                  ].map((platform) => {
-                    const Icon = platform.icon;
-                    return (
-                      <button
-                        key={platform.id}
-                        onClick={() => setSelectedPlatform(platform.id)}
-                        className={`p-4 rounded-lg border transition-all transform hover:scale-105 ${
-                          selectedPlatform === platform.id
-                            ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
-                            : 'border-white/20 bg-white/5 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Icon className={`w-6 h-6 ${selectedPlatform === platform.id ? 'text-white' : 'text-blue-400'}`} />
-                          <div className="text-left">
-                            <p className={`font-medium ${selectedPlatform === platform.id ? 'text-white' : 'text-white'}`}>{platform.name}</p>
-                            <p className={`text-xs ${selectedPlatform === platform.id ? 'text-white/80' : 'text-gray-400'}`}>{platform.description}</p>
-                          </div>
+              <AnimatePresence>
+                {isActionsDropdownOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="border-t border-white/10"
+                  >
+                    <div className="p-6">
+                      {/* Category Tabs */}
+                      <div className="mb-4">
+                        <div className="flex space-x-1 bg-white/10 rounded-lg p-1 overflow-x-auto scrollbar-hide">
+                          {actionCategories.map((category) => (
+                            <button
+                              key={category}
+                              onClick={() => setSelectedCategory(category)}
+                              className={`px-3 py-2 text-xs font-medium rounded-md transition-all whitespace-nowrap flex-shrink-0 ${
+                                selectedCategory === category
+                                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                                  : 'text-gray-300 hover:text-white hover:bg-white/10'
+                              }`}
+                            >
+                              {category}
+                            </button>
+                          ))}
                         </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Category Tabs */}
-              <div className="mb-4">
-                <div className="flex space-x-1 bg-white/10 rounded-lg p-1 overflow-x-auto scrollbar-hide">
-                  {['Tümü', 'Communication', 'Marketing', 'CRM', 'Project Management', 'Database', 'Cloud', 'AI', 'E-commerce', 'Finance', 'Development', 'Social Media', 'Support', 'Analytics', 'Storage', 'Scheduling', 'Forms', 'Messaging', 'Security', 'IoT', 'Fitness', 'Business', 'HR', 'Logistics', 'Events', 'Community', 'Utilities', 'Notifications', 'Monitoring', 'Automation', 'Media'].map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`px-3 py-2 text-xs font-medium rounded-md transition-all whitespace-nowrap flex-shrink-0 ${
-                        selectedCategory === category
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
-                          : 'text-gray-300 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Actions by Category */}
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {getActionsByCategory(selectedCategory).map((action) => {
-                  const Icon = iconMap[action.icon] || Zap;
-                  const isSelected = selectedActions.find(a => a.id === action.id);
-                  
-                  return (
-                    <motion.button
-                      key={action.id}
-                      onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`w-full p-4 rounded-lg border transition-all text-left group ${
-                        isSelected
-                          ? 'border-blue-500 bg-gradient-to-r from-blue-500/20 to-purple-500/20 shadow-lg'
-                          : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-500/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                          <Icon className={`w-5 h-5 ${isSelected ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'}`} />
-                        </div>
-                        <div className="flex-1">
-                          <p className={`font-medium ${isSelected ? 'text-white' : 'text-white group-hover:text-white'}`}>{action.name}</p>
-                          <p className={`text-sm ${isSelected ? 'text-blue-200' : 'text-gray-400 group-hover:text-gray-300'}`}>{action.description}</p>
-                          <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${
-                            isSelected 
-                              ? 'bg-blue-500/30 text-blue-200' 
-                              : 'bg-white/10 text-gray-400 group-hover:bg-white/20 group-hover:text-gray-300'
-                          }`}>
-                            {action.category}
-                          </span>
-                        </div>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="flex-shrink-0"
-                          >
-                            <CheckCircle className="w-6 h-6 text-blue-400" />
-                          </motion.div>
-                        )}
                       </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
 
-              {/* No actions found message */}
-              {getActionsByCategory(selectedCategory).length === 0 && (
-                <div className="text-center py-8">
-                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-400">Bu kategoride aksiyon bulunamadı</p>
-                </div>
-              )}
+                      {/* Actions by Category */}
+                      <div className="space-y-4 max-h-96 overflow-y-auto">
+                        {getActionsByCategory(selectedCategory).map((action) => {
+                          const Icon = iconMap[action.icon] || Zap;
+                          const isSelected = selectedActions.find(a => a.id === action.id);
+                          
+                          return (
+                            <motion.button
+                              key={action.id}
+                              onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={`w-full p-4 rounded-lg border transition-all text-left group ${
+                                isSelected
+                                  ? 'border-blue-500 bg-gradient-to-r from-blue-500/20 to-purple-500/20 shadow-lg'
+                                  : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-500/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                                  <Icon className={`w-5 h-5 ${isSelected ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'}`} />
+                                </div>
+                                <div className="flex-1">
+                                  <p className={`font-medium ${isSelected ? 'text-white' : 'text-white group-hover:text-white'}`}>{action.name}</p>
+                                  <p className={`text-sm ${isSelected ? 'text-blue-200' : 'text-gray-400 group-hover:text-gray-300'}`}>{action.description}</p>
+                                  <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${
+                                    isSelected 
+                                      ? 'bg-blue-500/30 text-blue-200' 
+                                      : 'bg-white/10 text-gray-400 group-hover:bg-white/20 group-hover:text-gray-300'
+                                  }`}>
+                                    {action.category}
+                                  </span>
+                                </div>
+                                {isSelected && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="flex-shrink-0"
+                                  >
+                                    <CheckCircle className="w-6 h-6 text-blue-400" />
+                                  </motion.div>
+                                )}
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+
+                      {/* No actions found message */}
+                      {getActionsByCategory(selectedCategory).length === 0 && (
+                        <div className="text-center py-8">
+                          <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-400">Bu kategoride aksiyon bulunamadı</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Selected Actions Order */}
