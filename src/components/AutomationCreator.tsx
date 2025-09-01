@@ -157,6 +157,7 @@ const AutomationCreator: React.FC = () => {
   const [error, setError] = useState('');
   const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState(false);
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // Get unique categories from actions
   const actionCategories = ['All', ...Array.from(new Set(actions.map(action => action.category)))];
@@ -238,6 +239,7 @@ const AutomationCreator: React.FC = () => {
       setSelectedPlatform('n8n');
       setIsTriggerDropdownOpen(false);
       setIsActionsDropdownOpen(false);
+      setIsCategoryDropdownOpen(false);
 
       // Hide success message after 3 seconds
       setTimeout(() => {
@@ -281,17 +283,17 @@ const AutomationCreator: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto"
+        className="max-w-6xl mx-auto"
       >
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Automation Creator</h1>
-          <p className="text-gray-300">Create new automations and streamline your workflows</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">Automation Creator</h1>
+          <p className="text-gray-300 text-sm">Create new automations and streamline your workflows</p>
         </div>
 
         {/* Success Message */}
@@ -301,10 +303,10 @@ const AutomationCreator: React.FC = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center space-x-3"
+              className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center space-x-3"
             >
-              <CheckCircle className="w-5 h-5 text-green-400" />
-              <span className="text-green-400">Automation created successfully!</span>
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              <span className="text-green-400 text-sm">Automation created successfully!</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -314,49 +316,49 @@ const AutomationCreator: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center space-x-3"
+            className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center space-x-3"
           >
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-            <span className="text-red-400">{error}</span>
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <span className="text-red-400 text-sm">{error}</span>
           </motion.div>
         )}
 
-        {/* Main Grid Layout - 2x2 Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {/* Main Grid Layout - 2x2 Grid with smaller cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-5xl mx-auto">
           
-          {/* Basic Information - Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl aspect-square">
-            <h2 className="text-xl font-semibold text-white mb-4">Basic Information</h2>
+          {/* Basic Information - Smaller Square Card */}
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
+            <h2 className="text-lg font-semibold text-white mb-3">Basic Information</h2>
             
-            <div className="space-y-4 h-full flex flex-col">
+            <div className="space-y-3 h-full flex flex-col">
               <div className="flex-1">
-                <label className="block text-white text-sm font-medium mb-2">Automation Name</label>
+                <label className="block text-white text-xs font-medium mb-1">Automation Name</label>
                 <input
                   type="text"
                   value={automationName}
                   onChange={(e) => setAutomationName(e.target.value)}
                   placeholder="e.g., Gmail to Slack Notification"
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
                 />
               </div>
               
               <div className="flex-1">
-                <label className="block text-white text-sm font-medium mb-2">Description</label>
+                <label className="block text-white text-xs font-medium mb-1">Description</label>
                 <textarea
                   value={automationDescription}
                   onChange={(e) => setAutomationDescription(e.target.value)}
                   placeholder="Describe what your automation does..."
-                  className="w-full h-24 px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
+                  className="w-full h-20 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none text-sm"
                 />
               </div>
             </div>
           </div>
 
-          {/* Platform Selection - Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-4">Platform Choose</h2>
+          {/* Platform Selection - Smaller Square Card */}
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
+            <h2 className="text-lg font-semibold text-white mb-3">Platform Choose</h2>
             
-            <div className="space-y-3 h-full flex flex-col justify-center">
+            <div className="space-y-2 h-full flex flex-col justify-center">
               {platforms.map((platform) => {
                 const Icon = platform.icon;
                 const isSelected = selectedPlatform === platform.id;
@@ -367,21 +369,21 @@ const AutomationCreator: React.FC = () => {
                     onClick={() => setSelectedPlatform(platform.id)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 rounded-xl border-2 transition-all duration-200 group ${
+                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 group ${
                       isSelected
                         ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
                         : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                        <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                    <div className="flex items-center space-x-2">
+                      <div className={`p-1.5 rounded ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                        <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
                       </div>
                       <div className="flex-1 text-left">
-                        <h3 className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                        <h3 className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
                           {platform.name}
                         </h3>
-                        <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
+                        <p className={`text-xs ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
                           {platform.description}
                         </p>
                       </div>
@@ -391,7 +393,7 @@ const AutomationCreator: React.FC = () => {
                           animate={{ scale: 1 }}
                           className="p-1 bg-white/20 rounded-full"
                         >
-                          <CheckCircle className="w-5 h-5 text-white" />
+                          <CheckCircle className="w-4 h-4 text-white" />
                         </motion.div>
                       )}
                     </div>
@@ -401,26 +403,26 @@ const AutomationCreator: React.FC = () => {
             </div>
           </div>
 
-          {/* Trigger Selection - Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-4">Trigger Selection</h2>
+          {/* Trigger Selection - Smaller Square Card */}
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
+            <h2 className="text-lg font-semibold text-white mb-3">Trigger Selection</h2>
             
             <div className="h-full flex flex-col">
               {/* Trigger Dropdown Button */}
               <button
                 onClick={() => setIsTriggerDropdownOpen(!isTriggerDropdownOpen)}
-                className="w-full p-4 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 border border-yellow-400/30 rounded-xl text-left hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-200 flex items-center justify-between"
+                className="w-full p-3 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 border border-yellow-400/30 rounded-lg text-left hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-200 flex items-center justify-between"
               >
-                <div className="flex items-center space-x-3">
-                  <Zap className="w-5 h-5 text-yellow-400" />
-                  <span className="text-white font-medium">
+                <div className="flex items-center space-x-2">
+                  <Zap className="w-4 h-4 text-yellow-400" />
+                  <span className="text-white font-medium text-sm">
                     {selectedTrigger ? selectedTrigger.name : 'Select a trigger...'}
                   </span>
                 </div>
                 {isTriggerDropdownOpen ? (
-                  <ChevronUp className="w-5 h-5 text-yellow-400" />
+                  <ChevronUp className="w-4 h-4 text-yellow-400" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-yellow-400" />
+                  <ChevronDown className="w-4 h-4 text-yellow-400" />
                 )}
               </button>
 
@@ -431,9 +433,9 @@ const AutomationCreator: React.FC = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 overflow-hidden"
+                    className="mt-2 overflow-hidden"
                   >
-                    <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                    <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-hide">
                       {triggers.map((trigger) => {
                         const Icon = iconMap[trigger.icon] || Zap;
                         return (
@@ -443,16 +445,16 @@ const AutomationCreator: React.FC = () => {
                               setSelectedTrigger(trigger);
                               setIsTriggerDropdownOpen(false);
                             }}
-                            className={`w-full p-3 rounded-lg border transition-all text-left ${
+                            className={`w-full p-2 rounded border transition-all text-left ${
                               selectedTrigger?.id === trigger.id
                                 ? 'border-yellow-500 bg-gradient-to-br from-yellow-400/20 to-orange-500/20'
                                 : 'border-white/20 bg-white/5 hover:bg-white/10'
                             }`}
                           >
-                            <div className="flex items-center space-x-3">
-                              <Icon className="w-4 h-4 text-yellow-400" />
+                            <div className="flex items-center space-x-2">
+                              <Icon className="w-3 h-3 text-yellow-400" />
                               <div>
-                                <p className="text-white font-medium text-sm">{trigger.name}</p>
+                                <p className="text-white font-medium text-xs">{trigger.name}</p>
                                 <p className="text-gray-400 text-xs">{trigger.description}</p>
                               </div>
                             </div>
@@ -466,13 +468,13 @@ const AutomationCreator: React.FC = () => {
 
               {/* Selected Trigger Display */}
               {selectedTrigger && (
-                <div className="mt-4 p-3 bg-gradient-to-br from-yellow-400/10 to-orange-500/10 rounded-lg border border-yellow-400/20">
-                  <div className="flex items-center space-x-3">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    <span className="text-white text-sm font-medium">{selectedTrigger.name}</span>
+                <div className="mt-2 p-2 bg-gradient-to-br from-yellow-400/10 to-orange-500/10 rounded border border-yellow-400/20">
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-3 h-3 text-yellow-400" />
+                    <span className="text-white text-xs font-medium truncate">{selectedTrigger.name}</span>
                     <button
                       onClick={() => setSelectedTrigger(null)}
-                      className="ml-auto p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
+                      className="ml-auto p-0.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -482,31 +484,71 @@ const AutomationCreator: React.FC = () => {
             </div>
           </div>
 
-          {/* Actions Selection - Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-4">Actions Selection</h2>
+          {/* Actions Selection - Smaller Square Card */}
+          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
+            <h2 className="text-lg font-semibold text-white mb-3">Actions Selection</h2>
             
             <div className="h-full flex flex-col">
-              {/* Actions Dropdown Button */}
-              <button
-                onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
-                className="w-full p-4 bg-gradient-to-r from-pink-400/20 to-purple-500/20 border border-pink-400/30 rounded-xl text-left hover:from-pink-400/30 hover:to-purple-500/30 transition-all duration-200 flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-3">
-                  <Settings className="w-5 h-5 text-pink-400" />
-                  <span className="text-white font-medium">
-                    {selectedActions.length > 0 
-                      ? `${selectedActions.length} action(s) selected`
-                      : 'Select actions...'
-                    }
+              {/* Category Dropdown Button */}
+              <div className="flex space-x-2 mb-2">
+                <button
+                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                  className="flex-1 p-2 bg-gradient-to-r from-purple-400/20 to-pink-500/20 border border-purple-400/30 rounded text-left hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-200 flex items-center justify-between"
+                >
+                  <span className="text-white font-medium text-xs truncate">
+                    {selectedCategory}
                   </span>
-                </div>
-                {isActionsDropdownOpen ? (
-                  <ChevronUp className="w-5 h-5 text-pink-400" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-pink-400" />
+                  {isCategoryDropdownOpen ? (
+                    <ChevronUp className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
+                  className="p-2 bg-gradient-to-r from-pink-400/20 to-purple-500/20 border border-pink-400/30 rounded hover:from-pink-400/30 hover:to-purple-500/30 transition-all duration-200"
+                >
+                  <Settings className="w-4 h-4 text-pink-400" />
+                </button>
+              </div>
+
+              {/* Category Dropdown */}
+              <AnimatePresence>
+                {isCategoryDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-2 overflow-hidden"
+                  >
+                    <div className="space-y-1 max-h-24 overflow-y-auto scrollbar-hide">
+                      {actionCategories.map((category) => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            setIsCategoryDropdownOpen(false);
+                          }}
+                          className={`w-full p-2 rounded border transition-all text-left ${
+                            selectedCategory === category
+                              ? 'border-purple-500 bg-gradient-to-br from-purple-400/20 to-pink-500/20'
+                              : 'border-white/20 bg-white/5 hover:bg-white/10'
+                          }`}
+                        >
+                          <span className={`text-xs font-medium ${
+                            selectedCategory === category
+                              ? 'text-white'
+                              : 'text-gray-300 hover:text-white'
+                          }`}>
+                            {category}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
                 )}
-              </button>
+              </AnimatePresence>
 
               {/* Actions Dropdown */}
               <AnimatePresence>
@@ -515,27 +557,10 @@ const AutomationCreator: React.FC = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 overflow-hidden"
+                    className="overflow-hidden"
                   >
-                    {/* Category Tabs */}
-                    <div className="flex space-x-1 mb-3 overflow-x-auto scrollbar-hide">
-                      {actionCategories.map((category) => (
-                        <button
-                          key={category}
-                          onClick={() => setSelectedCategory(category)}
-                          className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                            selectedCategory === category
-                              ? 'bg-pink-500 text-white'
-                              : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-white'
-                          }`}
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-
                     {/* Actions List */}
-                    <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                    <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-hide">
                       {getActionsByCategory(selectedCategory).map((action) => {
                         const Icon = iconMap[action.icon] || Zap;
                         const isSelected = selectedActions.find(a => a.id === action.id);
@@ -546,18 +571,18 @@ const AutomationCreator: React.FC = () => {
                             onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className={`w-full p-3 rounded-lg border transition-all text-left group ${
+                            className={`w-full p-2 rounded border transition-all text-left group ${
                               isSelected
                                 ? 'border-pink-500 bg-gradient-to-br from-pink-400/20 to-purple-500/20 shadow-lg'
                                 : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                             }`}
                           >
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
                               <div className={`p-1 rounded ${isSelected ? 'bg-pink-500/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                                <Icon className={`w-4 h-4 ${isSelected ? 'text-pink-400' : 'text-gray-400 group-hover:text-white'}`} />
+                                <Icon className={`w-3 h-3 ${isSelected ? 'text-pink-400' : 'text-gray-400 group-hover:text-white'}`} />
                               </div>
-                              <div className="flex-1">
-                                <p className={`font-medium text-sm ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                              <div className="flex-1 min-w-0">
+                                <p className={`font-medium text-xs truncate ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
                                   {action.name}
                                 </p>
                                 <span className={`text-xs ${isSelected ? 'text-pink-300' : 'text-gray-400 group-hover:text-gray-300'}`}>
@@ -568,9 +593,9 @@ const AutomationCreator: React.FC = () => {
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
-                                  className="p-1 bg-pink-500/20 rounded-full"
+                                  className="p-0.5 bg-pink-500/20 rounded-full flex-shrink-0"
                                 >
-                                  <CheckCircle className="w-4 h-4 text-pink-400" />
+                                  <CheckCircle className="w-3 h-3 text-pink-400" />
                                 </motion.div>
                               )}
                             </div>
@@ -584,10 +609,10 @@ const AutomationCreator: React.FC = () => {
 
               {/* Selected Actions Display */}
               {selectedActions.length > 0 && (
-                <div className="mt-4 p-3 bg-gradient-to-br from-pink-400/10 to-purple-500/10 rounded-lg border border-pink-400/20">
-                  <h3 className="text-xs font-semibold text-white mb-2">Selected Actions</h3>
+                <div className="mt-2 p-2 bg-gradient-to-br from-pink-400/10 to-purple-500/10 rounded border border-pink-400/20">
+                  <h3 className="text-xs font-semibold text-white mb-1">Selected Actions</h3>
                   <div className="space-y-1">
-                    {selectedActions.slice(0, 3).map((action, index) => {
+                    {selectedActions.slice(0, 2).map((action, index) => {
                       const Icon = iconMap[action.icon] || Zap;
                       return (
                         <div
@@ -596,19 +621,19 @@ const AutomationCreator: React.FC = () => {
                         >
                           <span className="text-pink-400 font-medium text-xs">{index + 1}</span>
                           <Icon className="w-3 h-3 text-pink-400" />
-                          <span className="text-white text-xs truncate">{action.name}</span>
+                          <span className="text-white text-xs truncate flex-1">{action.name}</span>
                           <button
                             onClick={() => removeAction(action.id)}
-                            className="ml-auto p-0.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
+                            className="p-0.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded flex-shrink-0"
                           >
                             <X className="w-3 h-3" />
                           </button>
                         </div>
                       );
                     })}
-                    {selectedActions.length > 3 && (
+                    {selectedActions.length > 2 && (
                       <div className="text-xs text-gray-400 text-center">
-                        +{selectedActions.length - 3} more
+                        +{selectedActions.length - 2} more
                       </div>
                     )}
                   </div>
@@ -619,20 +644,20 @@ const AutomationCreator: React.FC = () => {
         </div>
 
         {/* Create Button - Full Width */}
-        <div className="mt-8 max-w-4xl mx-auto">
+        <div className="mt-6 max-w-5xl mx-auto">
           <button
             onClick={handleCreate}
             disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger || selectedActions.length === 0}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 text-white py-4 px-6 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg"
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg"
           >
             {isCreating ? (
               <>
-                <RefreshCw className="w-5 h-5 animate-spin" />
+                <RefreshCw className="w-4 h-4 animate-spin" />
                 <span>Creating...</span>
               </>
             ) : (
               <>
-                <Rocket className="w-5 h-5" />
+                <Rocket className="w-4 h-4" />
                 <span>Create Automation</span>
               </>
             )}
