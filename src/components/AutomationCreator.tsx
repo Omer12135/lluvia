@@ -335,10 +335,10 @@ const AutomationCreator: React.FC = () => {
         )}
 
         {/* Main Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
           {/* Left Column - Basic Information */}
-          <div className="lg:col-span-1 flex flex-col space-y-6">
+          <div className="lg:col-span-1 space-y-6">
             
             {/* Automation Name */}
             <motion.div
@@ -365,19 +365,20 @@ const AutomationCreator: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl flex-1 min-h-0"
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+              style={{ height: 'calc(100vh - 400px)' }}
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                 <Book className="w-5 h-5 text-orange-400" />
                 <span>Description</span>
               </h2>
-              <div className="flex flex-col h-full min-h-0">
+              <div className="flex flex-col h-full">
                 <textarea
                   value={automationDescription}
                   onChange={(e) => setAutomationDescription(e.target.value)}
                   placeholder="Example: Automatically send Slack notifications when new emails arrive in Gmail (max 2000 words)"
                   maxLength={2000}
-                  className="flex-1 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200 min-h-0"
+                  className="flex-1 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
                 />
                 <div className="mt-2 text-right">
                   <span className="text-xs text-gray-400">
