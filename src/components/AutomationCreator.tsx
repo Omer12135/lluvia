@@ -359,31 +359,6 @@ const AutomationCreator: React.FC = () => {
                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200"
               />
             </motion.div>
-
-            {/* Description */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
-            >
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
-                <Book className="w-5 h-5 text-orange-400" />
-                <span>Description</span>
-              </h2>
-              <textarea
-                value={automationDescription}
-                onChange={(e) => setAutomationDescription(e.target.value)}
-                placeholder="Example: Automatically send Slack notifications when new emails arrive in Gmail (max 2000 words)"
-                maxLength={2000}
-                className="w-full h-32 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
-              />
-              <div className="mt-2 text-right">
-                <span className="text-xs text-gray-400">
-                  {automationDescription.length}/2000
-                </span>
-              </div>
-            </motion.div>
           </div>
 
           {/* Right Column - Selections */}
@@ -696,6 +671,33 @@ const AutomationCreator: React.FC = () => {
               </div>
             </motion.div>
           </div>
+
+          {/* Description - Moved to align with Platform Choose bottom */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="lg:col-span-1 lg:col-start-1 lg:row-start-2"
+          >
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl h-full">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <Book className="w-5 h-5 text-orange-400" />
+                <span>Description</span>
+              </h2>
+              <textarea
+                value={automationDescription}
+                onChange={(e) => setAutomationDescription(e.target.value)}
+                placeholder="Example: Automatically send Slack notifications when new emails arrive in Gmail (max 2000 words)"
+                maxLength={2000}
+                className="w-full h-32 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
+              />
+              <div className="mt-2 text-right">
+                <span className="text-xs text-gray-400">
+                  {automationDescription.length}/2000
+                </span>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Create Automation Button */}
