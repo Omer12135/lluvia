@@ -71,7 +71,7 @@
   }
 }
 
-vam e/* Custom scrollbar styles */
+vam /* Custom scrollbar styles */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
   scrollbar-width: none;  /* Firefox */

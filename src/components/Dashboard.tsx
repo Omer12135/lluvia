@@ -1,788 +1,130 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
 import { 
-  Workflow, 
-  Plus, 
-  Clock, 
-  CheckCircle, 
-  XCircle,
-  Download,
-  ArrowLeft,
-  Settings,
-  BarChart3,
+  BarChart3, 
+  Settings, 
+  User, 
+  Plus,
   Zap,
-  User,
-  Crown,
-  Bot,
-  Menu,
-  X
+  Workflow
 } from 'lucide-react';
 import AutomationCreator from './AutomationCreator';
-import ActionsBrowser from './ActionsBrowser';
-import AutomationHistory from './AutomationHistory';
-import ExampleAutomations from './ExampleAutomations';
-import AutomationGuidance from './AutomationGuidance';
-
-import { useAutomation } from '../context/AutomationContext';
-import { getProductByPriceId } from '../stripe-config';
-import { webhookService } from '../services/webhookService';
+import Analytics from './Analytics';
+import SettingsPanel from './SettingsPanel';
+import Profile from './Profile';
 
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { user, userProfile, logout, forceSessionSync } = useAuth();
-  const { automations, remainingAutomations, currentMonthUsage, automationLimit } = useAutomation();
-  const [activeTab, setActiveTab] = useState('create');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
-
-  // ✅ Console log ekle - Debug için
-  console.log('Dashboard rendered, user:', user);
-  console.log('Dashboard rendered, userProfile:', userProfile);
-  console.log('Dashboard rendered, automations:', automations);
-
-  // Listen for tab change events from child components
-  useEffect(() => {
-    const handleTabChange = (event: CustomEvent) => {
-      setActiveTab(event.detail);
-    };
-
-    window.addEventListener('changeTab', handleTabChange as EventListener);
-    
-    return () => {
-      window.removeEventListener('changeTab', handleTabChange as EventListener);
-    };
-  }, []);
-
-  // Auth callback handling - Ana sekmede email confirmation sonrası
-  useEffect(() => {
-    const code = searchParams.get('code');
-    if (code && !user) {
-      console.log('Dashboard: Auth callback detected, starting force session sync...');
-      
-      const handleAuthCallback = async () => {
-        try {
-          console.log('Dashboard: Starting force session sync...');
-          await forceSessionSync();
-          console.log('Dashboard: Force session sync completed');
-        } catch (error) {
-          console.error('Dashboard: Force session sync failed:', error);
-        }
-      };
-
-      handleAuthCallback();
-    }
-  }, [searchParams, user, forceSessionSync]);
-
-  // Message listener - Yeni sekmeden gelen auth callback bilgisini yakala
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      console.log('Dashboard: Message received:', event.data);
-      
-      if (event.data.type === 'AUTH_CALLBACK' && !user) {
-        console.log('Dashboard: Received auth callback from new tab:', event.data);
-        
-        try {
-          console.log('Dashboard: Starting force session sync from message...');
-          await forceSessionSync();
-          console.log('Dashboard: Force session sync completed from message');
-        } catch (error) {
-          console.error('Dashboard: Force session sync failed from message:', error);
-        }
-      }
-    };
-
-    console.log('Dashboard: Setting up message listener...');
-    window.addEventListener('message', handleMessage);
-    
-    return () => {
-      console.log('Dashboard: Removing message listener...');
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [user, forceSessionSync]);
-
-  // LocalStorage listener - PostMessage çalışmazsa LocalStorage'dan oku
-  useEffect(() => {
-    const checkLocalStorage = async () => {
-      try {
-        const authData = localStorage.getItem('auth_callback');
-        if (authData && !user) {
-          const parsedData = JSON.parse(authData);
-          console.log('Dashboard: Found auth callback in LocalStorage:', parsedData);
-          
-          if (parsedData.type === 'AUTH_CALLBACK') {
-            console.log('Dashboard: Starting force session sync from LocalStorage...');
-            
-            try {
-              await forceSessionSync();
-              console.log('Dashboard: Force session sync completed from LocalStorage');
-              
-              // LocalStorage'dan temizle
-              localStorage.removeItem('auth_callback');
-              console.log('Dashboard: Auth callback data removed from LocalStorage');
-            } catch (error) {
-              console.error('Dashboard: Force session sync failed from LocalStorage:', error);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Dashboard: Error reading from LocalStorage:', error);
-      }
-    };
-
-    // Her 1 saniyede kontrol et
-    const interval = setInterval(checkLocalStorage, 1000);
-    
-    return () => {
-      clearInterval(interval);
-    };
-  }, [user, forceSessionSync]);
-
-  // Debug: Log user profile data and force fetch if missing
-  useEffect(() => {
-    if (user && userProfile) {
-      console.log('Dashboard: User profile loaded successfully:', {
-        email: userProfile.email,
-        name: userProfile.name,
-        plan: userProfile.plan,
-        automations_limit: userProfile.automations_limit,
-        ai_messages_limit: userProfile.ai_messages_limit
-      });
-    } else if (user && !userProfile) {
-      console.log('Dashboard: User exists but no profile loaded, forcing fetch...');
-      
-      // Force fetch user profile
-      const forceFetchProfile = async () => {
-        try {
-          console.log('Dashboard: Force fetching user profile for user:', user.id);
-          const { data: profileData, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (profileError) {
-            console.error('Dashboard: Force fetch profile error:', profileError);
-          } else if (profileData) {
-            console.log('Dashboard: Force fetch profile successful:', profileData);
-            // Force page reload to get updated data
-            window.location.reload();
-          }
-        } catch (error) {
-          console.error('Dashboard: Force fetch profile exception:', error);
-        }
-      };
-      
-      // Wait a bit then force fetch
-      setTimeout(forceFetchProfile, 2000);
-    }
-  }, [user, userProfile]);
-
-  // Auth state change listener - Auth state değiştiğinde user state'i sync et
-  useEffect(() => {
-    if (!user) {
-      console.log('Dashboard: No user found, checking for auth state changes...');
-      
-      const checkAuthState = async () => {
-        try {
-          console.log('Dashboard: Checking current auth state...');
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session?.user) {
-            console.log('Dashboard: Found session with user:', session.user.email);
-            
-            // User'ın DB'de gerçekten var olup olmadığını kontrol et
-            try {
-              const { data: userProfile, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single();
-              
-              if (profileError || !userProfile) {
-                console.log('Dashboard: User not found in DB, clearing invalid session...');
-                
-                // Invalid session'ı temizle
-                await supabase.auth.signOut();
-                
-                // LocalStorage'dan da temizle
-                localStorage.removeItem('auth_callback');
-                localStorage.removeItem('lluvia-auth');
-                
-                console.log('Dashboard: Invalid session cleared, redirecting to login...');
-                navigate('/');
-                return;
-              }
-              
-              console.log('Dashboard: User found in DB, starting force session sync...');
-              await forceSessionSync();
-              console.log('Dashboard: Force session sync completed from auth state');
-            } catch (dbError) {
-              console.error('Dashboard: Database check failed:', dbError);
-              
-              // DB error durumunda da session'ı temizle
-              await supabase.auth.signOut();
-              localStorage.removeItem('auth_callback');
-              localStorage.removeItem('lluvia-auth');
-              navigate('/');
-            }
-          } else {
-            console.log('Dashboard: No active session found');
-          }
-        } catch (error) {
-          console.error('Dashboard: Error checking auth state:', error);
-        }
-      };
-
-      // Her 2 saniyede kontrol et (daha sık)
-      const interval = setInterval(checkAuthState, 2000);
-      
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [user, forceSessionSync, navigate]);
-
-  // Loading state - User state sync olana kadar bekle
-  if (!user) {
-    console.log('Dashboard: User not found, waiting for auth state sync...');
-    
-    // 30 saniye sonra timeout - Eğer user state sync olmazsa login'e yönlendir
-    useEffect(() => {
-      const timeout = setTimeout(() => {
-        console.log('Dashboard: Loading timeout reached, redirecting to login...');
-        navigate('/');
-      }, 30000); // 30 saniye
-      
-      return () => clearTimeout(timeout);
-    }, [navigate]);
-    
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-lg">Syncing authentication...</p>
-          <p className="text-sm text-gray-400 mt-2">Please wait while we verify your session</p>
-          <p className="text-xs text-gray-500 mt-4">Redirecting to login in 30 seconds if sync fails...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Immediate session validation - User var ama DB'de var mı kontrol et
-  useEffect(() => {
-    const validateSession = async () => {
-      if (user) {
-        console.log('Dashboard: Immediate session validation for user:', user.email);
-        
-        try {
-          const { data: userProfile, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (profileError || !userProfile) {
-            console.log('Dashboard: User not found in DB during immediate validation, clearing session...');
-            
-            // Invalid session'ı temizle
-            await supabase.auth.signOut();
-            
-            // LocalStorage'dan da temizle
-            localStorage.removeItem('auth_callback');
-            localStorage.removeItem('lluvia-auth');
-            
-            console.log('Dashboard: Session cleared, redirecting to login...');
-            navigate('/');
-            return;
-          }
-          
-          console.log('Dashboard: User validated in DB:', userProfile.email);
-        } catch (error) {
-          console.error('Dashboard: Immediate validation failed:', error);
-          
-          // Error durumunda da session'ı temizle
-          await supabase.auth.signOut();
-          localStorage.removeItem('auth_callback');
-          localStorage.removeItem('lluvia-auth');
-          navigate('/');
-        }
-      }
-    };
-
-    // Hemen çalıştır
-    validateSession();
-  }, [user, navigate]);
-
-  // Get user-specific automations
-  const userAutomations = automations.filter(a => a.userId === user.id);
-  const completedAutomations = userAutomations.filter(a => a.status === 'completed').length;
-  const runningAutomations = userAutomations.filter(a => a.status === 'running').length;
-
-  // Get user stats from profile
-  const userAutomationsUsed = userProfile?.automations_used || 0;
-  const userAutomationsLimit = userProfile?.automations_limit || 2;
-  const userPlan = userProfile?.plan || 'free';
+  const [activeTab, setActiveTab] = useState('automations');
 
   const tabs = [
-    { id: 'create', label: 'Create', icon: <Plus className="w-4 h-4" />, description: 'Build automations' },
-    { id: 'actions', label: 'Actions', icon: <Zap className="w-4 h-4" />, description: 'Browse integrations' },
-    { id: 'history', label: 'History', icon: <Clock className="w-4 h-4" />, description: 'View past runs' },
-    { id: 'examples', label: 'Examples', icon: <CheckCircle className="w-4 h-4" />, description: 'Browse templates' },
-    { id: 'guidance', label: 'Guide', icon: <Settings className="w-4 h-4" />, description: 'Learn best practices' },
+    { id: 'automations', name: 'Automations', icon: Workflow },
+    { id: 'analytics', name: 'Analytics', icon: BarChart3 },
+    { id: 'settings', name: 'Settings', icon: Settings },
+    { id: 'profile', name: 'Profile', icon: User }
   ];
 
-  // Calculate stats based on user's actual data
-  const getTotalAutomations = () => {
-    return userAutomations.length;
-  };
-
-  const getSuccessRate = () => {
-    return "98.5%"; // Fixed success rate for all users
-  };
-
-  const getTimeSaved = () => {
-    return "80h/monthly";
-  };
-
-  // Get user's automation usage and limits
-  const getUserAutomationStats = () => {
-    if (!userProfile) {
-      return {
-        used: 0,
-        limit: 1,
-        remaining: 1,
-        percentage: 0
-      };
-    }
-
-    const used = userProfile.automations_used || 0;
-    const limit = userProfile.automations_limit || 1;
-    const remaining = Math.max(0, limit - used);
-    const percentage = Math.round((used / limit) * 100);
-
-    return { used, limit, remaining, percentage };
-  };
-
-  // Get user's AI message usage and limits
-  const getUserAiMessageStats = () => {
-    if (!userProfile) {
-      return {
-        used: 0,
-        limit: 0,
-        remaining: 0,
-        percentage: 0
-      };
-    }
-
-    const used = userProfile.ai_messages_used || 0;
-    const limit = userProfile.ai_messages_limit || 0;
-    const remaining = Math.max(0, limit - used);
-    const percentage = limit > 0 ? Math.round((used / limit) * 100) : 0;
-
-    return { used, limit, remaining, percentage };
-  };
-
-  // Get plan-specific features
-  const getPlanFeatures = () => {
-    if (!userProfile) return [];
-
-    switch (userProfile.plan) {
-      case 'pro':
-        return [
-          'Unlimited Automations',
-          'Advanced AI Features',
-          'Priority Support',
-          'Custom Integrations'
-        ];
-      case 'custom':
-        return [
-          'Custom Limits',
-          'Dedicated Support',
-          'White-label Options',
-          'API Access'
-        ];
-      default: // free
-        return [
-          '1 Automation',
-          'Basic AI Features',
-          'Community Support',
-          'Standard Integrations'
-        ];
-    }
-  };
-
-  // Webhook test fonksiyonu
-  const handleTestWebhook = async () => {
-    setIsTestingWebhook(true);
-    try {
-      // Önce bağlantıyı test et
-      const connectionSuccess = await webhookService.testWebhook();
-      if (!connectionSuccess) {
-        alert('❌ Webhook bağlantısı başarısız!');
-        return;
-      }
-
-      // Sonra test verisi gönder
-      const dataSuccess = await webhookService.testWebhookWithData();
-      if (dataSuccess) {
-        alert('✅ Webhook bağlantısı ve veri gönderimi başarılı!');
-      } else {
-        alert('⚠️ Bağlantı var ama veri gönderimi başarısız!');
-      }
-    } catch (error) {
-      console.error('Webhook test error:', error);
-      alert('❌ Webhook test hatası!');
-    } finally {
-      setIsTestingWebhook(false);
-    }
-  };
-
-  // Get current plan name
-  const getCurrentPlanName = () => {
-    if (!userProfile) return 'Free Plan';
-    
-    switch (userProfile.plan) {
-      case 'pro':
-        return 'Pro Plan';
-      case 'custom':
-        return 'Custom Plan';
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'automations':
+        return <AutomationCreator />;
+      case 'analytics':
+        return <Analytics />;
+      case 'settings':
+        return <SettingsPanel />;
+      case 'profile':
+        return <Profile />;
       default:
-        return 'Free Plan';
+        return <AutomationCreator />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Mobile Header - Ultra Compact */}
-      <div className="lg:hidden bg-black/20 backdrop-blur-sm border-b border-white/10 sticky top-0 z-40">
-        <div className="px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => navigate('/')}
-                className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                    <path d="M19 15L19.5 17L22 17.5L19.5 18L19 20L18.5 18L16 17.5L18.5 17L19 15Z"/>
-                    <path d="M5 7L5.5 9L8 9.5L5.5 10L5 12L4.5 10L2 9.5L4.5 9L5 7Z"/>
-                  </svg>
-                </div>
-                <span className="text-base font-bold text-white">LLUVIA AI</span>
-              </div>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Header */}
+      <div className="bg-white/10 backdrop-blur-xl border-b border-white/20 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg">
+              <Zap className="w-6 h-6 text-white" />
             </div>
-            
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1 bg-white/10 rounded-lg px-2 py-1">
-                <Crown className={`w-3 h-3 ${
-                  getCurrentPlanName().includes('Pro') ? 'text-blue-500' :
-                  'text-gray-400'
-                }`} />
-                <span className="text-xs font-medium text-white">{getCurrentPlanName().split(' ')[0]}</span>
-              </div>
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-white p-1 rounded-lg hover:bg-white/10"
-              >
-                {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-              </button>
-            </div>
+            <h1 className="text-2xl font-bold text-white">LLUVIA AI</h1>
           </div>
-          
-          {/* Mobile Menu - Compact */}
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-2 pt-2 border-t border-white/10"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-3 text-xs">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                    <span className="text-gray-300">{completedAutomations} Done</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300">{runningAutomations} Running</span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleTestWebhook}
-                    disabled={isTestingWebhook}
-                    className="text-gray-400 hover:text-white transition-colors text-xs"
-                    title="Test Webhook"
-                  >
-                    {isTestingWebhook ? (
-                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Zap className="w-3 h-3" />
-                    )}
-                  </button>
-                                                    <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Logout button clicked in mobile menu');
-                      if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
-                        logout();
-                      }
-                    }}
-                    className="text-gray-400 hover:text-white transition-colors text-xs"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </div>
-
-      {/* Desktop Header */}
-      <div className="hidden lg:block bg-black/20 backdrop-blur-sm border-b border-white/10">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/')}
-                className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-                    <path d="M19 15L19.5 17L22 17.5L19.5 18L19 20L18.5 18L16 17.5L18.5 17L19 15Z"/>
-                    <path d="M5 7L5.5 9L8 9.5L5.5 10L5 12L4.5 10L2 9.5L4.5 9L5 7Z"/>
-                  </svg>
-                </div>
-                <span className="text-2xl font-bold text-white">LLUVIA AI</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-2">
-                                  <Crown className={`w-4 h-4 ${
-                    getCurrentPlanName().includes('Pro') ? 'text-blue-500' :
-                    'text-gray-400'
-                  }`} />
-                <span className="text-sm font-medium text-white">{getCurrentPlanName()}</span>
-              </div>
-              
-              <div className="flex items-center space-x-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-gray-300">{completedAutomations} Completed</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                  <span className="text-gray-300">{runningAutomations} Running</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={handleTestWebhook}
-                  disabled={isTestingWebhook}
-                  className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
-                  title="Test Webhook"
-                >
-                  {isTestingWebhook ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Zap className="w-4 h-4" />
-                  )}
-                </button>
-                <button
-                  onClick={() => navigate('/settings')}
-                  className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
-                  title="Settings"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Logout button clicked in desktop header');
-                    if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
-                      logout();
-                    }
-                  }}
-                  className="text-gray-400 hover:text-white transition-colors text-sm"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
+          <div className="flex items-center space-x-4">
+            <button className="p-2 text-gray-400 hover:text-white transition-colors">
+              <Settings className="w-5 h-5" />
+            </button>
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full"></div>
           </div>
         </div>
       </div>
 
-      {/* Main Content - Mobile Optimized */}
-      <div className="container mx-auto px-3 lg:px-6 py-3 lg:py-8">
-        {/* Stats Cards - Ultra Compact Mobile */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-6 mb-3 lg:mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 backdrop-blur-lg rounded-lg lg:rounded-xl p-2 lg:p-6 border border-white/20"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Plan</p>
-                <p className="text-lg lg:text-2xl font-bold text-white">{getCurrentPlanName()}</p>
-               
-              </div>
-              <Crown className={`w-4 h-4 lg:w-8 lg:h-8 ${
-                getCurrentPlanName().includes('Pro') ? 'text-blue-500' : 'text-gray-400'
-              } mt-1 lg:mt-0`} />
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-lg rounded-lg lg:rounded-xl p-2 lg:p-6 border border-white/20"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Automations</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">
-                  {getUserAutomationStats().used}/{getUserAutomationStats().limit}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {getUserAutomationStats().remaining} remaining
-                </p>
-              </div>
-              <Zap className="w-4 h-4 lg:w-8 lg:h-8 text-yellow-500 mt-1 lg:mt-0" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-lg rounded-lg lg:rounded-xl p-2 lg:p-6 border border-white/20"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">AI Messages</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">
-                  {getUserAiMessageStats().used}/{getUserAiMessageStats().limit || '∞'}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {getUserAiMessageStats().limit > 0 ? `${getUserAiMessageStats().remaining} remaining` : 'Unlimited'}
-                </p>
-              </div>
-              <Bot className="w-4 h-4 lg:w-8 lg:h-8 text-blue-500 mt-1 lg:mt-0" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white/10 backdrop-blur-lg rounded-lg lg:rounded-xl p-2 lg:p-6 border border-white/20"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-gray-400 text-xs lg:text-sm font-medium">Usage</p>
-                <p className="text-lg lg:text-3xl font-bold text-white">
-                  {getUserAutomationStats().percentage}%
-                </p>
-                <p className="text-xs text-gray-400">
-                  {getUserAutomationStats().used} of {getUserAutomationStats().limit} used
-                </p>
-              </div>
-              <BarChart3 className="w-4 h-4 lg:w-8 lg:h-8 text-green-500 mt-1 lg:mt-0" />
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Tab Navigation - Ultra Compact Mobile */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-lg lg:rounded-xl border border-white/20 mb-3 lg:mb-8 overflow-hidden">
-          {/* Mobile Tab Navigation - Ultra Compact */}
-          <div className="lg:hidden">
-            <div className="flex overflow-x-auto scrollbar-hide">
-              {tabs.map((tab) => (
-                <button
+      {/* Navigation Tabs */}
+      <div className="bg-white/5 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:grid lg:grid-cols-4 gap-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              
+              return (
+                <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center justify-center min-w-[80px] px-3 py-3 font-medium transition-all duration-200 text-center border-b-2 ${
-                    activeTab === tab.id
-                      ? 'text-white border-purple-500 bg-gradient-to-r from-purple-600/30 to-blue-600/30'
-                      : 'text-gray-400 border-transparent hover:text-white hover:bg-white/5'
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center justify-center space-x-2 p-4 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  <div className={`p-1.5 rounded-lg mb-1.5 ${
-                    activeTab === tab.id ? 'bg-purple-500/20' : 'bg-white/10'
-                  }`}>
-                    {tab.icon}
-                  </div>
-                  <div className="text-xs font-semibold leading-tight">{tab.label}</div>
-                </button>
-              ))}
-            </div>
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{tab.name}</span>
+                </motion.button>
+              );
+            })}
           </div>
 
-          {/* Desktop Tab Navigation */}
-          <div className="hidden lg:grid lg:grid-cols-5 border-b border-white/10">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center space-y-2 px-4 py-4 font-medium transition-all duration-200 text-center ${
-                  activeTab === tab.id
-                    ? 'text-white bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b-4 border-purple-500'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5 hover:scale-105'
-                }`}
-              >
-                <div className={`p-2 rounded-lg ${
-                  activeTab === tab.id ? 'bg-purple-500/20' : 'bg-white/10'
-                }`}>
-                  {tab.icon}
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">{tab.label}</div>
-                  <div className="text-xs opacity-70">{tab.description}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Tab Content - Mobile Optimized */}
-          <div className="p-3 lg:p-6">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {activeTab === 'create' && <AutomationCreator />}
-              {activeTab === 'actions' && <ActionsBrowser />}
-              {activeTab === 'history' && <AutomationHistory />}
-              {activeTab === 'examples' && <ExampleAutomations />}
-              {activeTab === 'guidance' && <AutomationGuidance />}
-            </motion.div>
+          {/* Mobile Navigation */}
+          <div className="lg:hidden flex space-x-1 overflow-x-auto scrollbar-hide">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              
+              return (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center space-x-2 p-3 rounded-lg transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{tab.name}</span>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="h-full"
+        >
+          {renderContent()}
+        </motion.div>
       </div>
     </div>
   );
