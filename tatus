@@ -1,0 +1,5 @@
+[33mb4487f2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m Fix Description and Platform Choose alignment and remove ActionsBrowser
+[33m4a474f2[m Add missing components for deployment
+[33m6c46872[m Fix Description card alignment with Platform Choose using fixed height
+[33mf159cd1[m Align Description bottom with Platform Choose and remove Actions Browse from Dashboard
+[33m3f57350[m Adjust Description card height to align bottom with Platform Choose

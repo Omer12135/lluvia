@@ -360,25 +360,25 @@ const AutomationCreator: React.FC = () => {
               />
             </motion.div>
 
-            {/* Description - Fixed height to match Platform Choose */}
+            {/* Description */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
-              style={{ height: '320px' }}
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                 <Book className="w-5 h-5 text-orange-400" />
                 <span>Description</span>
               </h2>
-              <div className="flex flex-col h-full">
+              <div className="space-y-3">
                 <textarea
                   value={automationDescription}
                   onChange={(e) => setAutomationDescription(e.target.value)}
                   placeholder="Example: Automatically send Slack notifications when new emails arrive in Gmail (max 2000 words)"
                   maxLength={2000}
-                  className="flex-1 w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
+                  rows={4}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
                 />
                 <div className="mt-2 text-right">
                   <span className="text-xs text-gray-400">
@@ -642,20 +642,19 @@ const AutomationCreator: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Platform Choose - Fixed height to match Description */}
+            {/* Platform Choose - Compact layout */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
               className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
-              style={{ height: '320px' }}
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
                 <Cpu className="w-5 h-5 text-blue-400" />
                 <span>Platform Choose</span>
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {platforms.map((platform) => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatform === platform.id;
@@ -666,14 +665,14 @@ const AutomationCreator: React.FC = () => {
                       onClick={() => setSelectedPlatform(platform.id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 rounded-xl border-2 transition-all duration-200 group ${
+                      className={`p-3 rounded-xl border-2 transition-all duration-200 group ${
                         isSelected
                           ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
                           : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                        <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
                           <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
                         </div>
                         <div className="flex-1 text-left">

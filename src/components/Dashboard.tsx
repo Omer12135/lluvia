@@ -1,40 +1,47 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  BarChart3, 
-  Settings, 
   User, 
-  Plus, 
   Zap,
-  Workflow
+  Workflow,
+  History,
+  BookOpen,
+  Home,
+  LogOut
 } from 'lucide-react';
 import AutomationCreator from './AutomationCreator';
-import Analytics from './Analytics';
-import SettingsPanel from './SettingsPanel';
 import Profile from './Profile';
+import AutomationHistory from './AutomationHistory';
+import ExampleAutomations from './ExampleAutomations';
+import DashboardOverview from './DashboardOverview';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('automations');
+  const [activeTab, setActiveTab] = useState('overview');
+  const { logout } = useAuth();
 
   const tabs = [
+    { id: 'overview', name: 'Overview', icon: Home },
     { id: 'automations', name: 'Automations', icon: Workflow },
-    { id: 'analytics', name: 'Analytics', icon: BarChart3 },
-    { id: 'settings', name: 'Settings', icon: Settings },
+    { id: 'examples', name: 'Examples', icon: BookOpen },
+    { id: 'history', name: 'History', icon: History },
     { id: 'profile', name: 'Profile', icon: User }
   ];
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'overview':
+        return <DashboardOverview onTabChange={setActiveTab} />;
       case 'automations':
         return <AutomationCreator />;
-      case 'analytics':
-        return <Analytics />;
-      case 'settings':
-        return <SettingsPanel />;
+      case 'examples':
+        return <ExampleAutomations />;
+      case 'history':
+        return <AutomationHistory />;
       case 'profile':
         return <Profile />;
       default:
-        return <AutomationCreator />;
+        return <DashboardOverview onTabChange={setActiveTab} />;
     }
   };
 
@@ -50,11 +57,20 @@ const Dashboard: React.FC = () => {
             <h1 className="text-2xl font-bold text-white">LLUVIA AI</h1>
       </div>
             <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-400 hover:text-white transition-colors">
-              <Settings className="w-5 h-5" />
+              <button 
+                onClick={() => setActiveTab('profile')}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <User className="w-5 h-5" />
               </button>
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full"></div>
-          </div>
+              <button 
+                onClick={logout}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full"></div>
+            </div>
         </div>
       </div>
 
@@ -62,7 +78,7 @@ const Dashboard: React.FC = () => {
       <div className="bg-white/5 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4">
           {/* Desktop Navigation */}
-          <div className="hidden lg:grid lg:grid-cols-4 gap-1">
+          <div className="hidden lg:grid lg:grid-cols-5 gap-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -114,17 +130,17 @@ const Dashboard: React.FC = () => {
           </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
-            <motion.div
-              key={activeTab}
+      <div className="flex-1 overflow-auto">
+        <motion.div
+          key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-          className="h-full"
+          transition={{ duration: 0.3 }}
+          className="min-h-full p-6"
         >
           {renderContent()}
-            </motion.div>
+        </motion.div>
       </div>
     </div>
   );
