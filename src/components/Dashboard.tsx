@@ -22,6 +22,7 @@ import {
   X
 } from 'lucide-react';
 import AutomationCreator from './AutomationCreator';
+import ActionsBrowser from './ActionsBrowser';
 import AutomationHistory from './AutomationHistory';
 import ExampleAutomations from './ExampleAutomations';
 import AutomationGuidance from './AutomationGuidance';
@@ -329,8 +330,9 @@ const Dashboard: React.FC = () => {
 
   const tabs = [
     { id: 'create', label: 'Create', icon: <Plus className="w-4 h-4" />, description: 'Build automations' },
+    { id: 'actions', label: 'Actions', icon: <Zap className="w-4 h-4" />, description: 'Browse integrations' },
     { id: 'history', label: 'History', icon: <Clock className="w-4 h-4" />, description: 'View past runs' },
-    { id: 'examples', label: 'Examples', icon: <Zap className="w-4 h-4" />, description: 'Browse templates' },
+    { id: 'examples', label: 'Examples', icon: <CheckCircle className="w-4 h-4" />, description: 'Browse templates' },
     { id: 'guidance', label: 'Guide', icon: <Settings className="w-4 h-4" />, description: 'Learn best practices' },
   ];
 
@@ -741,7 +743,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Desktop Tab Navigation */}
-          <div className="hidden lg:grid lg:grid-cols-4 border-b border-white/10">
+          <div className="hidden lg:grid lg:grid-cols-5 border-b border-white/10">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -774,8 +776,8 @@ const Dashboard: React.FC = () => {
               transition={{ duration: 0.3 }}
             >
               {activeTab === 'create' && <AutomationCreator />}
+              {activeTab === 'actions' && <ActionsBrowser />}
               {activeTab === 'history' && <AutomationHistory />}
-
               {activeTab === 'examples' && <ExampleAutomations />}
               {activeTab === 'guidance' && <AutomationGuidance />}
             </motion.div>

@@ -150,6 +150,7 @@ const AutomationCreator: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('Tümü');
 
   const platforms = [
     { id: 'n8n', name: 'N8N', icon: Workflow, description: 'Open source workflow automation' },
@@ -218,6 +219,7 @@ const AutomationCreator: React.FC = () => {
       setSelectedTrigger(null);
       setSelectedActions([]);
       setSelectedPlatform('n8n');
+      setSelectedCategory('Tümü');
 
       // Hide success message after 3 seconds
       setTimeout(() => {
@@ -247,6 +249,13 @@ const AutomationCreator: React.FC = () => {
     const [removed] = newActions.splice(fromIndex, 1);
     newActions.splice(toIndex, 0, removed);
     setSelectedActions(newActions);
+  };
+
+  const getActionsByCategory = (category: string) => {
+    if (category === 'Tümü') {
+      return actions;
+    }
+    return actions.filter(action => action.category === category);
   };
 
   if (!user) {
@@ -419,35 +428,112 @@ const AutomationCreator: React.FC = () => {
             <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/20 shadow-2xl">
               <h2 className="text-xl font-semibold text-white mb-4">Aksiyon Seçimi</h2>
               
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {actions.map((action) => {
+              {/* Platform Selection */}
+              <div className="mb-6">
+                <label className="block text-white text-sm font-medium mb-3">Platform Seçimi (Zorunlu)</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { id: 'n8n', name: 'N8N', icon: Workflow, description: 'Open source workflow automation', color: 'from-blue-500 to-cyan-500' },
+                    { id: 'make', name: 'Make (Integromat)', icon: Zap, description: 'Visual automation platform', color: 'from-purple-500 to-pink-500' }
+                  ].map((platform) => {
+                    const Icon = platform.icon;
+                    return (
+                      <button
+                        key={platform.id}
+                        onClick={() => setSelectedPlatform(platform.id)}
+                        className={`p-4 rounded-lg border transition-all transform hover:scale-105 ${
+                          selectedPlatform === platform.id
+                            ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
+                            : 'border-white/20 bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Icon className={`w-6 h-6 ${selectedPlatform === platform.id ? 'text-white' : 'text-blue-400'}`} />
+                          <div className="text-left">
+                            <p className={`font-medium ${selectedPlatform === platform.id ? 'text-white' : 'text-white'}`}>{platform.name}</p>
+                            <p className={`text-xs ${selectedPlatform === platform.id ? 'text-white/80' : 'text-gray-400'}`}>{platform.description}</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Category Tabs */}
+              <div className="mb-4">
+                <div className="flex space-x-1 bg-white/10 rounded-lg p-1 overflow-x-auto scrollbar-hide">
+                  {['Tümü', 'Communication', 'Marketing', 'CRM', 'Project Management', 'Database', 'Cloud', 'AI', 'E-commerce', 'Finance', 'Development', 'Social Media', 'Support', 'Analytics', 'Storage', 'Scheduling', 'Forms', 'Messaging', 'Security', 'IoT', 'Fitness', 'Business', 'HR', 'Logistics', 'Events', 'Community', 'Utilities', 'Notifications', 'Monitoring', 'Automation', 'Media'].map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-3 py-2 text-xs font-medium rounded-md transition-all whitespace-nowrap flex-shrink-0 ${
+                        selectedCategory === category
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                          : 'text-gray-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions by Category */}
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {getActionsByCategory(selectedCategory).map((action) => {
                   const Icon = iconMap[action.icon] || Zap;
                   const isSelected = selectedActions.find(a => a.id === action.id);
                   
                   return (
-                    <button
+                    <motion.button
                       key={action.id}
                       onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
-                      className={`w-full p-4 rounded-lg border transition-all text-left ${
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full p-4 rounded-lg border transition-all text-left group ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-500/20'
-                          : 'border-white/20 bg-white/5 hover:bg-white/10'
+                          ? 'border-blue-500 bg-gradient-to-r from-blue-500/20 to-purple-500/20 shadow-lg'
+                          : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <Icon className="w-5 h-5 text-blue-400" />
-                        <div>
-                          <p className="text-white font-medium">{action.name}</p>
-                          <p className="text-gray-400 text-sm">{action.description}</p>
+                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-blue-500/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                          <Icon className={`w-5 h-5 ${isSelected ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <p className={`font-medium ${isSelected ? 'text-white' : 'text-white group-hover:text-white'}`}>{action.name}</p>
+                          <p className={`text-sm ${isSelected ? 'text-blue-200' : 'text-gray-400 group-hover:text-gray-300'}`}>{action.description}</p>
+                          <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${
+                            isSelected 
+                              ? 'bg-blue-500/30 text-blue-200' 
+                              : 'bg-white/10 text-gray-400 group-hover:bg-white/20 group-hover:text-gray-300'
+                          }`}>
+                            {action.category}
+                          </span>
                         </div>
                         {isSelected && (
-                          <CheckCircle className="w-5 h-5 text-blue-400 ml-auto" />
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="flex-shrink-0"
+                          >
+                            <CheckCircle className="w-6 h-6 text-blue-400" />
+                          </motion.div>
                         )}
                       </div>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
+
+              {/* No actions found message */}
+              {getActionsByCategory(selectedCategory).length === 0 && (
+                <div className="text-center py-8">
+                  <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-400">Bu kategoride aksiyon bulunamadı</p>
+                </div>
+              )}
             </div>
 
             {/* Selected Actions Order */}
