@@ -70,7 +70,8 @@ import {
   ChevronDown,
   ChevronUp,
   Cpu,
-  Palette
+  Palette,
+  Sparkles as SparklesIcon
 } from 'lucide-react';
 import { triggers, actions, Trigger, Action } from '../data/applicationsData';
 import { useAuth } from '../context/AuthContext';
@@ -283,17 +284,27 @@ const AutomationCreator: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 overflow-y-auto">
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-6xl mx-auto"
+        className="max-w-7xl mx-auto"
       >
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">Automation Creator</h1>
-          <p className="text-gray-300 text-sm">Create new automations and streamline your workflows</p>
+        {/* Large Header */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="inline-flex items-center space-x-3 bg-gradient-to-r from-pink-500/20 to-purple-500/20 backdrop-blur-xl rounded-2xl px-8 py-4 border border-pink-400/30 shadow-2xl"
+          >
+            <SparklesIcon className="w-8 h-8 text-pink-400 animate-pulse" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-yellow-400 bg-clip-text text-transparent">
+              Create New Automation
+            </h1>
+            <SparklesIcon className="w-8 h-8 text-purple-400 animate-pulse" />
+          </motion.div>
         </div>
 
         {/* Success Message */}
@@ -303,10 +314,10 @@ const AutomationCreator: React.FC = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mb-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center space-x-3"
+              className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl flex items-center space-x-3"
             >
-              <CheckCircle className="w-4 h-4 text-green-400" />
-              <span className="text-green-400 text-sm">Automation created successfully!</span>
+              <CheckCircle className="w-5 h-5 text-green-400" />
+              <span className="text-green-400 font-medium">Automation created successfully!</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -316,353 +327,402 @@ const AutomationCreator: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg flex items-center space-x-3"
+            className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl flex items-center space-x-3"
           >
-            <AlertTriangle className="w-4 h-4 text-red-400" />
-            <span className="text-red-400 text-sm">{error}</span>
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400 font-medium">{error}</span>
           </motion.div>
         )}
 
-        {/* Main Grid Layout - 2x2 Grid with smaller cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-5xl mx-auto">
+        {/* Main Content Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Basic Information - Smaller Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-3">Basic Information</h2>
+          {/* Left Column - Basic Information */}
+          <div className="lg:col-span-1 space-y-6">
             
-            <div className="space-y-3 h-full flex flex-col">
-              <div className="flex-1">
-                <label className="block text-white text-xs font-medium mb-1">Automation Name</label>
-                <input
-                  type="text"
-                  value={automationName}
-                  onChange={(e) => setAutomationName(e.target.value)}
-                  placeholder="e.g., Gmail to Slack Notification"
-                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
-                />
+            {/* Automation Name */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-yellow-400" />
+                <span>Automation Name</span>
+              </h2>
+              <input
+                type="text"
+                value={automationName}
+                onChange={(e) => setAutomationName(e.target.value)}
+                placeholder="e.g., Gmail to Slack Notification"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200"
+              />
+            </motion.div>
+
+            {/* Description */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <Book className="w-5 h-5 text-orange-400" />
+                <span>Description</span>
+              </h2>
+              <textarea
+                value={automationDescription}
+                onChange={(e) => setAutomationDescription(e.target.value)}
+                placeholder="Describe what your automation does... (max 2000 words)"
+                maxLength={2000}
+                className="w-full h-32 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none transition-all duration-200"
+              />
+              <div className="mt-2 text-right">
+                <span className="text-xs text-gray-400">
+                  {automationDescription.length}/2000
+                </span>
               </div>
+            </motion.div>
+          </div>
+
+          {/* Right Column - Selections */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Trigger Choose */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <Zap className="w-5 h-5 text-yellow-400" />
+                <span>Trigger Choose</span>
+              </h2>
               
-              <div className="flex-1">
-                <label className="block text-white text-xs font-medium mb-1">Description</label>
-                <textarea
-                  value={automationDescription}
-                  onChange={(e) => setAutomationDescription(e.target.value)}
-                  placeholder="Describe what your automation does..."
-                  className="w-full h-20 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none text-sm"
-                />
-              </div>
-            </div>
-          </div>
+              <div className="relative">
+                <button
+                  onClick={() => setIsTriggerDropdownOpen(!isTriggerDropdownOpen)}
+                  className="w-full p-4 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 border border-yellow-400/30 rounded-xl text-left hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-200 flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Zap className="w-5 h-5 text-yellow-400" />
+                    <span className="text-white font-medium">
+                      {selectedTrigger ? selectedTrigger.name : 'Select a trigger...'}
+                    </span>
+                  </div>
+                  {isTriggerDropdownOpen ? (
+                    <ChevronUp className="w-5 h-5 text-yellow-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-yellow-400" />
+                  )}
+                </button>
 
-          {/* Platform Selection - Smaller Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-3">Platform Choose</h2>
-            
-            <div className="space-y-2 h-full flex flex-col justify-center">
-              {platforms.map((platform) => {
-                const Icon = platform.icon;
-                const isSelected = selectedPlatform === platform.id;
-                
-                return (
-                  <motion.button
-                    key={platform.id}
-                    onClick={() => setSelectedPlatform(platform.id)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-3 rounded-lg border-2 transition-all duration-200 group ${
-                      isSelected
-                        ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
-                        : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <div className={`p-1.5 rounded ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                        <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                <AnimatePresence>
+                  {isTriggerDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 overflow-hidden"
+                    >
+                      <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                        {triggers.map((trigger) => {
+                          const Icon = iconMap[trigger.icon] || Zap;
+                          return (
+                            <button
+                              key={trigger.id}
+                              onClick={() => {
+                                setSelectedTrigger(trigger);
+                                setIsTriggerDropdownOpen(false);
+                              }}
+                              className={`w-full p-3 rounded-lg border transition-all text-left ${
+                                selectedTrigger?.id === trigger.id
+                                  ? 'border-yellow-500 bg-gradient-to-br from-yellow-400/20 to-orange-500/20'
+                                  : 'border-white/20 bg-white/5 hover:bg-white/10'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <Icon className="w-4 h-4 text-yellow-400" />
+                                <div>
+                                  <p className="text-white font-medium">{trigger.name}</p>
+                                  <p className="text-gray-400 text-sm">{trigger.description}</p>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <div className="flex-1 text-left">
-                        <h3 className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                          {platform.name}
-                        </h3>
-                        <p className={`text-xs ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
-                          {platform.description}
-                        </p>
-                      </div>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="p-1 bg-white/20 rounded-full"
-                        >
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        </motion.div>
-                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Selected Trigger Display */}
+                {selectedTrigger && (
+                  <div className="mt-3 p-3 bg-gradient-to-br from-yellow-400/10 to-orange-500/10 rounded-lg border border-yellow-400/20">
+                    <div className="flex items-center space-x-3">
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      <span className="text-white font-medium">{selectedTrigger.name}</span>
+                      <button
+                        onClick={() => setSelectedTrigger(null)}
+                        className="ml-auto p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Trigger Selection - Smaller Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-3">Trigger Selection</h2>
-            
-            <div className="h-full flex flex-col">
-              {/* Trigger Dropdown Button */}
-              <button
-                onClick={() => setIsTriggerDropdownOpen(!isTriggerDropdownOpen)}
-                className="w-full p-3 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 border border-yellow-400/30 rounded-lg text-left hover:from-yellow-400/30 hover:to-orange-500/30 transition-all duration-200 flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-2">
-                  <Zap className="w-4 h-4 text-yellow-400" />
-                  <span className="text-white font-medium text-sm">
-                    {selectedTrigger ? selectedTrigger.name : 'Select a trigger...'}
-                  </span>
-                </div>
-                {isTriggerDropdownOpen ? (
-                  <ChevronUp className="w-4 h-4 text-yellow-400" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-yellow-400" />
+                  </div>
                 )}
-              </button>
+              </div>
+            </motion.div>
 
-              {/* Trigger Dropdown */}
-              <AnimatePresence>
-                {isTriggerDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-2 overflow-hidden"
+            {/* Actions Choose */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <Settings className="w-5 h-5 text-pink-400" />
+                <span>Actions Choose</span>
+              </h2>
+              
+              <div className="space-y-4">
+                {/* Category and Actions Buttons */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                    className="flex-1 p-3 bg-gradient-to-r from-purple-400/20 to-pink-500/20 border border-purple-400/30 rounded-lg text-left hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-200 flex items-center justify-between"
                   >
-                    <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-hide">
-                      {triggers.map((trigger) => {
-                        const Icon = iconMap[trigger.icon] || Zap;
-                        return (
+                    <span className="text-white font-medium">
+                      Category: {selectedCategory}
+                    </span>
+                    {isCategoryDropdownOpen ? (
+                      <ChevronUp className="w-4 h-4 text-purple-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-purple-400" />
+                    )}
+                  </button>
+                  
+                  <button
+                    onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
+                    className="p-3 bg-gradient-to-r from-pink-400/20 to-purple-500/20 border border-pink-400/30 rounded-lg hover:from-pink-400/30 hover:to-purple-500/30 transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Settings className="w-4 h-4 text-pink-400" />
+                    <span className="text-white font-medium text-sm">
+                      {selectedActions.length > 0 ? `${selectedActions.length} selected` : 'Select'}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Category Dropdown */}
+                <AnimatePresence>
+                  {isCategoryDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto scrollbar-hide">
+                        {actionCategories.map((category) => (
                           <button
-                            key={trigger.id}
+                            key={category}
                             onClick={() => {
-                              setSelectedTrigger(trigger);
-                              setIsTriggerDropdownOpen(false);
+                              setSelectedCategory(category);
+                              setIsCategoryDropdownOpen(false);
                             }}
-                            className={`w-full p-2 rounded border transition-all text-left ${
-                              selectedTrigger?.id === trigger.id
-                                ? 'border-yellow-500 bg-gradient-to-br from-yellow-400/20 to-orange-500/20'
+                            className={`p-2 rounded border transition-all text-left ${
+                              selectedCategory === category
+                                ? 'border-purple-500 bg-gradient-to-br from-purple-400/20 to-pink-500/20'
                                 : 'border-white/20 bg-white/5 hover:bg-white/10'
                             }`}
                           >
-                            <div className="flex items-center space-x-2">
-                              <Icon className="w-3 h-3 text-yellow-400" />
-                              <div>
-                                <p className="text-white font-medium text-xs">{trigger.name}</p>
-                                <p className="text-gray-400 text-xs">{trigger.description}</p>
-                              </div>
-                            </div>
+                            <span className={`text-sm font-medium ${
+                              selectedCategory === category
+                                ? 'text-white'
+                                : 'text-gray-300 hover:text-white'
+                            }`}>
+                              {category}
+                            </span>
                           </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Selected Trigger Display */}
-              {selectedTrigger && (
-                <div className="mt-2 p-2 bg-gradient-to-br from-yellow-400/10 to-orange-500/10 rounded border border-yellow-400/20">
-                  <div className="flex items-center space-x-2">
-                    <Zap className="w-3 h-3 text-yellow-400" />
-                    <span className="text-white text-xs font-medium truncate">{selectedTrigger.name}</span>
-                    <button
-                      onClick={() => setSelectedTrigger(null)}
-                      className="ml-auto p-0.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Actions Selection - Smaller Square Card */}
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-xl aspect-square">
-            <h2 className="text-lg font-semibold text-white mb-3">Actions Selection</h2>
-            
-            <div className="h-full flex flex-col">
-              {/* Category Dropdown Button */}
-              <div className="flex space-x-2 mb-2">
-                <button
-                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                  className="flex-1 p-2 bg-gradient-to-r from-purple-400/20 to-pink-500/20 border border-purple-400/30 rounded text-left hover:from-purple-400/30 hover:to-pink-500/30 transition-all duration-200 flex items-center justify-between"
-                >
-                  <span className="text-white font-medium text-xs truncate">
-                    {selectedCategory}
-                  </span>
-                  {isCategoryDropdownOpen ? (
-                    <ChevronUp className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                  )}
-                </button>
-                
-                <button
-                  onClick={() => setIsActionsDropdownOpen(!isActionsDropdownOpen)}
-                  className="p-2 bg-gradient-to-r from-pink-400/20 to-purple-500/20 border border-pink-400/30 rounded hover:from-pink-400/30 hover:to-purple-500/30 transition-all duration-200"
-                >
-                  <Settings className="w-4 h-4 text-pink-400" />
-                </button>
-              </div>
-
-              {/* Category Dropdown */}
-              <AnimatePresence>
-                {isCategoryDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mb-2 overflow-hidden"
-                  >
-                    <div className="space-y-1 max-h-24 overflow-y-auto scrollbar-hide">
-                      {actionCategories.map((category) => (
-                        <button
-                          key={category}
-                          onClick={() => {
-                            setSelectedCategory(category);
-                            setIsCategoryDropdownOpen(false);
-                          }}
-                          className={`w-full p-2 rounded border transition-all text-left ${
-                            selectedCategory === category
-                              ? 'border-purple-500 bg-gradient-to-br from-purple-400/20 to-pink-500/20'
-                              : 'border-white/20 bg-white/5 hover:bg-white/10'
-                          }`}
-                        >
-                          <span className={`text-xs font-medium ${
-                            selectedCategory === category
-                              ? 'text-white'
-                              : 'text-gray-300 hover:text-white'
-                          }`}>
-                            {category}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Actions Dropdown */}
-              <AnimatePresence>
-                {isActionsDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    {/* Actions List */}
-                    <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-hide">
-                      {getActionsByCategory(selectedCategory).map((action) => {
-                        const Icon = iconMap[action.icon] || Zap;
-                        const isSelected = selectedActions.find(a => a.id === action.id);
-                        
-                        return (
-                          <motion.button
-                            key={action.id}
-                            onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className={`w-full p-2 rounded border transition-all text-left group ${
-                              isSelected
-                                ? 'border-pink-500 bg-gradient-to-br from-pink-400/20 to-purple-500/20 shadow-lg'
-                                : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
-                            }`}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <div className={`p-1 rounded ${isSelected ? 'bg-pink-500/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                                <Icon className={`w-3 h-3 ${isSelected ? 'text-pink-400' : 'text-gray-400 group-hover:text-white'}`} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className={`font-medium text-xs truncate ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                                  {action.name}
-                                </p>
-                                <span className={`text-xs ${isSelected ? 'text-pink-300' : 'text-gray-400 group-hover:text-gray-300'}`}>
-                                  {action.category}
-                                </span>
-                              </div>
-                              {isSelected && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className="p-0.5 bg-pink-500/20 rounded-full flex-shrink-0"
-                                >
-                                  <CheckCircle className="w-3 h-3 text-pink-400" />
-                                </motion.div>
-                              )}
-                            </div>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Selected Actions Display */}
-              {selectedActions.length > 0 && (
-                <div className="mt-2 p-2 bg-gradient-to-br from-pink-400/10 to-purple-500/10 rounded border border-pink-400/20">
-                  <h3 className="text-xs font-semibold text-white mb-1">Selected Actions</h3>
-                  <div className="space-y-1">
-                    {selectedActions.slice(0, 2).map((action, index) => {
-                      const Icon = iconMap[action.icon] || Zap;
-                      return (
-                        <div
-                          key={action.id}
-                          className="flex items-center space-x-2 p-1 bg-white/5 rounded"
-                        >
-                          <span className="text-pink-400 font-medium text-xs">{index + 1}</span>
-                          <Icon className="w-3 h-3 text-pink-400" />
-                          <span className="text-white text-xs truncate flex-1">{action.name}</span>
-                          <button
-                            onClick={() => removeAction(action.id)}
-                            className="p-0.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded flex-shrink-0"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                    {selectedActions.length > 2 && (
-                      <div className="text-xs text-gray-400 text-center">
-                        +{selectedActions.length - 2} more
+                        ))}
                       </div>
-                    )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Actions Dropdown */}
+                <AnimatePresence>
+                  {isActionsDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
+                        {getActionsByCategory(selectedCategory).map((action) => {
+                          const Icon = iconMap[action.icon] || Zap;
+                          const isSelected = selectedActions.find(a => a.id === action.id);
+                          
+                          return (
+                            <motion.button
+                              key={action.id}
+                              onClick={() => isSelected ? removeAction(action.id) : addAction(action)}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={`w-full p-3 rounded-lg border transition-all text-left group ${
+                                isSelected
+                                  ? 'border-pink-500 bg-gradient-to-br from-pink-400/20 to-purple-500/20 shadow-lg'
+                                  : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-lg ${isSelected ? 'bg-pink-500/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                                  <Icon className={`w-4 h-4 ${isSelected ? 'text-pink-400' : 'text-gray-400 group-hover:text-white'}`} />
+                                </div>
+                                <div className="flex-1">
+                                  <p className={`font-medium ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                                    {action.name}
+                                  </p>
+                                  <span className={`text-sm ${isSelected ? 'text-pink-300' : 'text-gray-400 group-hover:text-gray-300'}`}>
+                                    {action.category}
+                                  </span>
+                                </div>
+                                {isSelected && (
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="p-1 bg-pink-500/20 rounded-full"
+                                  >
+                                    <CheckCircle className="w-4 h-4 text-pink-400" />
+                                  </motion.div>
+                                )}
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Selected Actions Display */}
+                {selectedActions.length > 0 && (
+                  <div className="p-3 bg-gradient-to-br from-pink-400/10 to-purple-500/10 rounded-lg border border-pink-400/20">
+                    <h3 className="text-sm font-semibold text-white mb-2">Selected Actions</h3>
+                    <div className="space-y-2">
+                      {selectedActions.map((action, index) => {
+                        const Icon = iconMap[action.icon] || Zap;
+                        return (
+                          <div
+                            key={action.id}
+                            className="flex items-center space-x-3 p-2 bg-white/5 rounded"
+                          >
+                            <span className="text-pink-400 font-medium text-sm">{index + 1}</span>
+                            <Icon className="w-4 h-4 text-pink-400" />
+                            <span className="text-white text-sm flex-1">{action.name}</span>
+                            <button
+                              onClick={() => removeAction(action.id)}
+                              className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Platform Choose */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <Cpu className="w-5 h-5 text-blue-400" />
+                <span>Platform Choose</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {platforms.map((platform) => {
+                  const Icon = platform.icon;
+                  const isSelected = selectedPlatform === platform.id;
+                  
+                  return (
+                    <motion.button
+                      key={platform.id}
+                      onClick={() => setSelectedPlatform(platform.id)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 group ${
+                        isSelected
+                          ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
+                          : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                          <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <h3 className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                            {platform.name}
+                          </h3>
+                          <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
+                            {platform.description}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="p-1 bg-white/20 rounded-full"
+                          >
+                            <CheckCircle className="w-5 h-5 text-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
           </div>
         </div>
 
-        {/* Create Button - Full Width */}
-        <div className="mt-6 max-w-5xl mx-auto">
+        {/* Create Automation Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className="mt-8 text-center"
+        >
           <button
             onClick={handleCreate}
             disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger || selectedActions.length === 0}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-600 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg"
+            className="bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 hover:from-pink-600 hover:via-purple-600 hover:to-yellow-600 disabled:from-gray-600 disabled:via-gray-600 disabled:to-gray-600 text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-2xl hover:shadow-pink-500/25 mx-auto"
           >
             {isCreating ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Creating...</span>
+                <RefreshCw className="w-6 h-6 animate-spin" />
+                <span>Creating Automation...</span>
               </>
             ) : (
               <>
-                <Rocket className="w-4 h-4" />
+                <Rocket className="w-6 h-6" />
                 <span>Create Automation</span>
               </>
             )}
           </button>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
