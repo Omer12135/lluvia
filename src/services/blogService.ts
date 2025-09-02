@@ -121,9 +121,18 @@ export const blogService = {
 
   // Create new blog post
   async createPost(postData: CreateBlogPostData): Promise<BlogPost> {
+    // Generate slug from title
+    const slug = generateSlug(postData.title);
+    
+    const postDataWithSlug = {
+      ...postData,
+      slug,
+      published_at: postData.status === 'published' ? new Date().toISOString() : null
+    };
+
     const { data, error } = await supabase
       .from('blog_posts')
-      .insert([postData])
+      .insert([postDataWithSlug])
       .select()
       .single();
 
@@ -209,7 +218,7 @@ export const blogService = {
   async incrementViews(id: string): Promise<void> {
     const { error } = await supabase
       .from('blog_posts')
-      .update({ views: supabase.rpc('increment', { row_id: id, column_name: 'views' }) })
+      .update({ views: supabase.sql`views + 1` })
       .eq('id', id);
 
     if (error) {
@@ -222,7 +231,7 @@ export const blogService = {
   async incrementLikes(id: string): Promise<void> {
     const { error } = await supabase
       .from('blog_posts')
-      .update({ likes: supabase.rpc('increment', { row_id: id, column_name: 'likes' }) })
+      .update({ likes: supabase.sql`likes + 1` })
       .eq('id', id);
 
     if (error) {

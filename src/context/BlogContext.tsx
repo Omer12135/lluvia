@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { blogService, BlogPost as SupabaseBlogPost } from '../services/blogService';
 
 export interface BlogPost {
   id: string;
@@ -17,6 +18,10 @@ export interface BlogPost {
   readTime: number; // dakika cinsinden
   views: number;
   likes: number;
+  slug: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords: string[];
 }
 
 interface BlogContextType {
@@ -24,13 +29,13 @@ interface BlogContextType {
   publishedPosts: BlogPost[];
   loading: boolean;
   error: string | null;
-  addBlogPost: (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views' | 'likes'>) => void;
-  updateBlogPost: (id: string, updates: Partial<BlogPost>) => void;
-  deleteBlogPost: (id: string) => void;
-  publishBlogPost: (id: string) => void;
-  unpublishBlogPost: (id: string) => void;
-  incrementViews: (id: string) => void;
-  incrementLikes: (id: string) => void;
+  addBlogPost: (post: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views' | 'likes' | 'slug'>) => Promise<void>;
+  updateBlogPost: (id: string, updates: Partial<BlogPost>) => Promise<void>;
+  deleteBlogPost: (id: string) => Promise<void>;
+  publishBlogPost: (id: string) => Promise<void>;
+  unpublishBlogPost: (id: string) => Promise<void>;
+  incrementViews: (id: string) => Promise<void>;
+  incrementLikes: (id: string) => Promise<void>;
   getBlogPostById: (id: string) => BlogPost | undefined;
   getPostsByCategory: (category: string) => BlogPost[];
   getPostsByAuthor: (authorId: string) => BlogPost[];
@@ -48,87 +53,180 @@ export const useBlog = () => {
   return context;
 };
 
+// Supabase BlogPost'u local BlogPost'a dönüştür
+const convertSupabaseToLocal = (supabasePost: SupabaseBlogPost): BlogPost => {
+  return {
+    id: supabasePost.id,
+    title: supabasePost.title,
+    content: supabasePost.content,
+    excerpt: supabasePost.excerpt,
+    author: supabasePost.author_name,
+    authorId: supabasePost.author_id,
+    imageUrl: supabasePost.image_url,
+    category: supabasePost.category,
+    tags: supabasePost.tags,
+    status: supabasePost.status,
+    createdAt: new Date(supabasePost.created_at),
+    updatedAt: new Date(supabasePost.updated_at),
+    publishedAt: supabasePost.published_at ? new Date(supabasePost.published_at) : undefined,
+    readTime: supabasePost.read_time,
+    views: supabasePost.views,
+    likes: supabasePost.likes,
+    slug: supabasePost.slug,
+    metaTitle: supabasePost.meta_title,
+    metaDescription: supabasePost.meta_description,
+    metaKeywords: supabasePost.meta_keywords,
+  };
+};
+
 export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Local storage'dan blog yazılarını yükle
-  useEffect(() => {
-    const savedPosts = localStorage.getItem('blogPosts');
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts).map((post: any) => ({
-        ...post,
-        createdAt: new Date(post.createdAt),
-        updatedAt: new Date(post.updatedAt),
-        publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
-      }));
-      setBlogPosts(posts);
+  // Supabase'den blog yazılarını yükle
+  const loadPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const supabasePosts = await blogService.getAllPosts();
+      const localPosts = supabasePosts.map(convertSupabaseToLocal);
+      setBlogPosts(localPosts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load posts');
+      console.error('Error loading posts:', err);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  // Blog yazılarını local storage'a kaydet
+  // İlk yükleme
   useEffect(() => {
-    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
-  }, [blogPosts]);
+    loadPosts();
+  }, []);
 
   // Yayınlanmış yazıları filtrele
   const publishedPosts = blogPosts.filter(post => post.status === 'published');
 
-  const addBlogPost = (postData: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views' | 'likes'>) => {
-    const newPost: BlogPost = {
-      ...postData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      views: 0,
-      likes: 0,
-    };
-    setBlogPosts(prev => [...prev, newPost]);
+  const addBlogPost = async (postData: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views' | 'likes' | 'slug'>) => {
+    try {
+      const supabasePostData = {
+        title: postData.title,
+        content: postData.content,
+        excerpt: postData.excerpt,
+        author_id: postData.authorId,
+        author_name: postData.author,
+        image_url: postData.imageUrl,
+        category: postData.category,
+        tags: postData.tags,
+        status: postData.status,
+        read_time: postData.readTime,
+        meta_title: postData.metaTitle,
+        meta_description: postData.metaDescription,
+        meta_keywords: postData.metaKeywords,
+      };
+
+      const newSupabasePost = await blogService.createPost(supabasePostData);
+      const newLocalPost = convertSupabaseToLocal(newSupabasePost);
+      setBlogPosts(prev => [...prev, newLocalPost]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add post');
+      throw err;
+    }
   };
 
-  const updateBlogPost = (id: string, updates: Partial<BlogPost>) => {
-    setBlogPosts(prev => prev.map(post => 
-      post.id === id 
-        ? { ...post, ...updates, updatedAt: new Date() }
-        : post
-    ));
+  const updateBlogPost = async (id: string, updates: Partial<BlogPost>) => {
+    try {
+      const supabaseUpdates: any = {};
+      
+      if (updates.title) supabaseUpdates.title = updates.title;
+      if (updates.content) supabaseUpdates.content = updates.content;
+      if (updates.excerpt) supabaseUpdates.excerpt = updates.excerpt;
+      if (updates.author) supabaseUpdates.author_name = updates.author;
+      if (updates.authorId) supabaseUpdates.author_id = updates.authorId;
+      if (updates.imageUrl !== undefined) supabaseUpdates.image_url = updates.imageUrl;
+      if (updates.category) supabaseUpdates.category = updates.category;
+      if (updates.tags) supabaseUpdates.tags = updates.tags;
+      if (updates.status) supabaseUpdates.status = updates.status;
+      if (updates.readTime) supabaseUpdates.read_time = updates.readTime;
+      if (updates.metaTitle) supabaseUpdates.meta_title = updates.metaTitle;
+      if (updates.metaDescription) supabaseUpdates.meta_description = updates.metaDescription;
+      if (updates.metaKeywords) supabaseUpdates.meta_keywords = updates.metaKeywords;
+
+      const updatedSupabasePost = await blogService.updatePost(id, supabaseUpdates);
+      const updatedLocalPost = convertSupabaseToLocal(updatedSupabasePost);
+      
+      setBlogPosts(prev => prev.map(post => 
+        post.id === id ? updatedLocalPost : post
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update post');
+      throw err;
+    }
   };
 
-  const deleteBlogPost = (id: string) => {
-    setBlogPosts(prev => prev.filter(post => post.id !== id));
+  const deleteBlogPost = async (id: string) => {
+    try {
+      await blogService.deletePost(id);
+      setBlogPosts(prev => prev.filter(post => post.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete post');
+      throw err;
+    }
   };
 
-  const publishBlogPost = (id: string) => {
-    setBlogPosts(prev => prev.map(post => 
-      post.id === id 
-        ? { ...post, status: 'published', publishedAt: new Date(), updatedAt: new Date() }
-        : post
-    ));
+  const publishBlogPost = async (id: string) => {
+    try {
+      const updatedSupabasePost = await blogService.publishPost(id);
+      const updatedLocalPost = convertSupabaseToLocal(updatedSupabasePost);
+      
+      setBlogPosts(prev => prev.map(post => 
+        post.id === id ? updatedLocalPost : post
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to publish post');
+      throw err;
+    }
   };
 
-  const unpublishBlogPost = (id: string) => {
-    setBlogPosts(prev => prev.map(post => 
-      post.id === id 
-        ? { ...post, status: 'draft', updatedAt: new Date() }
-        : post
-    ));
+  const unpublishBlogPost = async (id: string) => {
+    try {
+      const updatedSupabasePost = await blogService.unpublishPost(id);
+      const updatedLocalPost = convertSupabaseToLocal(updatedSupabasePost);
+      
+      setBlogPosts(prev => prev.map(post => 
+        post.id === id ? updatedLocalPost : post
+      ));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to unpublish post');
+      throw err;
+    }
   };
 
-  const incrementViews = (id: string) => {
-    setBlogPosts(prev => prev.map(post => 
-      post.id === id 
-        ? { ...post, views: post.views + 1 }
-        : post
-    ));
+  const incrementViews = async (id: string) => {
+    try {
+      await blogService.incrementViews(id);
+      setBlogPosts(prev => prev.map(post => 
+        post.id === id 
+          ? { ...post, views: post.views + 1 }
+          : post
+      ));
+    } catch (err) {
+      console.error('Error incrementing views:', err);
+    }
   };
 
-  const incrementLikes = (id: string) => {
-    setBlogPosts(prev => prev.map(post => 
-      post.id === id 
-        ? { ...post, likes: post.likes + 1 }
-        : post
-    ));
+  const incrementLikes = async (id: string) => {
+    try {
+      await blogService.incrementLikes(id);
+      setBlogPosts(prev => prev.map(post => 
+        post.id === id 
+          ? { ...post, likes: post.likes + 1 }
+          : post
+      ));
+    } catch (err) {
+      console.error('Error incrementing likes:', err);
+    }
   };
 
   const getBlogPostById = (id: string) => {
@@ -154,25 +252,7 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshPosts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Local storage'dan yeniden yükle
-      const savedPosts = localStorage.getItem('blogPosts');
-      if (savedPosts) {
-        const posts = JSON.parse(savedPosts).map((post: any) => ({
-          ...post,
-          createdAt: new Date(post.createdAt),
-          updatedAt: new Date(post.updatedAt),
-          publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
-        }));
-        setBlogPosts(posts);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh posts');
-    } finally {
-      setLoading(false);
-    }
+    await loadPosts();
   };
 
   const value: BlogContextType = {

@@ -105,6 +105,203 @@ const AdminBlogManager: React.FC = () => {
     'Finans'
   ];
 
+  // Örnek blog yazıları ekleme fonksiyonu
+  const addSamplePosts = async () => {
+    if (!user) return;
+
+    const samplePosts = [
+      {
+        title: 'Otomasyon ile İş Süreçlerinizi Nasıl Hızlandırabilirsiniz?',
+        content: `
+          <h2>Otomasyonun İş Dünyasındaki Önemi</h2>
+          <p>Günümüzde işletmeler, rekabet avantajı elde etmek için sürekli olarak verimliliklerini artırmaya çalışıyor. Bu noktada otomasyon, en güçlü araçlardan biri olarak öne çıkıyor.</p>
+          
+          <h3>Otomasyonun Faydaları</h3>
+          <ul>
+            <li><strong>Zaman Tasarrufu:</strong> Tekrarlayan görevler otomatikleştirilerek çalışanlar daha değerli işlere odaklanabilir</li>
+            <li><strong>Hata Oranının Azalması:</strong> İnsan kaynaklı hatalar minimize edilir</li>
+            <li><strong>Maliyet Düşüşü:</strong> Operasyonel maliyetler önemli ölçüde azalır</li>
+            <li><strong>Ölçeklenebilirlik:</strong> İşletmeler daha kolay büyüyebilir</li>
+          </ul>
+          
+          <h3>Hangi Süreçler Otomatikleştirilebilir?</h3>
+          <p>Otomasyon için en uygun süreçler şunlardır:</p>
+          <ol>
+            <li>Veri girişi ve raporlama</li>
+            <li>E-posta yanıtlama ve takip</li>
+            <li>Müşteri hizmetleri</li>
+            <li>Fatura ve ödeme işlemleri</li>
+            <li>Stok yönetimi</li>
+          </ol>
+          
+          <blockquote>
+            <p>"Otomasyon, işletmelerin gelecekte ayakta kalması için kritik bir faktördür. Doğru uygulandığında, hem verimliliği artırır hem de çalışan memnuniyetini yükseltir."</p>
+          </blockquote>
+          
+          <h3>Otomasyon Stratejisi Geliştirme</h3>
+          <p>Başarılı bir otomasyon projesi için şu adımları takip edin:</p>
+          <ol>
+            <li><strong>Mevcut Süreçleri Analiz Edin:</strong> Hangi süreçlerin otomatikleştirilebileceğini belirleyin</li>
+            <li><strong>Öncelikleri Belirleyin:</strong> En çok fayda sağlayacak süreçlerden başlayın</li>
+            <li><strong>Doğru Araçları Seçin:</strong> İhtiyaçlarınıza uygun otomasyon platformunu seçin</li>
+            <li><strong>Pilot Proje Başlatın:</strong> Küçük ölçekte test edin</li>
+            <li><strong>Ölçeklendirin:</strong> Başarılı sonuçlar aldıktan sonra genişletin</li>
+          </ol>
+          
+          <h3>Sonuç</h3>
+          <p>Otomasyon, modern işletmelerin vazgeçilmez bir parçası haline gelmiştir. Doğru strateji ve araçlarla, işletmenizin verimliliğini ve karlılığını önemli ölçüde artırabilirsiniz.</p>
+        `,
+        excerpt: 'İş süreçlerinizi otomatikleştirerek verimliliğinizi nasıl artırabileceğinizi ve maliyetlerinizi nasıl düşürebileceğinizi öğrenin.',
+        category: 'Otomasyon',
+        tags: ['otomasyon', 'verimlilik', 'iş süreçleri', 'zaman tasarrufu'],
+        readTime: 8,
+        imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
+      },
+      {
+        title: 'Yapay Zeka Destekli Müşteri Hizmetleri Çözümleri',
+        content: `
+          <h2>Yapay Zeka ile Müşteri Deneyimini Dönüştürme</h2>
+          <p>Yapay zeka teknolojileri, müşteri hizmetleri alanında devrim yaratıyor. Chatbot'lar, sesli asistanlar ve akıllı yönlendirme sistemleri ile müşteri deneyimi tamamen değişiyor.</p>
+          
+          <h3>AI Destekli Müşteri Hizmetlerinin Avantajları</h3>
+          <ul>
+            <li><strong>7/24 Hizmet:</strong> Müşteriler her zaman destek alabilir</li>
+            <li><strong>Anında Yanıt:</strong> Bekleme süreleri ortadan kalkar</li>
+            <li><strong>Kişiselleştirilmiş Deneyim:</strong> Her müşteriye özel çözümler</li>
+            <li><strong>Maliyet Verimliliği:</strong> Operasyonel maliyetlerde %40'a varan düşüş</li>
+          </ul>
+          
+          <h3>En Popüler AI Müşteri Hizmetleri Araçları</h3>
+          <p>Günümüzde kullanılan başlıca AI destekli müşteri hizmetleri çözümleri:</p>
+          <ol>
+            <li><strong>Chatbot'lar:</strong> Temel soruları yanıtlayan akıllı botlar</li>
+            <li><strong>Sesli Asistanlar:</strong> Telefon üzerinden AI destekli hizmet</li>
+            <li><strong>Akıllı Yönlendirme:</strong> Müşteriyi doğru departmana yönlendirme</li>
+            <li><strong>Duygu Analizi:</strong> Müşteri memnuniyetini ölçme</li>
+          </ol>
+          
+          <blockquote>
+            <p>"Yapay zeka, müşteri hizmetlerini sadece otomatikleştirmekle kalmaz, aynı zamanda daha insancıl ve kişiselleştirilmiş bir deneyim sunar."</p>
+          </blockquote>
+          
+          <h3>Başarılı AI Müşteri Hizmetleri Stratejisi</h3>
+          <p>AI destekli müşteri hizmetleri projenizi başarıyla uygulamak için:</p>
+          <ol>
+            <li><strong>Müşteri İhtiyaçlarını Analiz Edin:</strong> En sık sorulan soruları belirleyin</li>
+            <li><strong>Doğru Platformu Seçin:</strong> İhtiyaçlarınıza uygun AI çözümünü seçin</li>
+            <li><strong>İnsan-AI Dengesini Kurun:</strong> Karma bir yaklaşım benimseyin</li>
+            <li><strong>Sürekli Öğrenme:</strong> AI sistemini sürekli geliştirin</li>
+            <li><strong>Performansı Ölçün:</strong> Başarı metriklerini takip edin</li>
+          </ol>
+          
+          <h3>Gelecek Trendleri</h3>
+          <p>Müşteri hizmetlerinde AI'nın geleceği:</p>
+          <ul>
+            <li>Çok dilli AI asistanlar</li>
+            <li>Görsel AI destekli hizmetler</li>
+            <li>Proaktif müşteri hizmetleri</li>
+            <li>Duygu tabanlı yanıtlar</li>
+          </ul>
+          
+          <h3>Sonuç</h3>
+          <p>Yapay zeka, müşteri hizmetlerinin geleceğini şekillendiriyor. Doğru uygulandığında, hem müşteri memnuniyetini artırır hem de operasyonel verimliliği yükseltir.</p>
+        `,
+        excerpt: 'Yapay zeka teknolojileri ile müşteri hizmetlerinizi nasıl dönüştürebileceğinizi ve müşteri memnuniyetini nasıl artırabileceğinizi keşfedin.',
+        category: 'Yapay Zeka',
+        tags: ['yapay zeka', 'müşteri hizmetleri', 'chatbot', 'AI'],
+        readTime: 10,
+        imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
+      },
+      {
+        title: 'API Entegrasyonu ile Sistemlerinizi Birleştirin',
+        content: `
+          <h2>API Entegrasyonunun İşletmelere Sağladığı Faydalar</h2>
+          <p>Modern işletmeler, farklı sistemler ve uygulamalar arasında veri akışını sağlamak için API entegrasyonlarına ihtiyaç duyuyor. Bu entegrasyonlar, iş süreçlerini optimize eder ve verimliliği artırır.</p>
+          
+          <h3>API Entegrasyonunun Temel Faydaları</h3>
+          <ul>
+            <li><strong>Veri Senkronizasyonu:</strong> Sistemler arası veri tutarlılığı</li>
+            <li><strong>Otomatik İş Akışları:</strong> Manuel müdahale gerektirmeyen süreçler</li>
+            <li><strong>Gerçek Zamanlı Bilgi:</strong> Anlık veri güncellemeleri</li>
+            <li><strong>Maliyet Tasarrufu:</strong> Manuel veri girişi maliyetlerinin azalması</li>
+          </ul>
+          
+          <h3>Yaygın API Entegrasyon Senaryoları</h3>
+          <p>İşletmelerde en çok kullanılan API entegrasyonları:</p>
+          <ol>
+            <li><strong>E-ticaret ve Muhasebe:</strong> Satış verilerinin otomatik muhasebeye aktarılması</li>
+            <li><strong>CRM ve Pazarlama:</strong> Müşteri verilerinin pazarlama araçlarına entegrasyonu</li>
+            <li><strong>İnsan Kaynakları ve Bordro:</strong> Çalışan verilerinin otomatik senkronizasyonu</li>
+            <li><strong>Envanter ve Tedarik:</strong> Stok seviyelerinin otomatik takibi</li>
+          </ol>
+          
+          <blockquote>
+            <p>"API entegrasyonları, işletmelerin dijital dönüşüm yolculuğunda kritik bir adımdır. Doğru uygulandığında, operasyonel verimliliği önemli ölçüde artırır."</p>
+          </blockquote>
+          
+          <h3>Başarılı API Entegrasyon Stratejisi</h3>
+          <p>API entegrasyon projenizi başarıyla tamamlamak için:</p>
+          <ol>
+            <li><strong>İhtiyaç Analizi:</strong> Hangi sistemlerin entegre edileceğini belirleyin</li>
+            <li><strong>API Dokümantasyonu:</strong> Mevcut API'ları detaylı olarak inceleyin</li>
+            <li><strong>Güvenlik Planlaması:</strong> Veri güvenliği önlemlerini alın</li>
+            <li><strong>Test Stratejisi:</strong> Kapsamlı test planı hazırlayın</li>
+            <li><strong>İzleme ve Bakım:</strong> Sürekli performans takibi yapın</li>
+          </ol>
+          
+          <h3>API Güvenliği</h3>
+          <p>API entegrasyonlarında güvenlik kritik öneme sahiptir:</p>
+          <ul>
+            <li>API anahtarlarının güvenli saklanması</li>
+            <li>HTTPS protokolü kullanımı</li>
+            <li>Rate limiting uygulanması</li>
+            <li>Düzenli güvenlik denetimleri</li>
+          </ul>
+          
+          <h3>Sonuç</h3>
+          <p>API entegrasyonları, modern işletmelerin dijital dönüşüm sürecinde vazgeçilmez araçlardır. Doğru planlama ve uygulama ile işletmenizin verimliliğini ve rekabet gücünü artırabilirsiniz.</p>
+        `,
+        excerpt: 'API entegrasyonları ile sistemlerinizi nasıl birleştirebileceğinizi ve iş süreçlerinizi nasıl optimize edebileceğinizi öğrenin.',
+        category: 'API Entegrasyonu',
+        tags: ['API', 'entegrasyon', 'sistem', 'veri'],
+        readTime: 7,
+        imageUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
+      }
+    ];
+
+    try {
+      setIsSubmitting(true);
+      
+      for (const samplePost of samplePosts) {
+        const postData = {
+          title: samplePost.title,
+          content: samplePost.content,
+          excerpt: samplePost.excerpt,
+          author: user.email || 'Admin',
+          authorId: user.id || '',
+          imageUrl: samplePost.imageUrl,
+          category: samplePost.category,
+          tags: samplePost.tags,
+          status: 'published' as 'draft' | 'published',
+          readTime: samplePost.readTime,
+          metaTitle: samplePost.title,
+          metaDescription: samplePost.excerpt,
+          metaKeywords: samplePost.tags,
+        };
+
+        await addBlogPost(postData);
+      }
+
+      await refreshPosts();
+      alert('Örnek blog yazıları başarıyla eklendi!');
+    } catch (error) {
+      console.error('Error adding sample posts:', error);
+      alert('Örnek blog yazıları eklenirken hata oluştu!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // React Quill modules configuration
   const modules = {
     toolbar: {
@@ -283,13 +480,16 @@ const AdminBlogManager: React.FC = () => {
         title: formData.title,
         content: formData.content,
         excerpt: formData.excerpt,
-        author: user.name || user.email || 'Admin',
+        author: user.email || 'Admin',
         authorId: user.id || '',
         imageUrl: formData.imageUrl || undefined,
         category: formData.category,
         tags: formData.tags,
         status: formData.status,
         readTime: formData.readTime,
+        metaTitle: formData.metaTitle,
+        metaDescription: formData.metaDescription,
+        metaKeywords: formData.metaKeywords,
       };
 
       if (editingId) {
@@ -319,9 +519,9 @@ const AdminBlogManager: React.FC = () => {
       readTime: post.readTime,
       imageUrl: post.imageUrl || '',
       status: post.status,
-      metaTitle: '',
-      metaDescription: '',
-      metaKeywords: []
+      metaTitle: post.metaTitle || '',
+      metaDescription: post.metaDescription || '',
+      metaKeywords: post.metaKeywords || []
     });
     setImagePreview(post.imageUrl || '');
     setEditingId(post.id);
@@ -372,19 +572,34 @@ const AdminBlogManager: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">Blog Management</h3>
-          <p className="text-sm sm:text-base text-gray-400">Manage and publish blog posts</p>
+          <p className="text-sm sm:text-base text-gray-400">Manage and publish blog posts with beautiful design</p>
         </div>
         
-        <button
-          onClick={() => {
-            resetForm();
-            setShowAddForm(true);
-          }}
-          className="mt-2 sm:mt-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Post</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
+          <button
+            onClick={() => {
+              resetForm();
+              setShowAddForm(true);
+            }}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Post</span>
+          </button>
+          
+          <button
+            onClick={addSamplePosts}
+            disabled={isSubmitting}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <BookOpen className="w-4 h-4" />
+            )}
+            <span>Add Sample Posts</span>
+          </button>
+        </div>
       </div>
 
       {/* Error Display */}
