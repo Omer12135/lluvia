@@ -25,6 +25,7 @@ import {
   Eye
 } from 'lucide-react';
 import { userService, automationService } from '../../lib/supabase';
+import AdminBlogManager from './AdminBlogManager';
 
 interface SystemStats {
   totalUsers: number;
@@ -50,6 +51,7 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+  const [currentSection, setCurrentSection] = useState<string>('dashboard');
   const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -199,6 +201,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
     );
   };
 
+  // Blog yönetimi sekmesini render et
+  if (currentSection === 'blog') {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6">
+            <button
+              onClick={() => setCurrentSection('dashboard')}
+              className="flex items-center space-x-2 text-white hover:text-purple-300 transition-colors mb-4"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>← Dashboard'a Dön</span>
+            </button>
+          </div>
+          <AdminBlogManager />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
                       <motion.div
@@ -319,7 +341,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
               description="Blog yazılarını oluştur ve düzenle"
               icon={BarChart3}
               color="green"
-              onClick={() => onNavigate('blog')}
+              onClick={() => setCurrentSection('blog')}
             />
             <QuickActionCard
               title="Sistem Ayarları"
