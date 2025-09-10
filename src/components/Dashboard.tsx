@@ -7,7 +7,7 @@ import {
   History,
   BookOpen,
   Home,
-  LogOut
+  LogOut,
 } from 'lucide-react';
 import AutomationCreator from './AutomationCreator';
 import Profile from './Profile';

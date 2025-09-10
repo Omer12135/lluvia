@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   email text NOT NULL,
   name text NOT NULL,
-  plan text DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'custom')),
+  plan text DEFAULT 'free' CHECK (plan IN ('free', 'pro')),
   automations_used integer DEFAULT 0,
-  automations_limit integer DEFAULT 2,
+  automations_limit integer DEFAULT 1,
   ai_messages_used integer DEFAULT 0,
   ai_messages_limit integer DEFAULT 0,
   current_month_automations_used integer DEFAULT 0,
@@ -114,7 +114,7 @@ BEGIN
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'name', split_part(NEW.email, '@', 1)),
     'free',
-    2
+    1
   );
   RETURN NEW;
 END;
@@ -150,7 +150,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Function to update user plan limits
 CREATE OR REPLACE FUNCTION update_user_plan_limits(
   user_uuid uuid,
-  new_plan text,
+  new_plan text CHECK (new_plan IN ('free', 'pro')),
   new_automations_limit integer,
   new_ai_messages_limit integer
 )

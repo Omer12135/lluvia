@@ -97,6 +97,15 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Test Kullanıcı Bilgileri */}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+              <h3 className="text-blue-400 font-medium mb-2">Test Kullanıcıları:</h3>
+              <div className="text-sm text-blue-300 space-y-1">
+                <p><strong>Email:</strong> test@test.com | <strong>Şifre:</strong> test123</p>
+                <p><strong>Email:</strong> admin@test.com | <strong>Şifre:</strong> admin123</p>
+              </div>
+            </div>
+
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                 <p className="text-red-400 text-sm">{error}</p>

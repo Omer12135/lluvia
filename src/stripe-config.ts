@@ -17,7 +17,7 @@ export const stripeProducts: StripeProduct[] = [
     mode: 'payment'
   },
   {
-    id: 'prod_Sne4tG5dYu1o4G',
+    id: 'prod_SvYxlNBSq72PNA',
     priceId: 'price_1Rs2mPK4TeoPEcnVVGOmeNcs',
     name: 'Pro Plan',
     description: 'Complex Workflow - Advanced automation features for teams and businesses',

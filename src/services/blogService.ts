@@ -57,15 +57,24 @@ export const generateSlug = (title: string): string => {
 export const blogService = {
   // Get all blog posts (for admin)
   async getAllPosts(): Promise<BlogPost[]> {
+    console.log('blogService - getAllPosts çağrıldı...');
+    
     const { data, error } = await supabase
       .from('blog_posts')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching blog posts:', error);
+      console.error('blogService - getAllPosts hatası:', error);
       throw error;
     }
+
+    console.log('blogService - getAllPosts sonucu:', data);
+    console.log('blogService - Toplam post sayısı:', data?.length || 0);
+    
+    // Published posts sayısını kontrol et
+    const publishedCount = data?.filter(post => post.status === 'published').length || 0;
+    console.log('blogService - Published posts sayısı:', publishedCount);
 
     return data || [];
   },
@@ -121,27 +130,44 @@ export const blogService = {
 
   // Create new blog post
   async createPost(postData: CreateBlogPostData): Promise<BlogPost> {
-    // Generate slug from title
-    const slug = generateSlug(postData.title);
+    console.log('=== BLOG SERVICE CREATE POST BAŞLADI ===');
+    console.log('blogService - Creating new blog post:', postData);
     
-    const postDataWithSlug = {
-      ...postData,
-      slug,
-      published_at: postData.status === 'published' ? new Date().toISOString() : null
-    };
+    try {
+      // Generate slug from title
+      const slug = generateSlug(postData.title);
+      console.log('blogService - Generated slug:', slug);
+      
+      const postDataWithSlug = {
+        ...postData,
+        slug,
+        published_at: postData.status === 'published' ? new Date().toISOString() : null
+      };
 
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .insert([postDataWithSlug])
-      .select()
-      .single();
+      console.log('blogService - Final post data with slug:', postDataWithSlug);
 
-    if (error) {
-      console.error('Error creating blog post:', error);
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .insert([postDataWithSlug])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('blogService - Supabase insert hatası:', error);
+        console.error('blogService - Hata kodu:', error.code);
+        console.error('blogService - Hata mesajı:', error.message);
+        console.error('blogService - Hata detayı:', error.details);
+        throw error;
+      }
+
+      console.log('blogService - Blog post created successfully:', data);
+      console.log('=== BLOG SERVICE CREATE POST BAŞARILI ===');
+      return data;
+    } catch (error) {
+      console.error('=== BLOG SERVICE CREATE POST HATASI ===');
+      console.error('blogService - Genel hata:', error);
       throw error;
     }
-
-    return data;
   },
 
   // Update blog post
@@ -216,9 +242,22 @@ export const blogService = {
 
   // Increment views
   async incrementViews(id: string): Promise<void> {
+    // First get current views
+    const { data: currentPost, error: fetchError } = await supabase
+      .from('blog_posts')
+      .select('views')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching current views:', fetchError);
+      throw fetchError;
+    }
+
+    // Then increment
     const { error } = await supabase
       .from('blog_posts')
-      .update({ views: supabase.sql`views + 1` })
+      .update({ views: (currentPost.views || 0) + 1 })
       .eq('id', id);
 
     if (error) {
@@ -229,9 +268,22 @@ export const blogService = {
 
   // Increment likes
   async incrementLikes(id: string): Promise<void> {
+    // First get current likes
+    const { data: currentPost, error: fetchError } = await supabase
+      .from('blog_posts')
+      .select('likes')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching current likes:', fetchError);
+      throw fetchError;
+    }
+
+    // Then increment
     const { error } = await supabase
       .from('blog_posts')
-      .update({ likes: supabase.sql`likes + 1` })
+      .update({ likes: (currentPost.likes || 0) + 1 })
       .eq('id', id);
 
     if (error) {

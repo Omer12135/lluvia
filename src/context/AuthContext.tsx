@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase, syncAuthSession, refreshAuthState } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { subscriptionService } from '../services/subscriptionService';
 
 export interface UserProfile {
   id: string;
   user_id: string;
   email: string;
   name: string;
-  plan: 'free' | 'pro' | 'custom';
+  plan: 'free' | 'pro';
   automations_used: number;
   automations_limit: number;
   ai_messages_used: number;
@@ -15,6 +16,10 @@ export interface UserProfile {
   current_month_automations_used: number;
   last_reset_date: string;
   monthly_automations_used: number;
+  email_verified?: boolean;
+  two_factor_enabled?: boolean;
+  status?: string;
+  auth_provider?: string;
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +54,26 @@ interface AuthContextType {
   activateUser: (userId: string) => Promise<void>;
   refreshUserProfile: () => Promise<void>;
   forceSessionSync: () => Promise<void>;
+  // Plan yönetimi fonksiyonları
+  syncUserPlan: () => Promise<void>;
+  checkAutomationUsage: () => Promise<{
+    canCreate: boolean;
+    currentUsage: number;
+    limit: number;
+    remaining: number;
+  }>;
+  incrementAutomationUsage: () => Promise<boolean>;
+  getPlanInfo: () => Promise<{
+    currentPlan: 'free' | 'pro';
+    automationsLimit: number;
+    automationsUsed: number;
+    automationsRemaining: number;
+    aiMessagesLimit: number;
+    aiMessagesUsed: number;
+    aiMessagesRemaining: number;
+    isPro: boolean;
+    subscriptionStatus?: string;
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -334,14 +359,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      console.log('Creating profile with data:', {
-        user_id: userId,
-        email: userToUse.email,
-        name: userToUse.user_metadata?.name || userToUse.email!.split('@')[0],
-        plan: 'free',
-        automations_limit: 2,
-        ai_messages_limit: 0
-      });
+             console.log('Creating profile with data:', {
+         user_id: userId,
+         email: userToUse.email,
+         name: userToUse.user_metadata?.name || userToUse.email!.split('@')[0],
+         plan: 'free',
+         automations_limit: 1,
+         ai_messages_limit: 0
+       });
 
       // First check if profile already exists
       const { data: existingProfile, error: checkError } = await supabase
@@ -360,16 +385,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('Error checking existing profile:', checkError);
       }
 
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: userId,
-          email: userToUse.email!,
-          name: userToUse.user_metadata?.name || userToUse.email!.split('@')[0],
-          plan: 'free',
-          automations_limit: 2,
-          ai_messages_limit: 0
-        })
+               const { data, error } = await supabase
+           .from('user_profiles')
+           .insert({
+             user_id: userId,
+             email: userToUse.email!,
+             name: userToUse.user_metadata?.name || userToUse.email!.split('@')[0],
+             plan: 'free',
+             automations_limit: 1,
+             ai_messages_limit: 0
+           })
         .select()
         .single();
 
@@ -441,6 +466,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Geçici test kullanıcıları - Supabase bağlantı sorunu varsa
+      const testUsers = [
+        { email: 'test@test.com', password: 'test123', name: 'Test User' },
+        { email: 'admin@test.com', password: 'admin123', name: 'Admin User' }
+      ];
+      
+      const testUser = testUsers.find(u => u.email === email && u.password === password);
+      
+      if (testUser) {
+        console.log('Test login successful:', testUser.email);
+        const mockUser = {
+          id: 'test-user-id',
+          email: testUser.email,
+          email_confirmed_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          aud: 'authenticated',
+          role: 'authenticated',
+          app_metadata: {},
+          user_metadata: { name: testUser.name },
+          identities: [],
+          factors: []
+        };
+        
+        setUser(mockUser as any);
+        setEmailConfirmed(true);
+        
+        // Mock user profile
+        setUserProfile({
+          id: 'test-profile-id',
+          user_id: 'test-user-id',
+          email: testUser.email,
+          name: testUser.name,
+          plan: 'free',
+          automations_used: 0,
+          automations_limit: 5,
+          ai_messages_used: 0,
+          ai_messages_limit: 100,
+          current_month_automations_used: 0,
+          last_reset_date: new Date().toISOString(),
+          monthly_automations_used: 0,
+          email_verified: true,
+          two_factor_enabled: false,
+          status: 'active',
+          auth_provider: 'email',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        
+        setLoading(false);
+        return;
+      }
+      
+      // Normal Supabase login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -795,6 +874,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Plan yönetimi fonksiyonları
+  const syncUserPlan = async () => {
+    try {
+      await subscriptionService.syncUserPlanFromSubscription();
+      await refreshUserProfile();
+    } catch (error) {
+      console.error('Error syncing user plan:', error);
+    }
+  };
+
+  const checkAutomationUsage = async () => {
+    return await subscriptionService.checkAutomationUsage();
+  };
+
+  const incrementAutomationUsage = async () => {
+    return await subscriptionService.incrementAutomationUsage();
+  };
+
+  const getPlanInfo = async () => {
+    return await subscriptionService.getPlanInfo();
+  };
+
   // Load admin data when user is admin
   useEffect(() => {
     if (user && (user.email?.includes('@admin.lluvia.ai') || user.email === 'admin@lluvia.ai')) {
@@ -821,7 +922,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       suspendUser,
       activateUser,
     refreshUserProfile,
-    forceSessionSync
+    forceSessionSync,
+    syncUserPlan,
+    checkAutomationUsage,
+    incrementAutomationUsage,
+    getPlanInfo
   };
 
   return (

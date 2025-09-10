@@ -19,8 +19,15 @@ const BlogSection: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [displayCount, setDisplayCount] = useState(6);
 
+  // Debug: Published posts sayısını ve içeriğini göster
+  console.log('BlogSection - Component render edildi');
+  console.log('BlogSection - Published Posts Count:', publishedPosts.length);
+  console.log('BlogSection - Published Posts:', publishedPosts);
+  console.log('BlogSection - Published Posts Status:', publishedPosts.map(post => ({ id: post.id, title: post.title, status: post.status })));
+
   // Kategorileri al
   const categories = ['all', ...new Set(publishedPosts.map(post => post.category))];
+  console.log('BlogSection - Categories:', categories);
 
   // Filtrelenmiş ve aranmış yazılar
   const filteredPosts = publishedPosts.filter(post => {

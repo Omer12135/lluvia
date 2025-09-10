@@ -203,6 +203,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
 
   // Blog yönetimi sekmesini render et
   if (currentSection === 'blog') {
+    console.log('Blog section rendering...');
     return (
       <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
@@ -215,7 +216,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
               <span>← Dashboard'a Dön</span>
             </button>
           </div>
-          <AdminBlogManager />
+          <div className="bg-white/10 p-6 rounded-lg">
+            <h2 className="text-2xl font-bold text-white mb-4">Blog Yönetimi</h2>
+            <p className="text-gray-300 mb-4">Blog yönetimi sayfası yükleniyor...</p>
+            <AdminBlogManager />
+          </div>
         </div>
       </div>
     );

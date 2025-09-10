@@ -86,17 +86,30 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Supabase'den blog yazılarını yükle
   const loadPosts = async () => {
+    console.log('BlogContext - loadPosts başladı...');
     setLoading(true);
     setError(null);
     try {
+      console.log('BlogContext - Supabase\'den posts çekiliyor...');
       const supabasePosts = await blogService.getAllPosts();
+      console.log('BlogContext - Supabase\'den gelen posts:', supabasePosts);
+      
       const localPosts = supabasePosts.map(convertSupabaseToLocal);
+      console.log('BlogContext - Local posts\'a çevrilen:', localPosts);
+      
       setBlogPosts(localPosts);
+      console.log('BlogContext - blogPosts state güncellendi, toplam:', localPosts.length);
+      
+      // Published posts sayısını kontrol et
+      const publishedCount = localPosts.filter(post => post.status === 'published').length;
+      console.log('BlogContext - Published posts sayısı:', publishedCount);
+      
     } catch (err) {
+      console.error('BlogContext - loadPosts hatası:', err);
       setError(err instanceof Error ? err.message : 'Failed to load posts');
-      console.error('Error loading posts:', err);
     } finally {
       setLoading(false);
+      console.log('BlogContext - loadPosts tamamlandı');
     }
   };
 
@@ -108,8 +121,15 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Yayınlanmış yazıları filtrele
   const publishedPosts = blogPosts.filter(post => post.status === 'published');
 
+  // Debug: Blog posts sayılarını göster
+  console.log('BlogContext - Total Posts:', blogPosts.length);
+  console.log('BlogContext - Published Posts:', publishedPosts.length);
+  console.log('BlogContext - All Posts Status:', blogPosts.map(post => ({ id: post.id, title: post.title, status: post.status })));
+
   const addBlogPost = async (postData: Omit<BlogPost, 'id' | 'createdAt' | 'updatedAt' | 'views' | 'likes' | 'slug'>) => {
     try {
+      console.log('BlogContext - Adding new blog post:', postData);
+      
       const supabasePostData = {
         title: postData.title,
         content: postData.content,
@@ -126,10 +146,28 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
         meta_keywords: postData.metaKeywords,
       };
 
+      console.log('BlogContext - Supabase post data:', supabasePostData);
+
       const newSupabasePost = await blogService.createPost(supabasePostData);
+      console.log('BlogContext - New post created in Supabase:', newSupabasePost);
+      
       const newLocalPost = convertSupabaseToLocal(newSupabasePost);
-      setBlogPosts(prev => [...prev, newLocalPost]);
+      console.log('BlogContext - Converted to local post:', newLocalPost);
+      
+      setBlogPosts(prev => {
+        const updatedPosts = [...prev, newLocalPost];
+        console.log('BlogContext - Updated posts array length:', updatedPosts.length);
+        return updatedPosts;
+      });
+      
+      console.log('BlogContext - Blog post added successfully!');
+      
+      // Ana sayfada hemen görünmesi için posts'ları yeniden yükle
+      console.log('BlogContext - Refreshing posts for immediate update...');
+      await loadPosts();
+      console.log('BlogContext - Posts refreshed successfully!');
     } catch (err) {
+      console.error('BlogContext - Error adding blog post:', err);
       setError(err instanceof Error ? err.message : 'Failed to add post');
       throw err;
     }
@@ -159,6 +197,11 @@ export const BlogProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setBlogPosts(prev => prev.map(post => 
         post.id === id ? updatedLocalPost : post
       ));
+      
+      // Ana sayfada hemen görünmesi için posts'ları yeniden yükle
+      console.log('BlogContext - Refreshing posts after update...');
+      await loadPosts();
+      console.log('BlogContext - Posts refreshed after update!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update post');
       throw err;

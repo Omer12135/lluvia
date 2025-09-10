@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, 
   Zap, 
   Mail, 
   Database, 
@@ -146,7 +145,7 @@ const iconMap: Record<string, any> = {
 };
 
 const AutomationCreator: React.FC = () => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, checkAutomationUsage, incrementAutomationUsage } = useAuth();
   const [automationName, setAutomationName] = useState('');
   const [automationDescription, setAutomationDescription] = useState('');
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
@@ -159,9 +158,50 @@ const AutomationCreator: React.FC = () => {
   const [isTriggerDropdownOpen, setIsTriggerDropdownOpen] = useState(false);
   const [isActionsDropdownOpen, setIsActionsDropdownOpen] = useState(false);
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const [usageInfo, setUsageInfo] = useState<{
+    canCreate: boolean;
+    currentUsage: number;
+    limit: number;
+    remaining: number;
+  } | null>(null);
 
-  // Get unique categories from actions
-  const actionCategories = ['All', ...Array.from(new Set(actions.map(action => action.category)))];
+  // Platform filtering functions
+  const getFilteredTriggers = () => {
+    if (selectedPlatform === 'n8n') {
+      return triggers.filter(trigger => !trigger.id.startsWith('make-'));
+    } else if (selectedPlatform === 'make') {
+      return triggers.filter(trigger => trigger.id.startsWith('make-'));
+    }
+    return triggers;
+  };
+
+  const getFilteredActions = () => {
+    if (selectedPlatform === 'n8n') {
+      return actions.filter(action => !action.id.startsWith('make-'));
+    } else if (selectedPlatform === 'make') {
+      return actions.filter(action => action.id.startsWith('make-'));
+    }
+    return actions;
+  };
+
+  // Get unique categories from filtered actions
+  const actionCategories = ['All', ...Array.from(new Set(getFilteredActions().map(action => action.category)))];
+
+  // Load usage info on component mount
+  React.useEffect(() => {
+    const loadUsageInfo = async () => {
+      try {
+        const usage = await checkAutomationUsage();
+        setUsageInfo(usage);
+      } catch (error) {
+        console.error('Error loading usage info:', error);
+      }
+    };
+
+    if (user) {
+      loadUsageInfo();
+    }
+  }, [user, checkAutomationUsage]);
 
   // Platform options with colorful design
   const platforms = [
@@ -188,6 +228,13 @@ const AutomationCreator: React.FC = () => {
   const handleCreate = async () => {
     if (!user) return;
 
+    // Kullanım limitini kontrol et
+    const usageCheck = await checkAutomationUsage();
+    if (!usageCheck.canCreate) {
+      setError(`Otomasyon limitinize ulaştınız. ${usageCheck.limit} otomasyon hakkınız var. Pro plana geçerek 50 otomasyon hakkı kazanın.`);
+      return;
+    }
+
     setIsCreating(true);
     setError('');
 
@@ -206,6 +253,9 @@ const AutomationCreator: React.FC = () => {
       };
 
       const createdAutomation = await automationService.createAutomation(automation);
+
+      // Otomasyon kullanımını artır
+      await incrementAutomationUsage();
 
       // Send webhook data
       const webhookData: AutomationWebhookData = {
@@ -266,18 +316,57 @@ const AutomationCreator: React.FC = () => {
   };
 
   const getActionsByCategory = (category: string) => {
+    const filteredActions = getFilteredActions();
     if (category === 'All') {
-      return actions;
+      return filteredActions;
     }
-    return actions.filter(action => action.category === category);
+    return filteredActions.filter(action => action.category === category);
   };
 
-  if (!user) {
+  // Debug: Check user state
+  console.log('AutomationCreator - User state:', user);
+  console.log('AutomationCreator - UserProfile state:', userProfile);
+
+  // Geçici olarak kilit kontrolünü kaldırıyoruz - test için
+  // if (!user) {
+  //   return (
+  //     <div className="flex items-center justify-center h-64">
+  //       <div className="text-center">
+  //         <Lock className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+  //         <p className="text-gray-400">Please login to create automations</p>
+  //         <p className="text-gray-500 text-sm mt-2">User state: {user ? 'Logged in' : 'Not logged in'}</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  // Check if user has exhausted their automation credits
+  if (usageInfo && !usageInfo.canCreate) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Lock className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <p className="text-gray-400">Please login to create automations</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-orange-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-4">Otomasyon Limiti Aşıldı</h2>
+          <p className="text-gray-300 mb-4">
+            {usageInfo.currentUsage}/{usageInfo.limit} otomasyon kullandınız.
+          </p>
+          <p className="text-gray-300 mb-6">
+            Daha fazla otomasyon oluşturmak için Pro Plan'a geçin ve 50 otomasyon hakkı kazanın.
+          </p>
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-6 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300 mb-3"
+          >
+            Pro Plan'a Geç
+          </button>
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="w-full bg-gray-600/50 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-600/70 transition-all duration-300"
+          >
+            Dashboard'a Dön
+          </button>
         </div>
       </div>
     );
@@ -306,6 +395,26 @@ const AutomationCreator: React.FC = () => {
             <SparklesIcon className="w-8 h-8 text-purple-400 animate-pulse" />
           </motion.div>
         </div>
+
+        {/* Usage Limit Warning */}
+        {usageInfo && usageInfo.remaining <= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-xl flex items-center space-x-3"
+          >
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            <div className="flex-1">
+              <span className="text-yellow-400 font-medium">
+                Otomasyon limitiniz yaklaşıyor! {usageInfo.remaining} otomasyon kaldı.
+              </span>
+              <p className="text-yellow-300 text-sm mt-1">
+                Pro plana geçerek 50 otomasyon hakkı kazanın.
+              </p>
+            </div>
+            <Crown className="w-5 h-5 text-yellow-400" />
+          </motion.div>
+        )}
 
         {/* Success Message */}
         <AnimatePresence>
@@ -337,14 +446,77 @@ const AutomationCreator: React.FC = () => {
         {/* Main Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column - Basic Information */}
+          {/* Left Column - Platform Selection */}
           <div className="lg:col-span-1 space-y-6">
             
-            {/* Automation Name */}
+            {/* Platform Choose - Now First */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                <Cpu className="w-5 h-5 text-blue-400" />
+                <span>Platform Choose</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {platforms.map((platform) => {
+                  const Icon = platform.icon;
+                  const isSelected = selectedPlatform === platform.id;
+                  
+                  return (
+                    <motion.button
+                      key={platform.id}
+                      onClick={() => {
+                        setSelectedPlatform(platform.id);
+                        // Reset trigger and actions when platform changes
+                        setSelectedTrigger(null);
+                        setSelectedActions([]);
+                        setSelectedCategory('All');
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 group ${
+                        isSelected
+                          ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
+                          : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                          <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <h3 className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                            {platform.name}
+                          </h3>
+                          <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
+                            {platform.description}
+                          </p>
+                        </div>
+                        {isSelected && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="p-1 bg-white/20 rounded-full"
+                          >
+                            <CheckCircle className="w-5 h-5 text-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {/* Automation Name */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
@@ -364,7 +536,7 @@ const AutomationCreator: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
               className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
             >
               <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
@@ -389,10 +561,12 @@ const AutomationCreator: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Right Column - Selections */}
+          {/* Right Column - Trigger and Actions (only show when platform is selected) */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Trigger Choose */}
+            {selectedPlatform && (
+              <>
+                {/* Trigger Choose */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -431,7 +605,7 @@ const AutomationCreator: React.FC = () => {
                       className="mt-3 overflow-hidden"
                     >
                       <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
-                        {triggers.map((trigger) => {
+                        {getFilteredTriggers().map((trigger) => {
                           const Icon = iconMap[trigger.icon] || Zap;
                           return (
                             <button
@@ -641,63 +815,24 @@ const AutomationCreator: React.FC = () => {
                 )}
               </div>
             </motion.div>
+              </>
+            )}
 
-            {/* Platform Choose - Compact layout */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl"
-            >
-              <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
-                <Cpu className="w-5 h-5 text-blue-400" />
-                <span>Platform Choose</span>
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {platforms.map((platform) => {
-                  const Icon = platform.icon;
-                  const isSelected = selectedPlatform === platform.id;
-                  
-                  return (
-                    <motion.button
-                      key={platform.id}
-                      onClick={() => setSelectedPlatform(platform.id)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`p-3 rounded-xl border-2 transition-all duration-200 group ${
-                        isSelected
-                          ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
-                          : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                          <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
-                        </div>
-                        <div className="flex-1 text-left">
-                          <h3 className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                            {platform.name}
-                          </h3>
-                          <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
-                            {platform.description}
-                          </p>
-                        </div>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="p-1 bg-white/20 rounded-full"
-                          >
-                            <CheckCircle className="w-5 h-5 text-white" />
-                          </motion.div>
-                        )}
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </motion.div>
+            {/* Platform selection message when no platform is selected */}
+            {!selectedPlatform && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="bg-gradient-to-br from-blue/10 to-purple/10 backdrop-blur-xl rounded-2xl p-8 border border-blue-400/20 shadow-2xl text-center"
+              >
+                <Cpu className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Select a Platform First</h3>
+                <p className="text-gray-400">
+                  Please choose an automation platform to see available triggers and actions.
+                </p>
+              </motion.div>
+            )}
           </div>
         </div>
 
@@ -710,13 +845,18 @@ const AutomationCreator: React.FC = () => {
         >
           <button
             onClick={handleCreate}
-            disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger}
+            disabled={isCreating || !automationName.trim() || !automationDescription.trim() || !selectedTrigger || (usageInfo ? !usageInfo.canCreate : false)}
             className="bg-gradient-to-r from-pink-500 via-purple-500 to-yellow-500 hover:from-pink-600 hover:via-purple-600 hover:to-yellow-600 disabled:from-gray-600 disabled:via-gray-600 disabled:to-gray-600 text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-200 flex items-center justify-center space-x-3 shadow-2xl hover:shadow-pink-500/25 mx-auto"
           >
             {isCreating ? (
               <>
                 <RefreshCw className="w-6 h-6 animate-spin" />
                 <span>Creating Automation...</span>
+              </>
+            ) : usageInfo && !usageInfo.canCreate ? (
+              <>
+                <Crown className="w-6 h-6" />
+                <span>Upgrade to Pro for More Automations</span>
               </>
             ) : (
               <>

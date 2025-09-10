@@ -5,12 +5,14 @@ import {
   Mail, 
   Key,
   Save,
-  Edit
+  Edit,
+  CreditCard
 } from 'lucide-react';
+import SubscriptionManagement from './SubscriptionManagement';
 
 const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
+  const [profileData] = useState({
     email: 'john.doe@example.com'
   });
 
@@ -90,6 +92,20 @@ const Profile: React.FC = () => {
             </button>
           )}
         </div>
+      </motion.div>
+
+      {/* Subscription Management */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20"
+      >
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+          <CreditCard className="w-5 h-5 mr-2" />
+          Subscription Management
+        </h2>
+        <SubscriptionManagement />
       </motion.div>
     </div>
   );

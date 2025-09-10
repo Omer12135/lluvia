@@ -15,6 +15,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import PlanStatus from './PlanStatus';
 
 interface DashboardOverviewProps {
   onTabChange?: (tab: string) => void;
@@ -116,6 +117,15 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
             </motion.div>
           );
         })}
+      </motion.div>
+
+      {/* Plan Status */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <PlanStatus />
       </motion.div>
 
       {/* Quick Actions and Recent Activities */}

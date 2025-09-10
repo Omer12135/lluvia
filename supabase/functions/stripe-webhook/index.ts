@@ -183,9 +183,67 @@ async function syncCustomerFromStripe(customerId: string) {
       console.error('Error syncing subscription:', subError);
       throw new Error('Failed to sync subscription in database');
     }
+
+    // Kullanıcının planını güncelle
+    await updateUserPlanFromSubscription(customerId, subscription);
+    
     console.info(`Successfully synced subscription for customer: ${customerId}`);
   } catch (error) {
     console.error(`Failed to sync subscription for customer ${customerId}:`, error);
     throw error;
+  }
+}
+
+// Kullanıcının planını subscription durumuna göre güncelle
+async function updateUserPlanFromSubscription(customerId: string, subscription: Stripe.Subscription) {
+  try {
+    // Customer ID'den user_id'yi bul
+    const { data: customerData, error: customerError } = await supabase
+      .from('stripe_customers')
+      .select('user_id')
+      .eq('customer_id', customerId)
+      .single();
+
+    if (customerError || !customerData) {
+      console.error('Error finding user for customer:', customerError);
+      return;
+    }
+
+    const userId = customerData.user_id;
+    let newPlan: 'free' | 'pro' = 'free';
+    let automationsLimit = 1; // Free plan default
+    let aiMessagesLimit = 0; // Free plan default
+
+    // Subscription durumuna göre plan belirle
+    if (subscription.status === 'active') {
+      const priceId = subscription.items.data[0].price.id;
+      
+      // Pro plan price ID'si
+      if (priceId === 'price_1Rs2mPK4TeoPEcnVVGOmeNcs') {
+        newPlan = 'pro';
+        automationsLimit = 50;
+        aiMessagesLimit = 1000;
+      }
+    }
+
+    // Kullanıcı profilini güncelle
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        plan: newPlan,
+        automations_limit: automationsLimit,
+        ai_messages_limit: aiMessagesLimit,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      console.error('Error updating user plan:', updateError);
+      return;
+    }
+
+    console.log(`User ${userId} plan updated to ${newPlan} with ${automationsLimit} automations limit`);
+  } catch (error) {
+    console.error('Error in updateUserPlanFromSubscription:', error);
   }
 }
