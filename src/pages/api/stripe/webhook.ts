@@ -63,6 +63,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   
   if (session.mode === 'subscription' && session.subscription) {
     await updateUserPlanFromSubscription(session.customer as string, session.subscription as string);
+  } else if (session.mode === 'payment') {
+    await updateUserPlanFromPayment(session);
   }
 }
 
@@ -138,7 +140,7 @@ async function updateUserPlanFromSubscription(customerId: string, subscriptionId
       return;
     }
 
-    let newPlan: 'free' | 'pro' = 'free';
+    let newPlan: 'free' | 'basic' | 'pro' = 'free';
     let automationsLimit = 1;
     let aiMessagesLimit = 0;
 
@@ -189,6 +191,98 @@ async function updateUserPlanFromSubscription(customerId: string, subscriptionId
     console.log(`User ${customerData.user_id} plan updated to ${newPlan} with ${automationsLimit} automations limit`);
   } catch (error) {
     console.error('Error in updateUserPlanFromSubscription:', error);
+  }
+}
+
+async function updateUserPlanFromPayment(session: Stripe.Checkout.Session) {
+  try {
+    console.log('Processing payment session:', session.id);
+    
+    // First try to find user by customer ID
+    let customerData = null;
+    if (session.customer) {
+      const { data } = await supabase
+        .from('stripe_customers')
+        .select('user_id')
+        .eq('customer_id', session.customer)
+        .single();
+      customerData = data;
+    }
+
+    // If not found by customer ID, try to find by email
+    if (!customerData && session.customer_email) {
+      console.log('Customer not found by ID, trying to find by email:', session.customer_email);
+      
+      // Find user by email in user_profiles
+      const { data: userData } = await supabase
+        .from('user_profiles')
+        .select('user_id')
+        .eq('email', session.customer_email)
+        .single();
+      
+      if (userData) {
+        customerData = { user_id: userData.user_id };
+        console.log('Found user by email:', session.customer_email);
+      }
+    }
+
+    if (!customerData) {
+      console.error('Customer not found by ID or email:', session.customer, session.customer_email);
+      return;
+    }
+
+    // Get line items to determine the plan
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+    const priceId = lineItems.data[0]?.price?.id;
+    
+    console.log('Payment session details:', {
+      sessionId: session.id,
+      customerEmail: session.customer_email,
+      amountTotal: session.amount_total,
+      priceId: priceId,
+      url: session.url
+    });
+
+    let newPlan: 'free' | 'basic' | 'pro' = 'free';
+    let automationsLimit = 1;
+    let aiMessagesLimit = 0;
+
+    // Determine plan based on price ID
+    // Basic Plan - yeni product ID ile
+    if (priceId === 'price_1QJ8XxK4TeoPEcnV1234567890' || 
+        priceId === 'price_basic_plan' ||
+        session.url?.includes('7sY4gAd6S2dE7DDb5qfEk03') ||
+        session.amount_total === 100 || // $1.00 = 100 cents
+        lineItems.data[0]?.price?.product === 'prod_T2eC5v6BDh4AFg') {
+      newPlan = 'basic';
+      automationsLimit = 10;
+      aiMessagesLimit = 100;
+      console.log('Basic Plan detected - amount:', session.amount_total, 'priceId:', priceId, 'productId:', lineItems.data[0]?.price?.product);
+    } else if (priceId === 'price_1Rs2mPK4TeoPEcnVVGOmeNcs') {
+      newPlan = 'pro';
+      automationsLimit = 50;
+      aiMessagesLimit = 1000;
+    }
+
+    // Update user profile
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .update({
+        plan: newPlan,
+        automations_limit: automationsLimit,
+        ai_messages_limit: aiMessagesLimit,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', customerData.user_id);
+
+    if (updateError) {
+      console.error('Error updating user plan:', updateError);
+      return;
+    }
+
+    console.log(`User ${customerData.user_id} plan updated to ${newPlan} with ${automationsLimit} automations limit`);
+  } catch (error) {
+    console.error('Error in updateUserPlanFromPayment:', error);
   }
 }
 

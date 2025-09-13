@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
 import { Crown, Zap, AlertCircle, CheckCircle, ArrowUpRight, Sparkles, Star } from 'lucide-react';
+import PlanUpgrade from './PlanUpgrade';
 
 interface PlanInfo {
-  currentPlan: 'free' | 'pro';
+  currentPlan: 'free' | 'basic' | 'pro';
   automationsLimit: number;
   automationsUsed: number;
   automationsRemaining: number;
@@ -12,14 +12,15 @@ interface PlanInfo {
   aiMessagesUsed: number;
   aiMessagesRemaining: number;
   isPro: boolean;
+  isBasic: boolean;
   subscriptionStatus?: string;
 }
 
 const PlanStatus: React.FC = () => {
-  const { userProfile, getPlanInfo, syncUserPlan, updateProfile } = useAuth();
+  const { userProfile, getPlanInfo } = useAuth();
   const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [upgrading, setUpgrading] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     loadPlanInfo();
@@ -37,86 +38,10 @@ const PlanStatus: React.FC = () => {
     }
   };
 
-  const handleUpgradeToPro = async () => {
-    try {
-      setUpgrading(true);
-      
-      // Check if we're in development mode (no Stripe keys)
-      const isDevelopment = !import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-      
-      if (isDevelopment) {
-        // Development mode: Simulate Pro Plan upgrade
-        const confirmUpgrade = confirm(
-          'Pro Plan Upgrade Simulation\n\n' +
-          'This will simulate upgrading to Pro Plan with 50 automation credits.\n\n' +
-          'In production, this would redirect to Stripe checkout for payment.'
-        );
-          
-        if (confirmUpgrade) {
-          // Simulate Pro Plan upgrade
-          if (userProfile) {
-            await updateProfile({
-              plan: 'pro',
-              automations_limit: 50,
-              ai_messages_limit: 1000
-            });
-            
-            // Force reload plan info
-            await loadPlanInfo();
-            
-            // Show success message
-            alert('Pro Plan upgrade successful! You now have 50 automation credits.');
-            
-            // Force page refresh to update UI
-            window.location.reload();
-          }
-        }
-      } else {
-        // Production mode: Real Stripe checkout
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) {
-          throw new Error('No active session found');
-        }
-
-        // Call our API route to create checkout session
-        const response = await fetch('/api/stripe/create-checkout-session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            plan: 'pro'
-          })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to create checkout session');
-        }
-
-        const { url } = await response.json();
-        
-        // Redirect to Stripe checkout
-        window.location.href = url;
-      }
-      
-    } catch (error) {
-      console.error('Error upgrading to Pro:', error);
-      alert(`Upgrade failed: ${error instanceof Error ? error.message : 'Please try again.'}`);
-    } finally {
-      setUpgrading(false);
-    }
+  const handleUpgradeToPro = () => {
+    setShowUpgradeModal(true);
   };
 
-  const handleSyncPlan = async () => {
-    try {
-      await syncUserPlan();
-      await loadPlanInfo();
-    } catch (error) {
-      console.error('Error syncing plan:', error);
-    }
-  };
 
   if (loading) {
     return (
@@ -138,6 +63,8 @@ const PlanStatus: React.FC = () => {
     switch (plan) {
       case 'pro':
         return 'text-yellow-400 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border-yellow-400/30';
+      case 'basic':
+        return 'text-blue-400 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 border-blue-400/30';
       default:
         return 'text-purple-300 bg-gradient-to-r from-purple-400/20 to-pink-400/20 border-purple-400/30';
     }
@@ -147,6 +74,8 @@ const PlanStatus: React.FC = () => {
     switch (plan) {
       case 'pro':
         return <Crown className="w-5 h-5" />;
+      case 'basic':
+        return <Zap className="w-5 h-5" />;
       default:
         return <Sparkles className="w-5 h-5" />;
     }
@@ -164,7 +93,8 @@ const PlanStatus: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-xl rounded-2xl border border-purple-500/30 p-6 relative overflow-hidden">
+    <>
+      <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-xl rounded-2xl border border-purple-500/30 p-6 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full -translate-y-16 translate-x-16"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-400/10 to-purple-400/10 rounded-full translate-y-12 -translate-x-12"></div>
@@ -177,8 +107,10 @@ const PlanStatus: React.FC = () => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                {planInfo.currentPlan === 'free' ? 'Free Plan' : 'Pro Plan'}
+                {planInfo.currentPlan === 'free' ? 'Free Plan' : 
+                 planInfo.currentPlan === 'basic' ? 'Basic Plan' : 'Pro Plan'}
                 {planInfo.currentPlan === 'pro' && <Star className="w-5 h-5 text-yellow-400" />}
+                {planInfo.currentPlan === 'basic' && <Star className="w-5 h-5 text-blue-400" />}
               </h3>
               <p className="text-sm text-purple-200">
                 {planInfo.subscriptionStatus && `Status: ${planInfo.subscriptionStatus}`}
@@ -188,21 +120,21 @@ const PlanStatus: React.FC = () => {
           {planInfo.currentPlan === 'free' && (
             <button
               onClick={handleUpgradeToPro}
-              disabled={upgrading}
-              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
-              {upgrading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Upgrading...</span>
-                </>
-              ) : (
-                <>
-                  <Crown className="w-4 h-4" />
-                  <span>Upgrade to Pro</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </>
-              )}
+              <Crown className="w-4 h-4" />
+              <span>Upgrade Plan</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+          )}
+          {planInfo.currentPlan === 'basic' && (
+            <button
+              onClick={handleUpgradeToPro}
+              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Crown className="w-4 h-4" />
+              <span>Upgrade to Pro</span>
+              <ArrowUpRight className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -304,6 +236,18 @@ const PlanStatus: React.FC = () => {
         </div>
       </div>
     </div>
+    
+    {/* Plan Upgrade Modal */}
+    {showUpgradeModal && (
+      <PlanUpgrade 
+        onClose={() => {
+          setShowUpgradeModal(false);
+          // Reload plan info after upgrade
+          loadPlanInfo();
+        }} 
+      />
+    )}
+    </>
   );
 };
 

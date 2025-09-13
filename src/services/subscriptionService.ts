@@ -17,7 +17,7 @@ export interface UserProfile {
   user_id: string;
   email: string;
   name: string;
-  plan: 'free' | 'pro' | 'custom';
+  plan: 'free' | 'basic' | 'pro';
   automations_used: number;
   automations_limit: number;
   ai_messages_used: number;
@@ -71,32 +71,51 @@ export const subscriptionService = {
   },
 
   // Kullanıcının planını güncelle
-  async updateUserPlan(plan: 'free' | 'pro'): Promise<boolean> {
+  async updateUserPlan(plan: 'free' | 'basic' | 'pro'): Promise<boolean> {
     try {
       let automationsLimit = 1; // Free plan default
       let aiMessagesLimit = 0; // Free plan default
 
-      if (plan === 'pro') {
+      if (plan === 'basic') {
+        automationsLimit = 10; // Basic plan limit
+        aiMessagesLimit = 100; // Basic plan AI messages limit
+      } else if (plan === 'pro') {
         automationsLimit = 50; // Pro plan limit
         aiMessagesLimit = 1000; // Pro plan AI messages limit
       }
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({
-          plan,
-          automations_limit: automationsLimit,
-          ai_messages_limit: aiMessagesLimit,
-          updated_at: new Date().toISOString()
+      // Use Supabase function for pro plan upgrade to ensure proper limits
+      if (plan === 'pro') {
+        const { error: upgradeError } = await supabase.rpc('upgrade_to_pro_plan', {
+          user_uuid: (await supabase.auth.getUser()).data.user?.id
         });
 
-      if (error) {
-        console.error('Error updating user plan:', error);
-        return false;
-      }
+        if (upgradeError) {
+          console.error('Error upgrading to pro plan:', upgradeError);
+          return false;
+        }
 
-      console.log(`User plan updated to ${plan} with ${automationsLimit} automations limit`);
-      return true;
+        console.log(`User plan upgraded to pro with 50 automations limit`);
+        return true;
+      } else {
+        // For free and basic plans, use regular update
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({
+            plan,
+            automations_limit: automationsLimit,
+            ai_messages_limit: aiMessagesLimit,
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error('Error updating user plan:', error);
+          return false;
+        }
+
+        console.log(`User plan updated to ${plan} with ${automationsLimit} automations limit`);
+        return true;
+      }
     } catch (error) {
       console.error('Error in updateUserPlan:', error);
       return false;
@@ -176,13 +195,15 @@ export const subscriptionService = {
         return false;
       }
 
-      let newPlan: 'free' | 'pro' = 'free';
+      let newPlan: 'free' | 'basic' | 'pro' = 'free';
 
       // Stripe subscription durumuna göre plan belirle
       if (subscription && subscription.subscription_status === 'active') {
         // Price ID'ye göre plan belirle
         if (subscription.price_id === 'price_1Rs2mPK4TeoPEcnVVGOmeNcs') {
           newPlan = 'pro';
+        } else if (subscription.price_id === 'price_basic_plan') { // Basic plan price ID
+          newPlan = 'basic';
         }
       }
 
@@ -204,7 +225,7 @@ export const subscriptionService = {
 
   // Kullanıcının plan bilgilerini getir
   async getPlanInfo(): Promise<{
-    currentPlan: 'free' | 'pro';
+    currentPlan: 'free' | 'basic' | 'pro';
     automationsLimit: number;
     automationsUsed: number;
     automationsRemaining: number;
@@ -212,6 +233,7 @@ export const subscriptionService = {
     aiMessagesUsed: number;
     aiMessagesRemaining: number;
     isPro: boolean;
+    isBasic: boolean;
     subscriptionStatus?: string;
   }> {
     try {
@@ -238,7 +260,7 @@ export const subscriptionService = {
         : profile.automations_used;
 
       return {
-        currentPlan: profile.plan === 'custom' ? 'free' : profile.plan,
+        currentPlan: profile.plan,
         automationsLimit: profile.automations_limit,
         automationsUsed: currentUsage,
         automationsRemaining: profile.automations_limit - currentUsage,
@@ -246,6 +268,7 @@ export const subscriptionService = {
         aiMessagesUsed: profile.ai_messages_used,
         aiMessagesRemaining: profile.ai_messages_limit - profile.ai_messages_used,
         isPro: profile.plan === 'pro',
+        isBasic: profile.plan === 'basic',
         subscriptionStatus: subscription?.subscription_status
       };
     } catch (error) {
@@ -258,7 +281,8 @@ export const subscriptionService = {
         aiMessagesLimit: 0,
         aiMessagesUsed: 0,
         aiMessagesRemaining: 0,
-        isPro: false
+        isPro: false,
+        isBasic: false
       };
     }
   }

@@ -9,7 +9,7 @@ import SuccessPage from './components/SuccessPage';
 import EmailConfirmationPage from './components/Auth/EmailConfirmationPage';
 import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
-import AdminDashboard from './components/Admin/AdminDashboard';
+import AdminMain from './components/Admin/AdminMain';
 import AdminLogin from './components/Admin/AdminLogin';
 import BlogPage from './components/BlogPage';
 import SupabaseTest from './components/SupabaseTest';
@@ -33,7 +33,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard onNavigate={() => {}} />} />
+              <Route path="/admin" element={<AdminMain />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/test" element={<SupabaseTest />} />
               {/* Auth callback route - Email confirmation sonrası */}

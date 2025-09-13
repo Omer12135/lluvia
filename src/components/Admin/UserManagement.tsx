@@ -3,24 +3,14 @@ import { motion } from 'framer-motion';
 import { 
   Users, 
   Mail, 
-  Calendar, 
-  Shield, 
   Edit, 
   Trash2, 
-  Eye, 
-  EyeOff,
   Search,
-  Filter,
   Download,
   RefreshCw,
-  Plus,
-  Lock,
-  Key,
   CheckCircle,
   XCircle,
   AlertTriangle,
-  MoreVertical,
-  Phone,
   Globe,
   Crown,
   UserCheck,
@@ -31,13 +21,11 @@ import {
 } from 'lucide-react';
 import { userService, Database } from '../../lib/supabase';
 
-type User = Database['public']['Tables']['user_profiles']['Row'];
+type User = Database['public']['Tables']['user_profiles']['Row'] & {
+  plan: 'free' | 'basic' | 'pro' | 'custom';
+};
 
-interface UserManagementProps {
-  onNavigate: (section: string) => void;
-}
-
-const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
+const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,17 +33,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
   const [filterPlan, setFilterPlan] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterProvider, setFilterProvider] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('created_at');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy] = useState<string>('created_at');
+  const [sortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetCode, setResetCode] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-  const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -102,19 +83,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
       }
     });
 
-  const handleUserUpdate = async (userId: string, updates: Partial<User>) => {
-    try {
-      const updatedUser = await userService.updateUser(userId, updates);
-      setUsers(prev => prev.map(user => 
-        user.user_id === userId ? updatedUser : user
-      ));
-      setShowUserModal(false);
-      setEditingUser(null);
-    } catch (err) {
-      console.error('Error updating user:', err);
-      setError('Kullanıcı güncellenirken hata oluştu');
-    }
-  };
 
   const handleUserDelete = async (userId: string) => {
     if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
@@ -154,10 +122,56 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
     }
   };
 
+  const handlePlanChange = async (userId: string, newPlan: 'free' | 'basic' | 'custom' | 'pro') => {
+    try {
+      let automationsLimit = 1;
+      let aiMessagesLimit = 0;
+
+      // Plan'a göre limitleri belirle
+      switch (newPlan) {
+        case 'free':
+          automationsLimit = 1;
+          aiMessagesLimit = 0;
+          break;
+        case 'basic':
+          automationsLimit = 10;
+          aiMessagesLimit = 100;
+          break;
+        case 'custom': // Custom plan için özel limitler
+          automationsLimit = 25;
+          aiMessagesLimit = 500;
+          break;
+        case 'pro':
+          automationsLimit = 50;
+          aiMessagesLimit = 1000;
+          break;
+      }
+
+      const updates = {
+        plan: newPlan,
+        automations_limit: automationsLimit,
+        ai_messages_limit: aiMessagesLimit,
+        updated_at: new Date().toISOString()
+      };
+
+      await userService.updateUser(userId, updates);
+      setUsers(prev => prev.map(user => 
+        user.user_id === userId ? { ...user, ...updates } : user
+      ));
+      
+      console.log(`User ${userId} plan updated to ${newPlan} with ${automationsLimit} automations limit`);
+    } catch (err) {
+      console.error('Error updating user plan:', err);
+      setError('Kullanıcı planı güncellenirken hata oluştu');
+    }
+  };
+
   const getPlanIcon = (plan: string) => {
     switch (plan) {
       case 'pro':
         return <Crown className="w-4 h-4 text-yellow-500" />;
+      case 'basic':
+        return <Star className="w-4 h-4 text-blue-500" />;
       case 'custom':
         return <Star className="w-4 h-4 text-purple-500" />;
       default:
@@ -286,6 +300,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
           >
                 <option value="all">Tüm Planlar</option>
             <option value="free">Free</option>
+            <option value="basic">Basic</option>
             <option value="pro">Pro</option>
             <option value="custom">Custom</option>
           </select>
@@ -377,7 +392,16 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           {getPlanIcon(user.plan)}
-                          <span className="text-white capitalize">{user.plan}</span>
+                          <select
+                            value={user.plan}
+                            onChange={(e) => handlePlanChange(user.user_id, e.target.value as 'free' | 'basic' | 'custom' | 'pro')}
+                            className="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="free">Free (1 otomasyon)</option>
+                            <option value="basic">Basic (10 otomasyon)</option>
+                            <option value="pro">Pro (50 otomasyon)</option>
+                            <option value="custom">Custom (25 otomasyon)</option>
+                          </select>
                         </div>
                   </td>
                       <td className="px-6 py-4">
@@ -413,7 +437,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
                       <button
                         onClick={() => {
                           setSelectedUser(user);
-                              setEditingUser(user);
                           setShowUserModal(true);
                         }}
                             className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
@@ -460,8 +483,122 @@ const UserManagement: React.FC<UserManagementProps> = ({ onNavigate }) => {
         {/* User Count */}
         <div className="mt-6 text-center text-gray-400">
           Toplam {filteredUsers.length} kullanıcı gösteriliyor
+        </div>
+      </motion.div>
+
+      {/* User Detail Modal */}
+      {showUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gradient-to-br from-purple-900/90 to-slate-900/90 backdrop-blur-xl rounded-2xl border border-purple-500/30 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Kullanıcı Detayları</h2>
+              <button
+                onClick={() => setShowUserModal(false)}
+                className="p-2 text-gray-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* User Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">İsim</label>
+                  <div className="text-white">{selectedUser.name}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                  <div className="text-white">{selectedUser.email}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Durum</label>
+                  <div className="text-white capitalize">{selectedUser.status}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Auth Provider</label>
+                  <div className="text-white">{selectedUser.auth_provider}</div>
+                </div>
+              </div>
+
+              {/* Plan Management */}
+              <div className="border-t border-white/20 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Plan Yönetimi</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Mevcut Plan</label>
+                    <div className="flex items-center space-x-2">
+                      {getPlanIcon(selectedUser.plan)}
+                      <span className="text-white capitalize">{selectedUser.plan}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Plan Değiştir</label>
+                    <select
+                      value={selectedUser.plan}
+                      onChange={(e) => {
+                        const newPlan = e.target.value as 'free' | 'basic' | 'custom' | 'pro';
+                        handlePlanChange(selectedUser.user_id, newPlan);
+                        setSelectedUser({ ...selectedUser, plan: newPlan });
+                      }}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="free">Free Plan (1 otomasyon)</option>
+                      <option value="basic">Basic Plan (10 otomasyon)</option>
+                      <option value="pro">Pro Plan (50 otomasyon)</option>
+                      <option value="custom">Custom Plan (25 otomasyon)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Limits Info */}
+              <div className="border-t border-white/20 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Limit Bilgileri</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">Otomasyon Limiti</div>
+                    <div className="text-2xl font-bold text-white">{selectedUser.automations_limit}</div>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">Kullanılan Otomasyon</div>
+                    <div className="text-2xl font-bold text-white">{selectedUser.automations_used}</div>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <div className="text-sm text-gray-400 mb-1">AI Mesaj Limiti</div>
+                    <div className="text-2xl font-bold text-white">{selectedUser.ai_messages_limit}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-4 pt-6 border-t border-white/20">
+                <button
+                  onClick={() => setShowUserModal(false)}
+                  className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold rounded-xl transition-all duration-300"
+                >
+                  Kapat
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
+                      handleUserDelete(selectedUser.user_id);
+                      setShowUserModal(false);
+                    }
+                  }}
+                  className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-all duration-300"
+                >
+                  Kullanıcıyı Sil
+                </button>
+              </div>
             </div>
           </motion.div>
+        </div>
+      )}
     </div>
   );
 };

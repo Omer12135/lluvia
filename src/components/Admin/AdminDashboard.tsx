@@ -11,21 +11,18 @@ import {
   BarChart3,
   RefreshCw,
   AlertCircle,
-  CheckCircle,
-  Clock,
   UserCheck,
-  UserX,
   Crown,
-  Star,
   Globe,
   Mail,
-  Github,
-  Smartphone,
   Lock,
-  Eye
+  ArrowLeft
 } from 'lucide-react';
 import { userService, automationService } from '../../lib/supabase';
 import AdminBlogManager from './AdminBlogManager';
+import UserManagement from './UserManagement';
+import WebhookManager from './WebhookManager';
+import SubscriptionViewer from './SubscriptionViewer';
 
 interface SystemStats {
   totalUsers: number;
@@ -46,11 +43,7 @@ interface SystemStats {
   systemUptime: number;
 }
 
-interface AdminDashboardProps {
-  onNavigate: (section: string) => void;
-}
-
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+const AdminDashboard: React.FC = () => {
   const [currentSection, setCurrentSection] = useState<string>('dashboard');
   const [stats, setStats] = useState<SystemStats>({
     totalUsers: 0,
@@ -132,7 +125,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
       purple: 'bg-purple-500',
       orange: 'bg-orange-500',
       red: 'bg-red-500',
-      indigo: 'bg-indigo-500'
+      indigo: 'bg-indigo-500',
+      emerald: 'bg-emerald-500'
     };
 
   return (
@@ -201,9 +195,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
     );
   };
 
-  // Blog yönetimi sekmesini render et
-  if (currentSection === 'blog') {
-    console.log('Blog section rendering...');
+  // Section renderer
+  const renderSection = () => {
+    switch (currentSection) {
+      case 'users':
+        return <UserManagement />;
+      case 'blog':
+        return <AdminBlogManager />;
+      case 'webhooks':
+        return <WebhookManager />;
+      case 'subscriptions':
+        return <SubscriptionViewer />;
+      case 'automations':
+        return (
+          <div className="bg-white/10 p-6 rounded-lg">
+            <h2 className="text-2xl font-bold text-white mb-4">Otomasyon Yönetimi</h2>
+            <p className="text-gray-300">Otomasyon yönetimi sayfası yakında eklenecek...</p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="bg-white/10 p-6 rounded-lg">
+            <h2 className="text-2xl font-bold text-white mb-4">Sistem Ayarları</h2>
+            <p className="text-gray-300">Sistem ayarları sayfası yakında eklenecek...</p>
+          </div>
+        );
+      case 'security':
+        return (
+          <div className="bg-white/10 p-6 rounded-lg">
+            <h2 className="text-2xl font-bold text-white mb-4">Güvenlik Ayarları</h2>
+            <p className="text-gray-300">Güvenlik ayarları sayfası yakında eklenecek...</p>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Section renderer
+  if (currentSection !== 'dashboard') {
     return (
       <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
@@ -212,15 +242,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
               onClick={() => setCurrentSection('dashboard')}
               className="flex items-center space-x-2 text-white hover:text-purple-300 transition-colors mb-4"
             >
-              <BarChart3 className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4" />
               <span>← Dashboard'a Dön</span>
             </button>
           </div>
-          <div className="bg-white/10 p-6 rounded-lg">
-            <h2 className="text-2xl font-bold text-white mb-4">Blog Yönetimi</h2>
-            <p className="text-gray-300 mb-4">Blog yönetimi sayfası yükleniyor...</p>
-            <AdminBlogManager />
-          </div>
+          {renderSection()}
         </div>
       </div>
     );
@@ -332,14 +358,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
               description="Kullanıcıları görüntüle, düzenle ve yönet"
               icon={Users}
               color="blue"
-              onClick={() => onNavigate('users')}
+              onClick={() => setCurrentSection('users')}
             />
             <QuickActionCard
               title="Otomasyon Yönetimi"
               description="Otomasyon isteklerini ve durumlarını takip et"
               icon={Zap}
               color="purple"
-              onClick={() => onNavigate('automations')}
+              onClick={() => setCurrentSection('automations')}
             />
             <QuickActionCard
               title="Blog Yönetimi"
@@ -353,21 +379,42 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
               description="Platform ayarlarını ve konfigürasyonları yönet"
               icon={Settings}
               color="orange"
-              onClick={() => onNavigate('settings')}
+              onClick={() => setCurrentSection('settings')}
             />
             <QuickActionCard
               title="Webhook Yönetimi"
               description="Webhook bağlantılarını test et ve yönet"
               icon={Globe}
               color="indigo"
-              onClick={() => onNavigate('webhooks')}
+              onClick={() => setCurrentSection('webhooks')}
+            />
+            <QuickActionCard
+              title="Stripe Subscriptions"
+              description="Stripe subscription kayıtlarını görüntüle"
+              icon={DollarSign}
+              color="green"
+              onClick={() => setCurrentSection('subscriptions')}
+            />
+            <QuickActionCard
+              title="Stripe Ödemeleri"
+              description="Stripe ödeme kayıtlarını ve kullanıcı kayıtlarını yönet"
+              icon={DollarSign}
+              color="emerald"
+              onClick={() => setCurrentSection('stripe-payments')}
+            />
+            <QuickActionCard
+              title="Webhook Tester"
+              description="Stripe webhook işlevselliğini test et"
+              icon={Activity}
+              color="orange"
+              onClick={() => setCurrentSection('webhook-tester')}
             />
             <QuickActionCard
               title="Güvenlik Ayarları"
               description="Güvenlik politikalarını ve erişim kontrollerini yönet"
               icon={Lock}
               color="red"
-              onClick={() => onNavigate('security')}
+              onClick={() => setCurrentSection('security')}
             />
                       </div>
                     </div>

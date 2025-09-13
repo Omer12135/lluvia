@@ -17,6 +17,14 @@ export const stripeProducts: StripeProduct[] = [
     mode: 'payment'
   },
   {
+    id: 'prod_T2eC5v6BDh4AFg',
+    priceId: 'price_basic_plan',
+    name: 'Basic Plan',
+    description: 'Basic Workflow - 10 automations for small projects',
+    price: 1.00,
+    mode: 'payment'
+  },
+  {
     id: 'prod_SvYxlNBSq72PNA',
     priceId: 'price_1Rs2mPK4TeoPEcnVVGOmeNcs',
     name: 'Pro Plan',

@@ -8,7 +8,7 @@ export interface UserProfile {
   user_id: string;
   email: string;
   name: string;
-  plan: 'free' | 'pro';
+  plan: 'free' | 'basic' | 'pro';
   automations_used: number;
   automations_limit: number;
   ai_messages_used: number;
@@ -64,7 +64,7 @@ interface AuthContextType {
   }>;
   incrementAutomationUsage: () => Promise<boolean>;
   getPlanInfo: () => Promise<{
-    currentPlan: 'free' | 'pro';
+    currentPlan: 'free' | 'basic' | 'pro';
     automationsLimit: number;
     automationsUsed: number;
     automationsRemaining: number;
@@ -72,6 +72,7 @@ interface AuthContextType {
     aiMessagesUsed: number;
     aiMessagesRemaining: number;
     isPro: boolean;
+    isBasic: boolean;
     subscriptionStatus?: string;
   }>;
 }
@@ -501,7 +502,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name: testUser.name,
           plan: 'free',
           automations_used: 0,
-          automations_limit: 5,
+          automations_limit: 1,
           ai_messages_used: 0,
           ai_messages_limit: 100,
           current_month_automations_used: 0,

@@ -5,13 +5,9 @@ import {
   Activity, 
   Zap, 
   Clock, 
-  Star, 
-  Users, 
   Target,
   BarChart3,
   Plus,
-  Play,
-  Settings,
   BookOpen
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +22,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
   const [stats, setStats] = useState([
     { title: 'Total Automations', value: '0', icon: Zap, color: 'from-blue-500 to-cyan-500' },
     { title: 'Active Workflows', value: '0', icon: Activity, color: 'from-green-500 to-emerald-500' },
-    { title: 'Success Rate', value: '0%', icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
+    { title: 'Remaining Credits', value: '0', icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
     { title: 'Time Saved', value: '0h', icon: Clock, color: 'from-orange-500 to-red-500' }
   ]);
 
@@ -35,13 +31,13 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
     if (userProfile) {
       const totalAutomations = userProfile.automations_used || 0;
       const activeWorkflows = Math.floor(totalAutomations * 0.8); // 80% of total automations are active
-      const successRate = totalAutomations > 0 ? '98.5%' : '0%';
+      const remainingCredits = Math.max(0, (userProfile.automations_limit || 0) - totalAutomations);
       const timeSaved = totalAutomations > 0 ? `${Math.floor(totalAutomations * 2)}h` : '0h'; // 2 hours per automation
 
       setStats([
         { title: 'Total Automations', value: totalAutomations.toString(), icon: Zap, color: 'from-blue-500 to-cyan-500' },
         { title: 'Active Workflows', value: activeWorkflows.toString(), icon: Activity, color: 'from-green-500 to-emerald-500' },
-        { title: 'Success Rate', value: successRate, icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
+        { title: 'Remaining Credits', value: remainingCredits.toString(), icon: TrendingUp, color: 'from-purple-500 to-pink-500' },
         { title: 'Time Saved', value: timeSaved, icon: Clock, color: 'from-orange-500 to-red-500' }
       ]);
     }
@@ -142,7 +138,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
             Quick Actions
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((action, index) => {
+            {quickActions.map((action) => {
               const Icon = action.icon;
               return (
                 <motion.button
@@ -250,8 +246,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
                    <td className="py-3 px-4 text-green-400 font-medium">98.5%</td>
                    <td className="py-3 px-4 text-blue-400 font-medium">4.1s</td>
                    <td className="py-3 px-4">
-                     <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                     <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300 relative">
                        Make
+                       <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-xs px-1 rounded-full font-bold">
+                         Soon
+                       </span>
                      </span>
                    </td>
                  </motion.tr>
@@ -270,8 +269,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
                        <span className="px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded text-xs text-blue-300">
                          N8N
                        </span>
-                       <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                       <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300 relative">
                          Make
+                         <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-xs px-1 rounded-full font-bold">
+                           Soon
+                         </span>
                        </span>
                      </div>
                    </td>
@@ -291,8 +293,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onTabChange }) =>
                        <span className="px-2 py-1 bg-blue-500/20 border border-blue-500/30 rounded text-xs text-blue-300">
                          N8N
                        </span>
-                       <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300">
+                       <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-300 relative">
                          Make
+                         <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-xs px-1 rounded-full font-bold">
+                           Soon
+                         </span>
                        </span>
                      </div>
                    </td>

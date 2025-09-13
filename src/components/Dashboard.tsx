@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   User, 
@@ -18,7 +18,35 @@ import { useAuth } from '../context/AuthContext';
 
 const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const { logout } = useAuth();
+  const { logout, updateProfile } = useAuth();
+
+  // Handle URL parameters for successful payments
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const upgrade = urlParams.get('upgrade');
+    const plan = urlParams.get('plan');
+    const email = urlParams.get('email');
+
+    if (upgrade === 'success' && plan && email) {
+      // Handle successful payment
+      if (plan === 'basic') {
+        updateProfile({
+          plan: 'basic',
+          automations_limit: 10,
+          ai_messages_limit: 100
+        });
+      } else if (plan === 'pro') {
+        updateProfile({
+          plan: 'pro',
+          automations_limit: 50,
+          ai_messages_limit: 1000
+        });
+      }
+
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [updateProfile]);
 
   const tabs = [
     { id: 'overview', name: 'Overview', icon: Home },

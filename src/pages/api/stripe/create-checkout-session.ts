@@ -8,85 +8,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { plan = 'pro' } = req.body;
+    const { plan = 'basic', email, priceId, successUrl, cancelUrl } = req.body;
 
-    // Get the Pro Plan product
-    const proProduct = stripeProducts.find(p => p.name === 'Pro Plan');
-    if (!proProduct) {
-      return res.status(400).json({ error: 'Pro Plan not found' });
+    // Email validation
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Get user from Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-
-    // Verify user with Supabase
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
-    if (userError || !user) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Check if user already has Pro Plan
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('plan')
-      .eq('user_id', user.id)
-      .single();
-
-    if (profile?.plan === 'pro') {
-      return res.status(400).json({ error: 'User already has Pro Plan' });
-    }
-
-    // Create or get Stripe customer
-    let customerId;
-    const { data: existingCustomer } = await supabase
-      .from('stripe_customers')
-      .select('customer_id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (existingCustomer) {
-      customerId = existingCustomer.customer_id;
+    // Get the product based on plan
+    let product;
+    if (plan === 'basic') {
+      product = stripeProducts.find(p => p.name === 'Basic Plan');
     } else {
-      // Create new Stripe customer via Edge Function
-      const { data: customerData, error: customerError } = await supabase.functions.invoke('stripe-checkout', {
-        body: {
-          price_id: proProduct.priceId,
-          mode: 'subscription',
-          success_url: `${req.headers.origin}/dashboard?upgrade=success`,
-          cancel_url: `${req.headers.origin}/dashboard?upgrade=cancelled`
-        },
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (customerError) {
-        console.error('Error creating customer:', customerError);
-        return res.status(500).json({ error: 'Failed to create customer' });
-      }
-
-      return res.status(200).json({
-        sessionId: customerData.sessionId,
-        url: customerData.url
-      });
+      product = stripeProducts.find(p => p.name === 'Pro Plan');
+    }
+    
+    if (!product) {
+      return res.status(400).json({ error: `${plan} Plan not found` });
     }
 
-    // Create checkout session for existing customer
+    // Check if email is already in use by another user
+    const { data: existingUser } = await supabase
+      .from('user_profiles')
+      .select('user_id, plan')
+      .eq('email', email)
+      .single();
+
+    if (existingUser && existingUser.plan === plan) {
+      return res.status(400).json({ error: `Bu email adresi zaten ${plan} planına sahip` });
+    }
+
+    // Create Stripe checkout session via Edge Function
     const { data: sessionData, error: sessionError } = await supabase.functions.invoke('stripe-checkout', {
       body: {
-        price_id: proProduct.priceId,
-        mode: 'subscription',
-        success_url: `${req.headers.origin}/dashboard?upgrade=success`,
-        cancel_url: `${req.headers.origin}/dashboard?upgrade=cancelled`
-      },
-      headers: {
-        Authorization: `Bearer ${token}`
+        price_id: priceId || product.priceId,
+        mode: product.mode,
+        customer_email: email,
+        success_url: successUrl || `${req.headers.origin}/success?plan=${plan}&email=${encodeURIComponent(email)}`,
+        cancel_url: cancelUrl || `${req.headers.origin}/pricing?cancelled=true`
       }
     });
 

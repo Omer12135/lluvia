@@ -465,48 +465,63 @@ const AutomationCreator: React.FC = () => {
                 {platforms.map((platform) => {
                   const Icon = platform.icon;
                   const isSelected = selectedPlatform === platform.id;
+                  const isMake = platform.id === 'make';
                   
                   return (
-                    <motion.button
-                      key={platform.id}
-                      onClick={() => {
-                        setSelectedPlatform(platform.id);
-                        // Reset trigger and actions when platform changes
-                        setSelectedTrigger(null);
-                        setSelectedActions([]);
-                        setSelectedCategory('All');
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`p-4 rounded-xl border-2 transition-all duration-200 group ${
-                        isSelected
-                          ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
-                          : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                          <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                    <div key={platform.id} className="relative">
+                      <motion.button
+                        onClick={() => {
+                          if (!isMake) {
+                            setSelectedPlatform(platform.id);
+                            // Reset trigger and actions when platform changes
+                            setSelectedTrigger(null);
+                            setSelectedActions([]);
+                            setSelectedCategory('All');
+                          }
+                        }}
+                        whileHover={{ scale: isMake ? 1 : 1.02 }}
+                        whileTap={{ scale: isMake ? 1 : 0.98 }}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 group relative ${
+                          isSelected
+                            ? `border-transparent bg-gradient-to-r ${platform.color} shadow-lg`
+                            : `border-white/20 bg-white/5 hover:bg-white/10 hover:${platform.borderColor}`
+                        } ${isMake ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`p-2 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                            <Icon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <h3 className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
+                              {platform.name}
+                            </h3>
+                            <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
+                              {platform.description}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="p-1 bg-white/20 rounded-full"
+                            >
+                              <CheckCircle className="w-5 h-5 text-white" />
+                            </motion.div>
+                          )}
                         </div>
-                        <div className="flex-1 text-left">
-                          <h3 className={`font-semibold ${isSelected ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>
-                            {platform.name}
-                          </h3>
-                          <p className={`text-sm ${isSelected ? 'text-white/80' : 'text-gray-400 group-hover:text-white/80'}`}>
-                            {platform.description}
-                          </p>
-                        </div>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="p-1 bg-white/20 rounded-full"
-                          >
-                            <CheckCircle className="w-5 h-5 text-white" />
-                          </motion.div>
+                        
+                        {/* Make platform overlay */}
+                        {isMake && (
+                          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold">
+                                Soon
+                              </div>
+                            </div>
+                          </div>
                         )}
-                      </div>
-                    </motion.button>
+                      </motion.button>
+                    </div>
                   );
                 })}
               </div>

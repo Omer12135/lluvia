@@ -1,4 +1,3 @@
-import { supabase } from '../lib/supabase';
 
 export interface AutomationWebhookData {
   automationName: string;
@@ -22,7 +21,8 @@ export const webhookService = {
   // Automation verilerini webhook'a gönder
   async sendAutomationData(data: AutomationWebhookData): Promise<boolean> {
     try {
-      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL || 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia';
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,8 @@ export const webhookService = {
   // Test webhook bağlantısı
   async testWebhook(): Promise<boolean> {
     try {
-      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL || 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia';
+      const response = await fetch(webhookUrl, {
         method: 'GET',
       });
 
@@ -94,7 +95,8 @@ export const webhookService = {
         test: true
       };
 
-      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL || 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia';
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +120,8 @@ export const webhookService = {
   // Webhook durumunu kontrol et
   async getWebhookStatus(): Promise<{ connected: boolean; lastTest?: string }> {
     try {
-      const response = await fetch('https://lluviaomer.app.n8n.cloud/webhook/lluvia', {
+      const webhookUrl = import.meta.env.VITE_WEBHOOK_URL || 'https://lluviaomer.app.n8n.cloud/webhook-test/lluvia';
+      const response = await fetch(webhookUrl, {
         method: 'GET',
       });
 
